@@ -24,7 +24,7 @@ Business Plan Market Analysis
 Business Plan Marketing Pan
 
 ### Sprint 2 (Mar 13)
-Business:
+#### Business:
 Business Plan Solution
 Business Plan Operational plan
 Business Plan costs and financing
