@@ -1,1 +1,2 @@
-# pennydrop
+# PennyDrop
+This is our README. Yay
