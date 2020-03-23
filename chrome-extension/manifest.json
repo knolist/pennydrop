@@ -15,7 +15,8 @@
     "default_popup": "html/popup.html"
   },
   "background": {
-    "scripts": ["js/background.js"]
+    "page": "html/background.html"
   },
-  "permissions": ["tabs"]
+  "permissions": ["tabs"],
+  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://*.firebase.com https://apis.google.com https://www.googleapis.com; object-src 'self'"
 }
