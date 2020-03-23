@@ -1,3 +1,12 @@
+resetButtonClicked = () => {
+    chrome.runtime.sendMessage({command: "reset"});
+    chrome.tabs.reload();
+}
+
+viewFullWebsiteButtonClicked = () => {
+    chrome.tabs.create({url: 'http://nolist.com'})
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
     // Add the urls to the page
@@ -8,11 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.appendChild(div)
     });
 
-    // Reset button functionality
-    document.getElementById('reset-button').addEventListener('click', onclick, false);
-    function onclick () {
-        chrome.runtime.sendMessage({command: "reset"});
-        chrome.tabs.reload();
-    }
-
+    // Button Listeners
+    document.getElementById('reset-button').addEventListener('click', resetButtonClicked, false);
+    document.getElementById('full-website-button').addEventListener('click', viewFullWebsiteButtonClicked, false);
 }, false);

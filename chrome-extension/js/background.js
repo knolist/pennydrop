@@ -7,7 +7,3 @@ chrome.runtime.onMessage.addListener(function(request) {
         window.urls = {};
     }
 });
-
-chrome.browserAction.onClicked.addListener(function() {
-    chrome.tabs.create({url: '../html/popup.html'})
-});
