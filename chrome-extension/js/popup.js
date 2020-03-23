@@ -4,7 +4,7 @@ resetButtonClicked = () => {
 }
 
 viewFullWebsiteButtonClicked = () => {
-    chrome.tabs.create({url: 'http://nolist.com'})
+    chrome.tabs.create({url: '../html/Knolist.com.html'})
 }
 
 tryToLogin = () => {
