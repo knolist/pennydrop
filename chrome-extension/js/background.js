@@ -40,11 +40,22 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
                 ...data["response"],
                 prevURL: message.prevURL
               }
+              firebase.database().ref('sitesVisited/' + user.uid).push(websiteItem);
+              if (websiteItem['prevURL'] != "") {
+                  // Set the next pointer for the prev url
+                  firebase.database().ref('sitesVisited/' + user.uid).orderByChild("source").equalTo(websiteItem['prevURL']).limitToFirst(1).once('value', function(snapshot) {
+                    snapshot.forEach(function(childSnapshot) {
+                      var childKey = childSnapshot.key;
+                      //var childData = childSnapshot.val();
+                      firebase.database().ref('sitesVisited/' + user.uid).child(childKey).child("nextURLs").push(websiteItem["source"]);
+                    });
+                  });
+              }
             }
             else {
-              websiteItem = data["error"]
+              alert(JSON.stringify(data["error"]))
             }
-            firebase.database().ref('sitesVisited/' + user.uid).push(websiteItem);
+
         });
     }
     else if (message.command == "reset") {
