@@ -1,0 +1,22 @@
+{
+  "name": "Knolist",
+  "description": "This is the PennyFlop extension. Yeet.",
+  "version": "0.1",
+  "manifest_version": 2,
+  "icons": { "16": "images/icon16.png", "48": "images/icon48.png", "128": "images/icon128.png" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"]
+    }
+  ],
+  "browser_action": {
+    "default_title": "Knolist",
+    "default_popup": "html/popup.html"
+  },
+  "background": {
+    "page": "html/background.html"
+  },
+  "permissions": ["tabs", "storage"],
+  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://*.firebase.com https://apis.google.com https://www.googleapis.com; object-src 'self'"
+}
