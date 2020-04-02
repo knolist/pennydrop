@@ -36,7 +36,10 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
         contextExtractionURL = "http://boilerpipe-web.appspot.com/extract?output=json&url=" + encodeURIComponent(message.url);
         $.get(contextExtractionURL, function( data ) {
             if (data["status"] == "success") {
-              websiteItem = data["response"]
+              websiteItem = {
+                ...data["response"],
+                prevURL: message.prevURL
+              }
             }
             else {
               websiteItem = data["error"]
