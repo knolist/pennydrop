@@ -1,6 +1,5 @@
 resetButtonClicked = () => {
     chrome.runtime.sendMessage({command: "reset"});
-    //chrome.tabs.reload();
 }
 
 viewFullWebsiteButtonClicked = () => {
@@ -29,8 +28,8 @@ createListenerToListSitesVisited = (userId) => {
     });
 }
 
-createClickListeners = () => {
-    // Add the urls to the page
+createListeners = () => {
+    // Check if logged in
     chrome.runtime.sendMessage({type: "knolistPopupLoaded"}, function (response) {
         if (response.type == "loggedIn") {
             document.querySelector("#loginSection").style.display = "none";
@@ -47,7 +46,7 @@ createClickListeners = () => {
     document.getElementById('full-website-button').addEventListener('click', viewFullWebsiteButtonClicked, false);
 }
 
-document.addEventListener('DOMContentLoaded', createClickListeners, false);
+document.addEventListener('DOMContentLoaded', createListeners, false);
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
