@@ -29,6 +29,20 @@ resetCurProjectInGraph = (graph) => {
   graph[project] = {}
 }
 
+deleteProjectFromGraph = (graph, projectName) => {
+  delete graph[projectName];
+}
+
+// Makes new project and sets current project to this new project
+createNewProjectInGraph = (graph, projectName) => {
+  graph[projectName] = {}
+  graph["curProject"] = projectName;
+}
+
+setCurrentProjectInGraph = (graph, projectName) => {
+  graph["curProject"] = projectName;
+}
+
 getNextURLsFromURL = (graph, url) => {
   project = graph["curProject"];
   return graph[project][url]["nextURLs"];
