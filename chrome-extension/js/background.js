@@ -33,7 +33,16 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
         });
     }
     else if (message.url != undefined && user) {
-        firebase.database().ref('sitesVisited/' + user.uid).push(message.url);
+        contextExtractionURL = "http://boilerpipe-web.appspot.com/extract?output=json&url=" + encodeURIComponent(message.url);
+        $.get(contextExtractionURL, function( data ) {
+            if (data["status"] == "success") {
+              websiteItem = data["response"]
+            }
+            else {
+              websiteItem = data["error"]
+            }
+            firebase.database().ref('sitesVisited/' + user.uid).push(websiteItem);
+        });
     }
     else if (message.command == "reset") {
         firebase.database().ref('sitesVisited/').child(user.uid).remove();
