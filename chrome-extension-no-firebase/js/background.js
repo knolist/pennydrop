@@ -5,7 +5,7 @@ trackBrowsing = false;
 
 chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
   if (message.url != undefined && trackBrowsing) {
-    contextExtractionURL = "http://boilerpipe-web.appspot.com/extract?output=json&url=" + encodeURIComponent(message.url);
+    contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
     $.get(contextExtractionURL, (data) => {
         if (data["status"] == "success") {
           updateItemInGraph(data["response"], message.prevURL, itemGraph);
