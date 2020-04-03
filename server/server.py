@@ -6,7 +6,7 @@ import json
 app = Flask(__name__)
 
 def getTitle(html):
-    temp = html.decode("utf-8").split("<title", 1)[1]
+    temp = html.decode("utf-8", errors='ignore').split("<title", 1)[1]
     temp = temp.split(">", 1)[1]
     title = temp.split("</title>", 1)[0]
     return title
