@@ -1,9 +1,10 @@
 // All the websites as a graph
 itemGraph = createNewGraph();
 getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
+trackBrowsing = false;
 
 chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
-  if (message.url != undefined) {
+  if (message.url != undefined && trackBrowsing) {
     contextExtractionURL = "http://boilerpipe-web.appspot.com/extract?output=json&url=" + encodeURIComponent(message.url);
     $.get(contextExtractionURL, (data) => {
         if (data["status"] == "success") {
@@ -18,5 +19,13 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
   else if (message.command == "reset") {
     resetCurProjectInGraph(itemGraph);
     saveGraphToDisk(itemGraph);
+  }
+  else if (message.command == "start" && message.project != undefined) {
+    trackBrowsing = true;
+    setCurrentProjectInGraph(itemGraph, message.project);
+    saveGraphToDisk(itemGraph);
+  }
+  else if (message.command == "stop") {
+    trackBrowsing = false;
   }
 });

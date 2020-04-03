@@ -6,6 +6,14 @@ viewFullWebsiteButtonClicked = () => {
     chrome.tabs.create({url: '../html/Knolist.com.html'})
 }
 
+startTrackingButtonClicked = () => {
+  chrome.runtime.sendMessage({command: "start", project: "default"});
+}
+
+stopTrackingButtonClicked = () => {
+  chrome.runtime.sendMessage({command: "stop"});
+}
+
 createListenerToListSitesVisited = (userId) => {
     console.log(firebase.database())
     var visitedSitesDatabase = firebase.database().ref('sitesVisited/' + userId);
@@ -24,8 +32,10 @@ createListenerToListSitesVisited = (userId) => {
 
 createListeners = () => {
     // Button Listeners
-    document.getElementById('reset-button').addEventListener('click', resetButtonClicked, false);
-    document.getElementById('full-website-button').addEventListener('click', viewFullWebsiteButtonClicked, false);
+    $( "#reset-button" ).click(resetButtonClicked);
+    $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
+    $( "#start-browser-tracking-button" ).click(startTrackingButtonClicked);
+    $( "#stop-browser-tracking-button" ).click(stopTrackingButtonClicked);
 }
 
 document.addEventListener('DOMContentLoaded', createListeners, false);
