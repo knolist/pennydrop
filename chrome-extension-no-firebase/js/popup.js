@@ -30,12 +30,21 @@ createListenerToListSitesVisited = (userId) => {
     });
 }
 
+findSomethingSimilarButtonClicked = () => {
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    chrome.tabs.sendMessage(tabs[0].id, {command: "find_similar"}, function(response) {
+      alert(response)
+    });
+  });
+}
+
 createListeners = () => {
     // Button Listeners
     $( "#reset-button" ).click(resetButtonClicked);
     $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
     $( "#start-browser-tracking-button" ).click(startTrackingButtonClicked);
     $( "#stop-browser-tracking-button" ).click(stopTrackingButtonClicked);
+    $( "#find-something-similar-button" ).click(findSomethingSimilarButtonClicked);
 }
 
 document.addEventListener('DOMContentLoaded', createListeners, false);
