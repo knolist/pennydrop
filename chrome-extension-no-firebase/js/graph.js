@@ -1,3 +1,5 @@
+// A collection of function to do on the graph
+
 const CUR_VERSION_NUM = 1
 createNewGraph = () => {
   return {
@@ -7,7 +9,18 @@ createNewGraph = () => {
   };
 }
 
-// A collection of function to do on the graph
+getContentFromGraph = (graph, exceptURL) => {
+  project = graph["curProject"];
+  graph = graph[project];
+  output = []
+  for (item in graph) {
+    if (item != exceptURL) {
+      output.push(graph[item]["content"]);
+    }
+  }
+  return output
+}
+
 updateItemInGraph = (item, previousURL, graph) => {
   project = graph["curProject"];
   graph = graph[project]
