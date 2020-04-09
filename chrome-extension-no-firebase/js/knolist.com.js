@@ -2,4 +2,8 @@
 itemGraph = createNewGraph();
 getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
 trackBrowsing = false; //default to not tracking
-console.log(itemGraph)
+
+
+setTimeout(function(){
+  $("#json").html(JSON.stringify(itemGraph, undefined, 2));
+}, 1000);
