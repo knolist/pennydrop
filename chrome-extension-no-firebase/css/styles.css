@@ -7,9 +7,9 @@ hr {
     width: 100%;
     height: 0.8px;
     background-color: black;
-    margin-top: 0px;
+    margin-top: 0;
     margin-bottom: 10px;
-    border-width: 0px;
+    border-width: 0;
     border-color: green;
 }
 
@@ -18,7 +18,6 @@ hr {
     left: 150px;
     width: 40px;
     height: 40px;
-    background: #555;
 }
 
 .header h2 {

@@ -1,6 +1,6 @@
 {
   "name": "Knolist",
-  "description": "This is the PennyFlop extension. Yeet.",
+  "description": "This is the Knolist extension.",
   "version": "0.1",
   "manifest_version": 2,
   "icons": { "16": "images/icon16.png", "48": "images/icon48.png", "128": "images/icon128.png" },

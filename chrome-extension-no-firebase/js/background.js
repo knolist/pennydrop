@@ -4,23 +4,23 @@ getGraphFromDisk(itemGraph); // This method updates the passed in graph variable
 trackBrowsing = false;
 
 chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
-  if (message.url != undefined && trackBrowsing) {
+  if (message.url !== undefined && trackBrowsing) {
     contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
     $.getJSON(contextExtractionURL, (item) => {
       updateItemInGraph(item, message.prevURL, itemGraph);
       saveGraphToDisk(itemGraph)
     });
   }
-  else if (message.command == "reset") {
+  else if (message.command === "reset") {
     resetCurProjectInGraph(itemGraph);
     saveGraphToDisk(itemGraph);
   }
-  else if (message.command == "start" && message.project != undefined) {
+  else if (message.command === "start" && message.project !== undefined) {
     trackBrowsing = true;
     setCurrentProjectInGraph(itemGraph, message.project);
     saveGraphToDisk(itemGraph);
   }
-  else if (message.command == "stop") {
+  else if (message.command === "stop") {
     trackBrowsing = false;
   }
 });
