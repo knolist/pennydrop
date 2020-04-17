@@ -5,8 +5,8 @@ trackBrowsing = false;
 
 chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
   if (message.url != undefined && trackBrowsing) {
-    contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
-    $.getJSON(contextExtractionURL, (item) => {
+    contentExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
+    $.getJSON(contentExtractionURL, (item) => {
       updateItemInGraph(item, message.prevURL, itemGraph);
       saveGraphToDisk(itemGraph)
     });
@@ -22,5 +22,15 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
   }
   else if (message.command == "stop") {
     trackBrowsing = false;
+  }
+  else if (message.command == "find_similar_msg") {
+    contents = getContentFromGraph(itemGraph, message.currentURL)
+    console.log("Starting search to answer question: " + message.selectedText)
+    contents.forEach(content => {
+      simarity_API_URL = "http://127.0.0.1:5000/bertSimilarity?question=" + encodeURIComponent(message.selectedText) + "&text=" + encodeURIComponent(content);
+      $.getJSON(simarity_API_URL, (result) => {
+        console.log(JSON.stringify(result))
+      });
+    });
   }
 });

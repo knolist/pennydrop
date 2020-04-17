@@ -32,8 +32,8 @@ createListenerToListSitesVisited = (userId) => {
 
 findSomethingSimilarButtonClicked = () => {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {command: "find_similar"}, function(response) {
-      alert(response)
+    chrome.tabs.sendMessage(tabs[0].id, {command: "find_similar"}, function(selectedText) {
+      chrome.runtime.sendMessage({command: "find_similar_msg", selectedText: selectedText, currentURL: tabs[0].url});
     });
   });
 }
