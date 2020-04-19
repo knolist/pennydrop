@@ -6,12 +6,15 @@ There are two directories inside `js`: `react-components` and `lib`. You should 
 `lib` only holds the compiled code. To compile the code using babel, you must (Linux commmands):
 1) Install `npm` if you haven't yet
 2) Install `babel-cli` using `npm install --save-dev babel-cli`
-3) Install the react package using `npm install --save-dev babel-cli babel-preset-react`
-4) Run the following command ` npm install babel-cli@6 babel-preset-react-app@3`
-5) Compile the code by running the following command from the root directory of the project: 
-`npx babel --presets react-app/prod credit-control-extension/js/components --out-dir credit-control-extension/js/lib/` (Recommendation: set up an alias
+3) Install the React preset usin ` npm install babel-cli@6 babel-preset-react-app@3`
+4) Compile the code by running the following command from the root directory of the project: 
+`npx babel --presets react-app/prod chrome-extension-no-firebase/js/react-components --out-dir chrome-extension-no-firebase/js/lib/` (Recommendation: set up an alias
 using by adding the following line to your `~/.bashrc`: `alias babelc_kno='npx babel --presets react-app/prod chrome-extension-no-firebase/js/react-components --out-dir chrome-extension-no-firebase/js/lib/'`, then
-run the compiler by calling `babelc_kno` from your command line)
+run the compiler by calling `babelc_kno` from your command line)  
+
+Alternative:
+1) `npm install --save-dev @babel/core @babel/cli`
+2) `npm install babel-cli@6 babel-preset-react-app@3`
 
 ## Road Map
 5 Sprints of 2 weeks each
