@@ -38,9 +38,8 @@ var MindMap = function (_React$Component2) {
         var _this2 = _possibleConstructorReturn(this, (MindMap.__proto__ || Object.getPrototypeOf(MindMap)).call(this, props));
 
         _this2.state = {
-            graph: null
+            graph: createNewGraph()
         };
-        console.log("constructed");
         return _this2;
     }
 
@@ -50,12 +49,8 @@ var MindMap = function (_React$Component2) {
             var _this3 = this;
 
             // All the websites as a graph
-            var itemGraph = createNewGraph();
-            getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
+            getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
             // let trackBrowsing = false; //default to not tracking
-
-            this.setState({ graph: itemGraph });
-            console.log(itemGraph);
 
             window.setTimeout(function () {
                 _this3.getDataFromServer();
@@ -72,13 +67,6 @@ var MindMap = function (_React$Component2) {
             if (this.state.graph === null) {
                 return 0;
             }
-            console.log("trying to render");
-            console.log(this.state.graph);
-            setTimeout(function () {
-                console.log(this.state.graph.default);
-            }, 100);
-            console.log(JSON.stringify(this.state.graph, undefined, 2));
-            console.log(JSON.stringify(this.state.graph.default, undefined, 2));
             return React.createElement(
                 "div",
                 null,

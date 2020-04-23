@@ -16,19 +16,14 @@ class MindMap extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph: null
+            graph: createNewGraph()
         };
-        console.log("constructed");
     }
 
     getDataFromServer() {
         // All the websites as a graph
-        let itemGraph = createNewGraph();
-        getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
+        getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
         // let trackBrowsing = false; //default to not tracking
-
-        this.setState({graph: itemGraph});
-        console.log(itemGraph);
 
         window.setTimeout(() => {
             this.getDataFromServer();
@@ -43,11 +38,6 @@ class MindMap extends React.Component {
         if (this.state.graph === null) {
             return 0;
         }
-        console.log("trying to render");
-        console.log(this.state.graph);
-        console.log(this.state.graph.default);
-        console.log(JSON.stringify(this.state.graph, undefined, 2));
-        console.log(JSON.stringify(this.state.graph.default, undefined, 2));
         return (
             <div>
                 <pre>{JSON.stringify(this.state.graph, undefined, 2)}</pre>

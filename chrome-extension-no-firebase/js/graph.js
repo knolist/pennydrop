@@ -85,3 +85,19 @@ getGraphFromDisk = (graph) => {
     }
   });
 }
+
+// This method updates the passed in graph variable in place but works with react
+getGraphFromDiskToReact = (graph, reactComponent) => {
+  chrome.storage.local.get('itemGraph', function (result) {
+    result = result.itemGraph;
+    if (result.version === CUR_VERSION_NUM) {
+      Object.keys(graph).forEach(k => delete graph[k]);
+      Object.keys(result).forEach(k => graph[k] = result[k]);
+      console.log(graph)
+      reactComponent.setState({graph: graph});
+    }
+    else {
+      console.log("Either the graph doesnt exist in storage or it's not version "+CUR_VERSION_NUM)
+    }
+  });
+}
