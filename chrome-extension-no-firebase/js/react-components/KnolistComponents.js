@@ -18,6 +18,7 @@ class MindMap extends React.Component {
         this.state = {
             graph: createNewGraph()
         };
+        this.getDataFromServer = this.getDataFromServer.bind(this);
     }
 
     getDataFromServer() {
@@ -30,21 +31,59 @@ class MindMap extends React.Component {
         }, 2000);
     }
 
+    setupVisGraph() {
+        let nodes = [];
+        let edges = [];
+        for (let index in this.state.graph.default) {
+            let node = this.state.graph.default[index];
+            nodes.push(node);
+            for (let nextIndex in node.nextURLs) {
+                edges.push({source: node.source, target: node.nextURLs[nextIndex]})
+            }
+        }
+
+        // create a network
+        const container = document.getElementById("graph");
+        const data = {
+            nodes: nodes,
+            edges: edges
+        };
+        const options = {
+            nodes: {
+                shape: "dot",
+                size: 16
+            },
+            physics: {
+                forceAtlas2Based: {
+                    gravitationalConstant: -26,
+                    centralGravity: 0.005,
+                    springLength: 230,
+                    springConstant: 0.18
+                },
+                maxVelocity: 146,
+                solver: "forceAtlas2Based",
+                timestep: 0.35,
+                stabilization: { iterations: 150 }
+            }
+        };
+        const network = new vis.Network(container, data, options);
+    }
+
     componentDidMount() {
         this.getDataFromServer();
+        this.setupVisGraph();
     }
+
+    // componentDidUpdate() {
+    //     this.setupVisGraph();
+    // }
 
     render() {
         if (this.state.graph === null) {
             return 0;
         }
         return (
-            <div>
-                <pre>{JSON.stringify(this.state.graph, undefined, 2)}</pre>
-                {/*<div id="slide-out" className="sidenav teal lighten-1" style={{width: "30%"}}>*/}
-                {/*    <ul>{this.state.courses.map(course => <Course key={course.courseId} course={course} userID={this.props.userID}/>)}</ul>*/}
-                {/*</div>*/}
-            </div>
+            <div id="graph"/>
         );
     }
 }

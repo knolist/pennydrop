@@ -40,6 +40,7 @@ var MindMap = function (_React$Component2) {
         _this2.state = {
             graph: createNewGraph()
         };
+        _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         return _this2;
     }
 
@@ -57,25 +58,62 @@ var MindMap = function (_React$Component2) {
             }, 2000);
         }
     }, {
+        key: "setupVisGraph",
+        value: function setupVisGraph() {
+            var nodes = [];
+            var edges = [];
+            for (var index in this.state.graph.default) {
+                var node = this.state.graph.default[index];
+                nodes.push(node);
+                for (var nextIndex in node.nextURLs) {
+                    edges.push({ source: node.source, target: node.nextURLs[nextIndex] });
+                }
+            }
+
+            // create a network
+            var container = document.getElementById("graph");
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                nodes: {
+                    shape: "dot",
+                    size: 16
+                },
+                physics: {
+                    forceAtlas2Based: {
+                        gravitationalConstant: -26,
+                        centralGravity: 0.005,
+                        springLength: 230,
+                        springConstant: 0.18
+                    },
+                    maxVelocity: 146,
+                    solver: "forceAtlas2Based",
+                    timestep: 0.35,
+                    stabilization: { iterations: 150 }
+                }
+            };
+            var network = new vis.Network(container, data, options);
+        }
+    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.getDataFromServer();
+            this.setupVisGraph();
         }
+
+        // componentDidUpdate() {
+        //     this.setupVisGraph();
+        // }
+
     }, {
         key: "render",
         value: function render() {
             if (this.state.graph === null) {
                 return 0;
             }
-            return React.createElement(
-                "div",
-                null,
-                React.createElement(
-                    "pre",
-                    null,
-                    JSON.stringify(this.state.graph, undefined, 2)
-                )
-            );
+            return React.createElement("div", { id: "graph" });
         }
     }]);
 
