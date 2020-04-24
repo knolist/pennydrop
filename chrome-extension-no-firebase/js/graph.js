@@ -93,7 +93,7 @@ getGraphFromDiskToReact = (graph, reactComponent) => {
     if (result.version === CUR_VERSION_NUM) {
       Object.keys(graph).forEach(k => delete graph[k]);
       Object.keys(result).forEach(k => graph[k] = result[k]);
-      console.log(graph)
+      console.log(graph);
       reactComponent.setState({graph: graph});
     }
     else {

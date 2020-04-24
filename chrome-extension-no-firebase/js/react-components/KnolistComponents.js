@@ -26,9 +26,9 @@ class MindMap extends React.Component {
         getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
         // let trackBrowsing = false; //default to not tracking
 
-        window.setTimeout(() => {
-            this.getDataFromServer();
-        }, 2000);
+        // window.setTimeout(() => {
+        //     this.getDataFromServer();
+        // }, 200);
     }
 
     setupVisGraph() {
@@ -36,11 +36,13 @@ class MindMap extends React.Component {
         let edges = [];
         for (let index in this.state.graph.default) {
             let node = this.state.graph.default[index];
-            nodes.push(node);
+            nodes.push({id: node.source, label: node.title});
             for (let nextIndex in node.nextURLs) {
-                edges.push({source: node.source, target: node.nextURLs[nextIndex]})
+                edges.push({from: node.source, to: node.nextURLs[nextIndex]})
             }
         }
+        console.log(nodes);
+        console.log(edges);
 
         // create a network
         const container = document.getElementById("graph");
@@ -52,6 +54,13 @@ class MindMap extends React.Component {
             nodes: {
                 shape: "dot",
                 size: 16
+            },
+            edges: {
+                arrows: {
+                    to: {
+                        enabled: true
+                    }
+                }
             },
             physics: {
                 forceAtlas2Based: {
@@ -71,12 +80,18 @@ class MindMap extends React.Component {
 
     componentDidMount() {
         this.getDataFromServer();
+        console.log("first time");
         this.setupVisGraph();
     }
 
-    // componentDidUpdate() {
-    //     this.setupVisGraph();
-    // }
+    componentDidUpdate(prevProps, prevState) {
+        console.log(prevState.graph);
+        console.log(this.state.graph);
+        if (true) {
+            console.log("updating");
+            this.setupVisGraph();
+        }
+    }
 
     render() {
         if (this.state.graph === null) {

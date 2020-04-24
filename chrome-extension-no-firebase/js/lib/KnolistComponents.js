@@ -47,15 +47,13 @@ var MindMap = function (_React$Component2) {
     _createClass(MindMap, [{
         key: "getDataFromServer",
         value: function getDataFromServer() {
-            var _this3 = this;
-
             // All the websites as a graph
             getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
             // let trackBrowsing = false; //default to not tracking
 
-            window.setTimeout(function () {
-                _this3.getDataFromServer();
-            }, 2000);
+            // window.setTimeout(() => {
+            //     this.getDataFromServer();
+            // }, 200);
         }
     }, {
         key: "setupVisGraph",
@@ -64,11 +62,13 @@ var MindMap = function (_React$Component2) {
             var edges = [];
             for (var index in this.state.graph.default) {
                 var node = this.state.graph.default[index];
-                nodes.push(node);
+                nodes.push({ id: node.source, label: node.title });
                 for (var nextIndex in node.nextURLs) {
-                    edges.push({ source: node.source, target: node.nextURLs[nextIndex] });
+                    edges.push({ from: node.source, to: node.nextURLs[nextIndex] });
                 }
             }
+            console.log(nodes);
+            console.log(edges);
 
             // create a network
             var container = document.getElementById("graph");
@@ -80,6 +80,13 @@ var MindMap = function (_React$Component2) {
                 nodes: {
                     shape: "dot",
                     size: 16
+                },
+                edges: {
+                    arrows: {
+                        to: {
+                            enabled: true
+                        }
+                    }
                 },
                 physics: {
                     forceAtlas2Based: {
@@ -100,13 +107,19 @@ var MindMap = function (_React$Component2) {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.getDataFromServer();
+            console.log("first time");
             this.setupVisGraph();
         }
-
-        // componentDidUpdate() {
-        //     this.setupVisGraph();
-        // }
-
+    }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate(prevProps, prevState) {
+            console.log(prevState.graph);
+            console.log(this.state.graph);
+            if (true) {
+                console.log("updating");
+                this.setupVisGraph();
+            }
+        }
     }, {
         key: "render",
         value: function render() {
