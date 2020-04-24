@@ -23,4 +23,7 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
   else if (message.command === "stop") {
     trackBrowsing = false;
   }
+  else if (message.command === "get_tracking") {
+    _sendResponse({trackBrowsing: trackBrowsing});
+  }
 });

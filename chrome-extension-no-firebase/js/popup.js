@@ -6,13 +6,21 @@ viewFullWebsiteButtonClicked = () => {
     chrome.tabs.create({url: '../html/Knolist.com.html'})
 }
 
-startTrackingButtonClicked = () => {
-  chrome.runtime.sendMessage({command: "start", project: "default"});
-}
+setTrackingState = () => {
+    chrome.runtime.sendMessage({command: "get_tracking"}, function(response) {
+        document.getElementById("switch-tracking").checked = response.trackBrowsing;
+    });
+};
 
-stopTrackingButtonClicked = () => {
-  chrome.runtime.sendMessage({command: "stop"});
-}
+window.onload = setTrackingState;
+
+switchTracking = () => {
+    if (document.getElementById("switch-tracking").checked) {
+        chrome.runtime.sendMessage({command: "start", project: "default"});
+    } else {
+        chrome.runtime.sendMessage({command: "stop"});
+    }
+};
 
 createListenerToListSitesVisited = (userId) => {
     console.log(firebase.database())
@@ -42,9 +50,8 @@ createListeners = () => {
     // Button Listeners
     $( "#reset-button" ).click(resetButtonClicked);
     $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
-    $( "#start-browser-tracking-button" ).click(startTrackingButtonClicked);
-    $( "#stop-browser-tracking-button" ).click(stopTrackingButtonClicked);
     $( "#find-something-similar-button" ).click(findSomethingSimilarButtonClicked);
+    $( "#switch-tracking" ).click(switchTracking)
 }
 
 document.addEventListener('DOMContentLoaded', createListeners, false);
