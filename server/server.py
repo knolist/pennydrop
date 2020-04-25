@@ -26,7 +26,8 @@ def hello_world():
     outputObj = {
         "content": realText,
         "source": url,
-        "title": getTitle(response.content)
+        "title": getTitle(response.content),
+        "highlights": []
     }
     outputJson = json.dumps(outputObj)
     return outputJson

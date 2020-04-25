@@ -103,8 +103,7 @@ var MindMap = function (_React$Component2) {
                 nodes: {
                     shape: "box",
                     size: 16,
-                    margin: 10,
-                    physics: true
+                    margin: 10
                 },
                 edges: {
                     arrows: {

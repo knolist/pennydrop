@@ -12,7 +12,8 @@ const contextMenuItem = {
 chrome.contextMenus.create(contextMenuItem);
 chrome.contextMenus.onClicked.addListener(function(clickData) {
   if (clickData.menuItemId === "highlight" && clickData.selectionText) {
-    console.log(clickData);
+    addHighlightsToItemInGraph(clickData.pageUrl, clickData.selectionText, itemGraph);
+    saveGraphToDisk(itemGraph);
   }
 });
 

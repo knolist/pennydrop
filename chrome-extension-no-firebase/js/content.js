@@ -9,9 +9,9 @@ window.setTimeout(() => {
 }, 1000);
 
 listener = (message, _sender, _sendResponse) => {
-  if (message.command == "find_similar") {
+  if (message.command === "find_similar") {
     selectedText = window.getSelection().toString()
-    if (selectedText == "") {
+    if (selectedText === "") {
       _sendResponse("Nothing is selected")
     }
     else {
