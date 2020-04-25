@@ -103,14 +103,16 @@ var MindMap = function (_React$Component2) {
                 nodes: {
                     shape: "box",
                     size: 16,
-                    margin: 10
+                    margin: 10,
+                    physics: true
                 },
                 edges: {
                     arrows: {
                         to: {
                             enabled: true
                         }
-                    }
+                    },
+                    color: "black"
                 },
                 interaction: {
                     navigationButtons: true,
@@ -121,8 +123,8 @@ var MindMap = function (_React$Component2) {
                 },
                 physics: {
                     forceAtlas2Based: {
-                        gravitationalConstant: -10,
-                        centralGravity: 0.005,
+                        gravitationalConstant: -0.001,
+                        centralGravity: 0,
                         springLength: 230,
                         springConstant: 0,
                         avoidOverlap: 1

@@ -68,14 +68,15 @@ class MindMap extends React.Component {
             nodes: {
                 shape: "box",
                 size: 16,
-                margin: 10
+                margin: 10,
             },
             edges: {
                 arrows: {
                     to: {
                         enabled: true
                     }
-                }
+                },
+                color: "black"
             },
             interaction: {
                 navigationButtons: true,
@@ -86,8 +87,8 @@ class MindMap extends React.Component {
             },
             physics: {
                 forceAtlas2Based: {
-                    gravitationalConstant: -10,
-                    centralGravity: 0.005,
+                    gravitationalConstant: -0.001,
+                    centralGravity: 0,
                     springLength: 230,
                     springConstant: 0,
                     avoidOverlap: 1

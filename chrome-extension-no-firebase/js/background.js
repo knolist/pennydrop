@@ -3,6 +3,19 @@ itemGraph = createNewGraph();
 getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
 trackBrowsing = false;
 
+const contextMenuItem = {
+  "id": "highlight",
+  "title": "Highlight with Knolist",
+  "contexts": ["selection"]
+};
+
+chrome.contextMenus.create(contextMenuItem);
+chrome.contextMenus.onClicked.addListener(function(clickData) {
+  if (clickData.menuItemId === "highlight" && clickData.selectionText) {
+    console.log(clickData);
+  }
+});
+
 chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
   if (message.url !== undefined && trackBrowsing) {
     contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);

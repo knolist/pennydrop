@@ -17,6 +17,6 @@
   "background": {
     "page": "html/background.html"
   },
-  "permissions": ["tabs", "storage"],
+  "permissions": ["tabs", "storage", "contextMenus"],
   "content_security_policy": "script-src 'self' 'unsafe-eval' https://www.gstatic.com/ https://*.firebaseio.com https://*.firebase.com https://apis.google.com https://www.googleapis.com; object-src 'self'"
 }
