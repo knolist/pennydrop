@@ -8,7 +8,9 @@ class KnolistComponents extends React.Component {
             <div>
                 <Header/>
                 <div className="main-body">
-                    <p style={{fontSize: 20}}>Welcome to Knolist.com. You're already logged in :)</p>
+                    <div style={{display: "flex"}}>
+                        <p style={{fontSize: 20}}>Welcome to Knolist.com. You're already logged in :)</p>
+                    </div>
                     <MindMap/>
                 </div>
             </div>
@@ -23,6 +25,14 @@ class MindMap extends React.Component {
             graph: createNewGraph()
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
+    }
+
+    titleCase(str) {
+        str = str.toLowerCase().split(' ');
+        for (let i = 0; i < str.length; i++) {
+            str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+        }
+        return str.join(' ');
     }
 
     getDataFromServer() {
@@ -48,6 +58,7 @@ class MindMap extends React.Component {
         console.log(edges);
 
         // create a network
+        // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
         const container = document.getElementById("graph");
         const data = {
             nodes: nodes,
@@ -55,8 +66,9 @@ class MindMap extends React.Component {
         };
         const options = {
             nodes: {
-                shape: "dot",
-                size: 16
+                shape: "box",
+                size: 16,
+                margin: 10
             },
             edges: {
                 arrows: {
@@ -65,12 +77,20 @@ class MindMap extends React.Component {
                     }
                 }
             },
+            interaction: {
+                navigationButtons: true,
+                selectConnectedEdges: false
+            },
+            manipulation: {
+                enabled: true
+            },
             physics: {
                 forceAtlas2Based: {
-                    gravitationalConstant: -26,
+                    gravitationalConstant: -10,
                     centralGravity: 0.005,
                     springLength: 230,
-                    springConstant: 0.18
+                    springConstant: 0,
+                    avoidOverlap: 1
                 },
                 maxVelocity: 146,
                 solver: "forceAtlas2Based",
@@ -94,7 +114,25 @@ class MindMap extends React.Component {
             return 0;
         }
         return (
-            <div id="graph"/>
+            <div>
+                <div id="title-bar">
+                    <RefreshGraphButton refresh={this.getDataFromServer}/>
+                    <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
+                </div>
+                <div id="graph"/>
+            </div>
+        );
+    }
+}
+
+class RefreshGraphButton extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <button onClick={this.props.refresh} id="refresh-button"><img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/></button>
         );
     }
 }

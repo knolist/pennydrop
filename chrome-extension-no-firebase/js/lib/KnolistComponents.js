@@ -26,9 +26,13 @@ var KnolistComponents = function (_React$Component) {
                     "div",
                     { className: "main-body" },
                     React.createElement(
-                        "p",
-                        { style: { fontSize: 20 } },
-                        "Welcome to Knolist.com. You're already logged in :)"
+                        "div",
+                        { style: { display: "flex" } },
+                        React.createElement(
+                            "p",
+                            { style: { fontSize: 20 } },
+                            "Welcome to Knolist.com. You're already logged in :)"
+                        )
                     ),
                     React.createElement(MindMap, null)
                 )
@@ -55,6 +59,15 @@ var MindMap = function (_React$Component2) {
     }
 
     _createClass(MindMap, [{
+        key: "titleCase",
+        value: function titleCase(str) {
+            str = str.toLowerCase().split(' ');
+            for (var i = 0; i < str.length; i++) {
+                str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+            }
+            return str.join(' ');
+        }
+    }, {
         key: "getDataFromServer",
         value: function getDataFromServer() {
             // All the websites as a graph
@@ -80,6 +93,7 @@ var MindMap = function (_React$Component2) {
             console.log(edges);
 
             // create a network
+            // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
             var container = document.getElementById("graph");
             var data = {
                 nodes: nodes,
@@ -87,8 +101,9 @@ var MindMap = function (_React$Component2) {
             };
             var options = {
                 nodes: {
-                    shape: "dot",
-                    size: 16
+                    shape: "box",
+                    size: 16,
+                    margin: 10
                 },
                 edges: {
                     arrows: {
@@ -97,12 +112,20 @@ var MindMap = function (_React$Component2) {
                         }
                     }
                 },
+                interaction: {
+                    navigationButtons: true,
+                    selectConnectedEdges: false
+                },
+                manipulation: {
+                    enabled: true
+                },
                 physics: {
                     forceAtlas2Based: {
-                        gravitationalConstant: -26,
+                        gravitationalConstant: -10,
                         centralGravity: 0.005,
                         springLength: 230,
-                        springConstant: 0.18
+                        springConstant: 0,
+                        avoidOverlap: 1
                     },
                     maxVelocity: 146,
                     solver: "forceAtlas2Based",
@@ -128,15 +151,53 @@ var MindMap = function (_React$Component2) {
             if (this.state.graph === null) {
                 return 0;
             }
-            return React.createElement("div", { id: "graph" });
+            return React.createElement(
+                "div",
+                null,
+                React.createElement(
+                    "div",
+                    { id: "title-bar" },
+                    React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
+                    React.createElement(
+                        "h2",
+                        { style: { margin: "auto auto" } },
+                        "Current Project: ",
+                        this.titleCase(this.state.graph.curProject)
+                    )
+                ),
+                React.createElement("div", { id: "graph" })
+            );
         }
     }]);
 
     return MindMap;
 }(React.Component);
 
-var Header = function (_React$Component3) {
-    _inherits(Header, _React$Component3);
+var RefreshGraphButton = function (_React$Component3) {
+    _inherits(RefreshGraphButton, _React$Component3);
+
+    function RefreshGraphButton(props) {
+        _classCallCheck(this, RefreshGraphButton);
+
+        return _possibleConstructorReturn(this, (RefreshGraphButton.__proto__ || Object.getPrototypeOf(RefreshGraphButton)).call(this, props));
+    }
+
+    _createClass(RefreshGraphButton, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "button",
+                { onClick: this.props.refresh, id: "refresh-button" },
+                React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button", style: { width: "100%" } })
+            );
+        }
+    }]);
+
+    return RefreshGraphButton;
+}(React.Component);
+
+var Header = function (_React$Component4) {
+    _inherits(Header, _React$Component4);
 
     function Header() {
         _classCallCheck(this, Header);

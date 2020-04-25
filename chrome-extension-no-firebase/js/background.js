@@ -16,11 +16,13 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
     saveGraphToDisk(itemGraph);
   }
   else if (message.command === "start" && message.project !== undefined) {
+    chrome.browserAction.setIcon({path: "../images/icon128_active.png"});
     trackBrowsing = true;
     setCurrentProjectInGraph(itemGraph, message.project);
     saveGraphToDisk(itemGraph);
   }
   else if (message.command === "stop") {
+    chrome.browserAction.setIcon({path: "../images/icon128.png"});
     trackBrowsing = false;
   }
   else if (message.command === "get_tracking") {
