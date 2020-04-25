@@ -6,7 +6,11 @@ class KnolistComponents extends React.Component {
     render() {
         return (
             <div>
-                <MindMap/>
+                <Header/>
+                <div className="main-body">
+                    <p style={{fontSize: 20}}>Welcome to Knolist.com. You're already logged in :)</p>
+                    <MindMap/>
+                </div>
             </div>
         );
     }
@@ -24,7 +28,6 @@ class MindMap extends React.Component {
     getDataFromServer() {
         // All the websites as a graph
         getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
-        // let trackBrowsing = false; //default to not tracking
 
         // window.setTimeout(() => {
         //     this.getDataFromServer();
@@ -80,17 +83,10 @@ class MindMap extends React.Component {
 
     componentDidMount() {
         this.getDataFromServer();
-        console.log("first time");
-        this.setupVisGraph();
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log(prevState.graph);
-        console.log(this.state.graph);
-        if (true) {
-            console.log("updating");
-            this.setupVisGraph();
-        }
+        this.setupVisGraph();
     }
 
     render() {
@@ -99,6 +95,16 @@ class MindMap extends React.Component {
         }
         return (
             <div id="graph"/>
+        );
+    }
+}
+
+class Header extends React.Component {
+    render() {
+        return (
+            <div className="header">
+                <img className="logo" src="../../images/full_main.PNG" alt="Knolist Logo"/>
+            </div>
         );
     }
 }

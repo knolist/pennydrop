@@ -21,7 +21,17 @@ var KnolistComponents = function (_React$Component) {
             return React.createElement(
                 "div",
                 null,
-                React.createElement(MindMap, null)
+                React.createElement(Header, null),
+                React.createElement(
+                    "div",
+                    { className: "main-body" },
+                    React.createElement(
+                        "p",
+                        { style: { fontSize: 20 } },
+                        "Welcome to Knolist.com. You're already logged in :)"
+                    ),
+                    React.createElement(MindMap, null)
+                )
             );
         }
     }]);
@@ -49,7 +59,6 @@ var MindMap = function (_React$Component2) {
         value: function getDataFromServer() {
             // All the websites as a graph
             getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
-            // let trackBrowsing = false; //default to not tracking
 
             // window.setTimeout(() => {
             //     this.getDataFromServer();
@@ -107,18 +116,11 @@ var MindMap = function (_React$Component2) {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.getDataFromServer();
-            console.log("first time");
-            this.setupVisGraph();
         }
     }, {
         key: "componentDidUpdate",
         value: function componentDidUpdate(prevProps, prevState) {
-            console.log(prevState.graph);
-            console.log(this.state.graph);
-            if (true) {
-                console.log("updating");
-                this.setupVisGraph();
-            }
+            this.setupVisGraph();
         }
     }, {
         key: "render",
@@ -131,6 +133,29 @@ var MindMap = function (_React$Component2) {
     }]);
 
     return MindMap;
+}(React.Component);
+
+var Header = function (_React$Component3) {
+    _inherits(Header, _React$Component3);
+
+    function Header() {
+        _classCallCheck(this, Header);
+
+        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).apply(this, arguments));
+    }
+
+    _createClass(Header, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "header" },
+                React.createElement("img", { className: "logo", src: "../../images/full_main.PNG", alt: "Knolist Logo" })
+            );
+        }
+    }]);
+
+    return Header;
 }(React.Component);
 
 ReactDOM.render(React.createElement(KnolistComponents, null), document.querySelector("#knolist-page"));
