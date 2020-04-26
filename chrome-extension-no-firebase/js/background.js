@@ -11,9 +11,12 @@ const contextMenuItem = {
 
 chrome.contextMenus.create(contextMenuItem);
 chrome.contextMenus.onClicked.addListener(function(clickData) {
-  if (clickData.menuItemId === "highlight" && clickData.selectionText) {
-    addHighlightsToItemInGraph(clickData.pageUrl, clickData.selectionText, itemGraph);
-    saveGraphToDisk(itemGraph);
+  if (clickData.menuItemId === "highlight" && clickData.selectionText && trackBrowsing) {
+    contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(clickData.pageUrl);
+    $.getJSON(contextExtractionURL, (item) => {
+      addHighlightsToItemInGraph(item, clickData.selectionText, itemGraph);
+      saveGraphToDisk(itemGraph);
+    });
   }
 });
 
@@ -22,7 +25,7 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
     contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
     $.getJSON(contextExtractionURL, (item) => {
       updateItemInGraph(item, message.prevURL, itemGraph);
-      saveGraphToDisk(itemGraph)
+      saveGraphToDisk(itemGraph);
     });
   }
   else if (message.command === "reset") {

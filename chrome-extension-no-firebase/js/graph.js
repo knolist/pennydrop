@@ -38,17 +38,17 @@ updateItemInGraph = (item, previousURL, graph) => {
   }
 };
 
-addHighlightsToItemInGraph = (url, highlights, graph) => {
+addHighlightsToItemInGraph = (item, highlights, graph) => {
   project = graph["curProject"];
   graph = graph[project];
   // Create item if it doesn't exist
-  if (graph[url] === undefined) {
-    graph[url] = item;
-    graph[url]["prevURLs"] = [];
-    graph[url]["nextURLs"] = [];
-    graph[url]["highlights"] = [];
+  if (graph[item["source"]] === undefined) {
+    graph[item["source"]] = item;
+    graph[item["source"]]["prevURLs"] = [];
+    graph[item["source"]]["nextURLs"] = [];
+    graph[item["source"]]["highlights"] = [];
   }
-  graph[url]["highlights"].push(highlights);
+  graph[item["source"]]["highlights"].push(highlights);
 };
 
 resetCurProjectInGraph = (graph) => {

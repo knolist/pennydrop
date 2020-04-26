@@ -25,6 +25,7 @@ class MindMap extends React.Component {
             graph: createNewGraph()
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
+        this.handleClickedNode = this.handleClickedNode.bind(this);
     }
 
     titleCase(str) {
@@ -42,6 +43,11 @@ class MindMap extends React.Component {
         // window.setTimeout(() => {
         //     this.getDataFromServer();
         // }, 200);
+    }
+
+    // TODO
+    handleClickedNode(values, id, selected, hovering) {
+        console.log(id);
     }
 
     setupVisGraph() {
@@ -69,6 +75,9 @@ class MindMap extends React.Component {
                 shape: "box",
                 size: 16,
                 margin: 10,
+                chosen: {
+                    node: this.handleClickedNode
+                }
             },
             edges: {
                 arrows: {

@@ -55,6 +55,7 @@ var MindMap = function (_React$Component2) {
             graph: createNewGraph()
         };
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
+        _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
         return _this2;
     }
 
@@ -76,6 +77,11 @@ var MindMap = function (_React$Component2) {
             // window.setTimeout(() => {
             //     this.getDataFromServer();
             // }, 200);
+        }
+    }, {
+        key: "handleClickedNode",
+        value: function handleClickedNode(values, id, selected, hovering) {
+            console.log(id);
         }
     }, {
         key: "setupVisGraph",
@@ -103,7 +109,10 @@ var MindMap = function (_React$Component2) {
                 nodes: {
                     shape: "box",
                     size: 16,
-                    margin: 10
+                    margin: 10,
+                    chosen: {
+                        node: this.handleClickedNode
+                    }
                 },
                 edges: {
                     arrows: {
