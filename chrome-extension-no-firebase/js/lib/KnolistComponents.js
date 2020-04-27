@@ -91,7 +91,8 @@ var MindMap = function (_React$Component2) {
             var visCloseButton = document.getElementsByClassName("vis-close")[0];
             // Only open modal outside of edit mode
             if (getComputedStyle(visCloseButton).display === "none") {
-                this.setState({ selectedNode: this.state.graph.default[id] });
+                var curProject = this.state.graph.curProject;
+                this.setState({ selectedNode: this.state.graph[curProject][id] });
             }
         }
     }, {
@@ -99,8 +100,9 @@ var MindMap = function (_React$Component2) {
         value: function setupVisGraph() {
             var nodes = [];
             var edges = [];
-            for (var index in this.state.graph.default) {
-                var node = this.state.graph.default[index];
+            var curProject = this.state.graph.curProject;
+            for (var index in this.state.graph[curProject]) {
+                var node = this.state.graph[curProject][index];
                 nodes.push({ id: node.source, label: node.title });
                 for (var nextIndex in node.nextURLs) {
                     edges.push({ from: node.source, to: node.nextURLs[nextIndex] });
@@ -111,6 +113,7 @@ var MindMap = function (_React$Component2) {
 
             // create a network
             // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
+            // TODO: Consider using hierarchical layout mode (commented out in the options)
             var container = document.getElementById("graph");
             var data = {
                 nodes: nodes,
@@ -184,6 +187,7 @@ var MindMap = function (_React$Component2) {
             if (this.state.graph === null) {
                 return null;
             }
+            var curProject = this.state.graph.curProject;
             return React.createElement(
                 "div",
                 null,
@@ -199,7 +203,7 @@ var MindMap = function (_React$Component2) {
                     )
                 ),
                 React.createElement("div", { id: "graph" }),
-                React.createElement(PageView, { graph: this.state.graph, selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
+                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
             );
         }
     }]);
@@ -254,8 +258,8 @@ var PageView = function (_React$Component3) {
                     React.createElement(
                         "div",
                         { style: { display: "flex" } },
-                        React.createElement(ListURL, { type: "prev", graphData: this.props.graph.default, selectedNode: this.props.selectedNode }),
-                        React.createElement(ListURL, { type: "next", graphData: this.props.graph.default, selectedNode: this.props.selectedNode })
+                        React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode }),
+                        React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode })
                     )
                 )
             );
@@ -297,8 +301,8 @@ var ListURL = function (_React$Component4) {
                                 { key: index },
                                 React.createElement(
                                     "a",
-                                    { href: _this5.props.graphData[url].source, target: "_blank" },
-                                    _this5.props.graphData[url].title
+                                    { href: _this5.props.graph[url].source, target: "_blank" },
+                                    _this5.props.graph[url].title
                                 )
                             );
                         })
@@ -322,8 +326,8 @@ var ListURL = function (_React$Component4) {
                                 { key: index },
                                 React.createElement(
                                     "a",
-                                    { href: _this5.props.graphData[url].source, target: "_blank" },
-                                    _this5.props.graphData[url].title
+                                    { href: _this5.props.graph[url].source, target: "_blank" },
+                                    _this5.props.graph[url].title
                                 )
                             );
                         })

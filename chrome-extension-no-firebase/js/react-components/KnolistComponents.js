@@ -56,15 +56,17 @@ class MindMap extends React.Component {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
         if (getComputedStyle(visCloseButton).display === "none") {
-            this.setState({selectedNode: this.state.graph.default[id]});
+            const curProject = this.state.graph.curProject;
+            this.setState({selectedNode: this.state.graph[curProject][id]});
         }
     }
 
     setupVisGraph() {
         let nodes = [];
         let edges = [];
-        for (let index in this.state.graph.default) {
-            let node = this.state.graph.default[index];
+        const curProject = this.state.graph.curProject;
+        for (let index in this.state.graph[curProject]) {
+            let node = this.state.graph[curProject][index];
             nodes.push({id: node.source, label: node.title});
             for (let nextIndex in node.nextURLs) {
                 edges.push({from: node.source, to: node.nextURLs[nextIndex]})
@@ -150,6 +152,7 @@ class MindMap extends React.Component {
         if (this.state.graph === null) {
             return null;
         }
+        const curProject = this.state.graph.curProject;
         return (
             <div>
                 <div id="title-bar">
@@ -157,7 +160,7 @@ class MindMap extends React.Component {
                     <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
                 </div>
                 <div id="graph"/>
-                <PageView graph={this.state.graph} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
+                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
             </div>
         );
     }
@@ -185,8 +188,8 @@ class PageView extends React.Component {
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <div style={{display: "flex"}}>
-                        <ListURL type={"prev"} graphData={this.props.graph.default} selectedNode={this.props.selectedNode}/>
-                        <ListURL type={"next"} graphData={this.props.graph.default} selectedNode={this.props.selectedNode}/>
+                        <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
+                        <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                     </div>
                 </div>
 
@@ -206,7 +209,7 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Previous Connections</h2>
                     <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graphData[url].source} target="_blank">{this.props.graphData[url].title}</a></li>)}
+                        <li key={index}><a href={this.props.graph[url].source} target="_blank">{this.props.graph[url].title}</a></li>)}
                     </ul>
                 </div>
             );
@@ -215,7 +218,7 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Next Connections</h2>
                     <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graphData[url].source} target="_blank">{this.props.graphData[url].title}</a></li>)}
+                        <li key={index}><a href={this.props.graph[url].source} target="_blank">{this.props.graph[url].title}</a></li>)}
                     </ul>
                 </div>
             );
