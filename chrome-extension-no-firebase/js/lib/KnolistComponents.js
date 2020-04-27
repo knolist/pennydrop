@@ -209,35 +209,18 @@ var PageView = function (_React$Component3) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        return _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        // When the user clicks anywhere outside of the modal, close it
+        var _this3 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+
+        window.onclick = function (event) {
+            if (event.target === document.getElementById("page-view")) {
+                props.resetSelectedNode();
+            }
+        };
+        return _this3;
     }
 
     _createClass(PageView, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-            if (this.props.selectedNode !== null) {
-                // Get the modal
-                var modal = document.getElementById("page-view");
-
-                // Get the <span> element that closes the modal
-                var span = document.getElementById("close-page-view");
-                console.log(span);
-
-                // When the user clicks on <span> (x), close the modal
-                span.onclick = function () {
-                    this.props.resetSelectedNode();
-                    console.log("clicked");
-                };
-
-                // When the user clicks anywhere outside of the modal, close it
-                window.onclick = function (event) {
-                    if (event.target === modal) {
-                        this.props.resetSelectedNode();
-                    }
-                };
-            }
-        }
-    }, {
         key: "render",
         value: function render() {
             if (this.props.selectedNode === null) {
@@ -263,16 +246,7 @@ var PageView = function (_React$Component3) {
                             this.props.selectedNode.title
                         )
                     ),
-                    React.createElement(
-                        "p",
-                        null,
-                        this.props.selectedNode.content
-                    ),
-                    React.createElement(
-                        "p",
-                        null,
-                        this.props.selectedNode.highlights
-                    ),
+                    React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(
                         "p",
                         null,
@@ -291,8 +265,53 @@ var PageView = function (_React$Component3) {
     return PageView;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component4) {
-    _inherits(RefreshGraphButton, _React$Component4);
+var HighlightsList = function (_React$Component4) {
+    _inherits(HighlightsList, _React$Component4);
+
+    function HighlightsList(props) {
+        _classCallCheck(this, HighlightsList);
+
+        return _possibleConstructorReturn(this, (HighlightsList.__proto__ || Object.getPrototypeOf(HighlightsList)).call(this, props));
+    }
+
+    _createClass(HighlightsList, [{
+        key: "render",
+        value: function render() {
+            if (this.props.highlights.length !== 0) {
+                return React.createElement(
+                    "div",
+                    null,
+                    React.createElement(
+                        "h2",
+                        null,
+                        "My Highlights"
+                    ),
+                    React.createElement(
+                        "ul",
+                        null,
+                        this.props.highlights.map(function (highlight, index) {
+                            return React.createElement(
+                                "li",
+                                { className: "highlight", key: index },
+                                highlight
+                            );
+                        })
+                    )
+                );
+            }
+            return React.createElement(
+                "h2",
+                null,
+                "You haven't added any highlights yet."
+            );
+        }
+    }]);
+
+    return HighlightsList;
+}(React.Component);
+
+var RefreshGraphButton = function (_React$Component5) {
+    _inherits(RefreshGraphButton, _React$Component5);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -314,8 +333,8 @@ var RefreshGraphButton = function (_React$Component4) {
     return RefreshGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component5) {
-    _inherits(Header, _React$Component5);
+var Header = function (_React$Component6) {
+    _inherits(Header, _React$Component6);
 
     function Header() {
         _classCallCheck(this, Header);

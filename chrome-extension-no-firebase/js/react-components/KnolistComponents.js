@@ -161,28 +161,10 @@ class MindMap extends React.Component {
 class PageView extends React.Component {
     constructor(props) {
         super(props);
-    }
-
-    componentDidMount() {
-        if (this.props.selectedNode !== null) {
-            // Get the modal
-            const modal = document.getElementById("page-view");
-
-            // Get the <span> element that closes the modal
-            const span = document.getElementById("close-page-view");
-            console.log(span);
-
-            // When the user clicks on <span> (x), close the modal
-            span.onclick = function() {
-                this.props.resetSelectedNode();
-                console.log("clicked");
-            };
-
-            // When the user clicks anywhere outside of the modal, close it
-            window.onclick = function(event) {
-                if (event.target === modal) {
-                    this.props.resetSelectedNode();
-                }
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target === document.getElementById("page-view")) {
+                props.resetSelectedNode();
             }
         }
     }
@@ -196,13 +178,32 @@ class PageView extends React.Component {
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
-                    <p>{this.props.selectedNode.content}</p>
-                    <p>{this.props.selectedNode.highlights}</p>
+                    <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <p>{this.props.selectedNode.prevURLs}</p>
                     <p>{this.props.selectedNode.nextURLs}</p>
                 </div>
 
             </div>
+        );
+    }
+}
+
+class HighlightsList extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        if (this.props.highlights.length !== 0) {
+            return (
+                <div>
+                    <h2>My Highlights</h2>
+                    <ul>{this.props.highlights.map((highlight, index) => <li className="highlight" key={index}>{highlight}</li>)}</ul>
+                </div>
+            );
+        }
+        return (
+            <h2>You haven't added any highlights yet.</h2>
         );
     }
 }
