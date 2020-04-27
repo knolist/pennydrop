@@ -48,6 +48,7 @@ var MindMap = function (_React$Component2) {
         };
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
+        _this2.handleDeletedNode = _this2.handleDeletedNode.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         return _this2;
     }
@@ -85,6 +86,14 @@ var MindMap = function (_React$Component2) {
                 var curProject = this.state.graph.curProject;
                 this.setState({ selectedNode: this.state.graph[curProject][id] });
             }
+        }
+    }, {
+        key: 'handleDeletedNode',
+        value: function handleDeletedNode(data, callback) {
+            var nodeId = data.nodes[0];
+            removeItemFromGraph(nodeId, this.state.graph);
+            saveGraphToDisk(this.state.graph);
+            callback(data);
         }
     }, {
         key: 'setupVisGraph',
@@ -136,7 +145,8 @@ var MindMap = function (_React$Component2) {
                     selectConnectedEdges: false
                 },
                 manipulation: {
-                    enabled: true
+                    enabled: true,
+                    deleteNode: this.handleDeletedNode
                 },
                 physics: {
                     forceAtlas2Based: {

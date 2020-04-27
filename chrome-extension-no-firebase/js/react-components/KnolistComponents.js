@@ -24,6 +24,7 @@ class MindMap extends React.Component {
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
+        this.handleDeletedNode = this.handleDeletedNode.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
     }
 
@@ -48,7 +49,6 @@ class MindMap extends React.Component {
         this.setState({selectedNode: null});
     }
 
-
     handleClickedNode(id) {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
@@ -56,6 +56,13 @@ class MindMap extends React.Component {
             const curProject = this.state.graph.curProject;
             this.setState({selectedNode: this.state.graph[curProject][id]});
         }
+    }
+
+    handleDeletedNode(data, callback) {
+        const nodeId = data.nodes[0]
+        removeItemFromGraph(nodeId, this.state.graph)
+        saveGraphToDisk(this.state.graph);
+        callback(data);
     }
 
     setupVisGraph() {
@@ -104,7 +111,8 @@ class MindMap extends React.Component {
                 selectConnectedEdges: false
             },
             manipulation: {
-                enabled: true
+                enabled: true,
+                deleteNode: this.handleDeletedNode
             },
             physics: {
                 forceAtlas2Based: {

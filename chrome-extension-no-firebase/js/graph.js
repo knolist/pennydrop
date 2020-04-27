@@ -21,6 +21,22 @@ getContentFromGraph = (graph, exceptURL) => {
   return output
 };
 
+removeItemFromGraph = (item, graph) => {
+  project = graph["curProject"];
+  graph = graph[project];
+
+  // Remove forward and backward edges
+  graph[item]["prevURLs"].forEach(prev => {
+    graph[prev]["nextURLs"] = graph[prev]["nextURLs"].filter(url => url != item)
+  });
+  graph[item]["nextURLs"].forEach(next => {
+    graph[next]["prevURLs"] = graph[next]["prevURLs"].filter(url => url != item)
+  })
+
+  // Delete the item now
+  delete graph[item]
+};
+
 updateItemInGraph = (item, previousURL, graph) => {
   project = graph["curProject"];
   graph = graph[project];
