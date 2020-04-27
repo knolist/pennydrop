@@ -16,24 +16,15 @@ var KnolistComponents = function (_React$Component) {
     }
 
     _createClass(KnolistComponents, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             return React.createElement(
-                "div",
+                'div',
                 null,
                 React.createElement(Header, null),
                 React.createElement(
-                    "div",
-                    { className: "main-body" },
-                    React.createElement(
-                        "div",
-                        { style: { display: "flex" } },
-                        React.createElement(
-                            "p",
-                            { style: { fontSize: 20 } },
-                            "Welcome to Knolist.com. You're already logged in :)"
-                        )
-                    ),
+                    'div',
+                    { className: 'main-body' },
                     React.createElement(MindMap, null)
                 )
             );
@@ -62,7 +53,7 @@ var MindMap = function (_React$Component2) {
     }
 
     _createClass(MindMap, [{
-        key: "titleCase",
+        key: 'titleCase',
         value: function titleCase(str) {
             str = str.toLowerCase().split(' ');
             for (var i = 0; i < str.length; i++) {
@@ -71,7 +62,7 @@ var MindMap = function (_React$Component2) {
             return str.join(' ');
         }
     }, {
-        key: "getDataFromServer",
+        key: 'getDataFromServer',
         value: function getDataFromServer() {
             // All the websites as a graph
             getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
@@ -81,13 +72,13 @@ var MindMap = function (_React$Component2) {
             // }, 200);
         }
     }, {
-        key: "resetSelectedNode",
+        key: 'resetSelectedNode',
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
         }
     }, {
-        key: "handleClickedNode",
-        value: function handleClickedNode(values, id, selected, hovering) {
+        key: 'handleClickedNode',
+        value: function handleClickedNode(id) {
             var visCloseButton = document.getElementsByClassName("vis-close")[0];
             // Only open modal outside of edit mode
             if (getComputedStyle(visCloseButton).display === "none") {
@@ -96,8 +87,10 @@ var MindMap = function (_React$Component2) {
             }
         }
     }, {
-        key: "setupVisGraph",
+        key: 'setupVisGraph',
         value: function setupVisGraph() {
+            var _this3 = this;
+
             var nodes = [];
             var edges = [];
             var curProject = this.state.graph.curProject;
@@ -125,9 +118,7 @@ var MindMap = function (_React$Component2) {
                     size: 16,
                     margin: 10,
                     // physics: false,
-                    chosen: {
-                        node: this.handleClickedNode
-                    }
+                    chosen: true
                 },
                 edges: {
                     arrows: {
@@ -162,14 +153,20 @@ var MindMap = function (_React$Component2) {
                 }
             };
             var network = new vis.Network(container, data, options);
+            network.on("click", function (params) {
+                if (params.nodes !== undefined && params.nodes.length > 0) {
+                    nodeId = params.nodes[0];
+                    _this3.handleClickedNode(nodeId);
+                }
+            });
         }
     }, {
-        key: "componentDidMount",
+        key: 'componentDidMount',
         value: function componentDidMount() {
             this.getDataFromServer();
         }
     }, {
-        key: "componentDidUpdate",
+        key: 'componentDidUpdate',
         value: function componentDidUpdate(prevProps, prevState) {
             // Don't refresh the graph if we only changed the selected node
             // TODO: this won't be necessary once we store the positions of the nodes
@@ -182,27 +179,27 @@ var MindMap = function (_React$Component2) {
             }
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.state.graph === null) {
                 return null;
             }
             var curProject = this.state.graph.curProject;
             return React.createElement(
-                "div",
+                'div',
                 null,
                 React.createElement(
-                    "div",
-                    { id: "title-bar" },
+                    'div',
+                    { id: 'title-bar' },
                     React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
                     React.createElement(
-                        "h2",
+                        'h2',
                         { style: { margin: "auto auto" } },
-                        "Current Project: ",
+                        'Current Project: ',
                         this.titleCase(this.state.graph.curProject)
                     )
                 ),
-                React.createElement("div", { id: "graph" }),
+                React.createElement('div', { id: 'graph' }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
             );
         }
@@ -218,45 +215,45 @@ var PageView = function (_React$Component3) {
         _classCallCheck(this, PageView);
 
         // When the user clicks anywhere outside of the modal, close it
-        var _this3 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
         };
-        return _this3;
+        return _this4;
     }
 
     _createClass(PageView, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
             }
             return React.createElement(
-                "div",
-                { id: "page-view", className: "modal" },
+                'div',
+                { id: 'page-view', className: 'modal' },
                 React.createElement(
-                    "div",
-                    { className: "modal-content" },
+                    'div',
+                    { className: 'modal-content' },
                     React.createElement(
-                        "button",
-                        { className: "close-modal button", id: "close-page-view", onClick: this.props.resetSelectedNode },
-                        "\xD7"
+                        'button',
+                        { className: 'close-modal button', id: 'close-page-view', onClick: this.props.resetSelectedNode },
+                        '\xD7'
                     ),
                     React.createElement(
-                        "a",
-                        { href: this.props.selectedNode.source, target: "_blank" },
+                        'a',
+                        { href: this.props.selectedNode.source, target: '_blank' },
                         React.createElement(
-                            "h1",
+                            'h1',
                             null,
                             this.props.selectedNode.title
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(
-                        "div",
+                        'div',
                         { style: { display: "flex" } },
                         React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode }),
                         React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode })
@@ -279,30 +276,30 @@ var ListURL = function (_React$Component4) {
     }
 
     _createClass(ListURL, [{
-        key: "render",
+        key: 'render',
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
-                    "div",
-                    { className: "url-column" },
+                    'div',
+                    { className: 'url-column' },
                     React.createElement(
-                        "h2",
+                        'h2',
                         { style: { textAlign: "center" } },
-                        "Previous Connections"
+                        'Previous Connections'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.selectedNode.prevURLs.map(function (url, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 React.createElement(
-                                    "a",
-                                    { href: _this5.props.graph[url].source, target: "_blank" },
-                                    _this5.props.graph[url].title
+                                    'a',
+                                    { href: _this6.props.graph[url].source, target: '_blank' },
+                                    _this6.props.graph[url].title
                                 )
                             );
                         })
@@ -310,24 +307,24 @@ var ListURL = function (_React$Component4) {
                 );
             } else if (this.props.type === "next") {
                 return React.createElement(
-                    "div",
-                    { className: "url-column" },
+                    'div',
+                    { className: 'url-column' },
                     React.createElement(
-                        "h2",
+                        'h2',
                         { style: { textAlign: "center" } },
-                        "Next Connections"
+                        'Next Connections'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.selectedNode.nextURLs.map(function (url, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 React.createElement(
-                                    "a",
-                                    { href: _this5.props.graph[url].source, target: "_blank" },
-                                    _this5.props.graph[url].title
+                                    'a',
+                                    { href: _this6.props.graph[url].source, target: '_blank' },
+                                    _this6.props.graph[url].title
                                 )
                             );
                         })
@@ -350,23 +347,23 @@ var HighlightsList = function (_React$Component5) {
     }
 
     _createClass(HighlightsList, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.props.highlights.length !== 0) {
                 return React.createElement(
-                    "div",
+                    'div',
                     null,
                     React.createElement(
-                        "h2",
+                        'h2',
                         null,
-                        "My Highlights"
+                        'My Highlights'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.highlights.map(function (highlight, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 highlight
                             );
@@ -375,9 +372,9 @@ var HighlightsList = function (_React$Component5) {
                 );
             }
             return React.createElement(
-                "h2",
+                'h2',
                 null,
-                "You haven't added any highlights yet."
+                'You haven\'t added any highlights yet.'
             );
         }
     }]);
@@ -395,12 +392,12 @@ var RefreshGraphButton = function (_React$Component6) {
     }
 
     _createClass(RefreshGraphButton, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             return React.createElement(
-                "button",
-                { onClick: this.props.refresh, className: "button" },
-                React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button", style: { width: "100%" } })
+                'button',
+                { onClick: this.props.refresh, className: 'button' },
+                React.createElement('img', { src: '../../images/refresh-icon.png', alt: 'Refresh Button', style: { width: "100%" } })
             );
         }
     }]);
@@ -418,12 +415,12 @@ var Header = function (_React$Component7) {
     }
 
     _createClass(Header, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             return React.createElement(
-                "div",
-                { className: "header" },
-                React.createElement("img", { className: "logo", src: "../../images/full_main.PNG", alt: "Knolist Logo" })
+                'div',
+                { className: 'header' },
+                React.createElement('img', { className: 'logo', src: '../../images/full_main.PNG', alt: 'Knolist Logo' })
             );
         }
     }]);

@@ -8,9 +8,6 @@ class KnolistComponents extends React.Component {
             <div>
                 <Header/>
                 <div className="main-body">
-                    <div style={{display: "flex"}}>
-                        <p style={{fontSize: 20}}>Welcome to Knolist.com. You're already logged in :)</p>
-                    </div>
                     <MindMap/>
                 </div>
             </div>
@@ -52,7 +49,7 @@ class MindMap extends React.Component {
     }
 
 
-    handleClickedNode(values, id, selected, hovering) {
+    handleClickedNode(id) {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
         if (getComputedStyle(visCloseButton).display === "none") {
@@ -89,9 +86,7 @@ class MindMap extends React.Component {
                 size: 16,
                 margin: 10,
                 // physics: false,
-                chosen: {
-                    node: this.handleClickedNode
-                }
+                chosen: true
             },
             edges: {
                 arrows: {
@@ -126,6 +121,12 @@ class MindMap extends React.Component {
             }
         };
         const network = new vis.Network(container, data, options);
+        network.on("click", (params) => {
+          if (params.nodes !== undefined && params.nodes.length > 0 ) {
+              nodeId = params.nodes[0]
+              this.handleClickedNode(nodeId);
+          }
+        });
     }
 
     componentDidMount() {
