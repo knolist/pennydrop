@@ -55,6 +55,7 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
         console.log(JSON.stringify(result))
       });
     });
+  }
   else if (message.command === "get_tracking") {
     _sendResponse({trackBrowsing: trackBrowsing});
   }
