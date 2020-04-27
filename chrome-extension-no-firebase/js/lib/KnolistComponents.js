@@ -47,6 +47,7 @@ var MindMap = function (_React$Component2) {
             selectedNode: null
         };
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
+        _this2.exportData = _this2.exportData.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
         _this2.handleDeletedNode = _this2.handleDeletedNode.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
@@ -71,6 +72,12 @@ var MindMap = function (_React$Component2) {
             // window.setTimeout(() => {
             //     this.getDataFromServer();
             // }, 200);
+        }
+    }, {
+        key: 'exportData',
+        value: function exportData() {
+            // TODO: this function
+            alert("Exporting");
         }
     }, {
         key: 'resetSelectedNode',
@@ -207,7 +214,8 @@ var MindMap = function (_React$Component2) {
                         { style: { margin: "auto auto" } },
                         'Current Project: ',
                         this.titleCase(this.state.graph.curProject)
-                    )
+                    ),
+                    React.createElement(ExportGraphButton, { 'export': this.exportData })
                 ),
                 React.createElement('div', { id: 'graph' }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
@@ -415,8 +423,31 @@ var RefreshGraphButton = function (_React$Component6) {
     return RefreshGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component7) {
-    _inherits(Header, _React$Component7);
+var ExportGraphButton = function (_React$Component7) {
+    _inherits(ExportGraphButton, _React$Component7);
+
+    function ExportGraphButton(props) {
+        _classCallCheck(this, ExportGraphButton);
+
+        return _possibleConstructorReturn(this, (ExportGraphButton.__proto__ || Object.getPrototypeOf(ExportGraphButton)).call(this, props));
+    }
+
+    _createClass(ExportGraphButton, [{
+        key: 'render',
+        value: function render() {
+            return React.createElement(
+                'button',
+                { onClick: this.props.export, className: 'button' },
+                React.createElement('img', { src: '../../images/share-icon.webp', alt: 'Refresh Button', style: { width: "100%" } })
+            );
+        }
+    }]);
+
+    return ExportGraphButton;
+}(React.Component);
+
+var Header = function (_React$Component8) {
+    _inherits(Header, _React$Component8);
 
     function Header() {
         _classCallCheck(this, Header);

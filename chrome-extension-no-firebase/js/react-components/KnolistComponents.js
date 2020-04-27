@@ -23,6 +23,7 @@ class MindMap extends React.Component {
             selectedNode: null
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
+        this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
         this.handleDeletedNode = this.handleDeletedNode.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
@@ -43,6 +44,11 @@ class MindMap extends React.Component {
         // window.setTimeout(() => {
         //     this.getDataFromServer();
         // }, 200);
+    }
+
+    exportData() {
+      // TODO: this function
+      alert("Exporting")
     }
 
     resetSelectedNode() {
@@ -167,6 +173,7 @@ class MindMap extends React.Component {
                 <div id="title-bar">
                     <RefreshGraphButton refresh={this.getDataFromServer}/>
                     <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
+                    <ExportGraphButton export={this.exportData}/>
                 </div>
                 <div id="graph"/>
                 <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
@@ -264,6 +271,18 @@ class RefreshGraphButton extends React.Component {
     render() {
         return (
             <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/></button>
+        );
+    }
+}
+
+class ExportGraphButton extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <button onClick={this.props.export} className="button"><img src="../../images/share-icon.webp" alt="Refresh Button" style={{width: "100%"}}/></button>
         );
     }
 }
