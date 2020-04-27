@@ -100,3 +100,7 @@ body {
 li {
     font-size: 16px;
 }
+
+.url-column {
+    flex: 50%;
+}

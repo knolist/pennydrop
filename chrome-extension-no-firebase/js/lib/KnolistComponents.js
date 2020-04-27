@@ -278,7 +278,7 @@ var ListURL = function (_React$Component4) {
             if (this.props.type === "prev") {
                 return React.createElement(
                     "div",
-                    { style: { flex: "50%" } },
+                    { className: "url-column" },
                     React.createElement(
                         "h2",
                         { style: { textAlign: "center" } },
@@ -303,7 +303,7 @@ var ListURL = function (_React$Component4) {
             } else if (this.props.type === "next") {
                 return React.createElement(
                     "div",
-                    { style: { flex: "50%" } },
+                    { className: "url-column" },
                     React.createElement(
                         "h2",
                         { style: { textAlign: "center" } },

@@ -198,7 +198,7 @@ class ListURL extends React.Component {
     render() {
         if (this.props.type === "prev") {
             return (
-                <div style={{flex: "50%"}}>
+                <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Previous Connections</h2>
                     <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
                         <li key={index}><a href={this.props.graphData[url].source} target="_blank">{this.props.graphData[url].title}</a></li>)}
@@ -207,7 +207,7 @@ class ListURL extends React.Component {
             );
         } else if (this.props.type === "next") {
             return (
-                <div style={{flex: "50%"}}>
+                <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Next Connections</h2>
                     <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
                         <li key={index}><a href={this.props.graphData[url].source} target="_blank">{this.props.graphData[url].title}</a></li>)}
