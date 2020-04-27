@@ -121,6 +121,7 @@ var MindMap = function (_React$Component2) {
                     shape: "box",
                     size: 16,
                     margin: 10,
+                    // physics: false,
                     chosen: {
                         node: this.handleClickedNode
                     }
@@ -133,6 +134,9 @@ var MindMap = function (_React$Component2) {
                     },
                     color: "black"
                 },
+                // layout: {
+                //     hierarchical: true
+                // },
                 interaction: {
                     navigationButtons: true,
                     selectConnectedEdges: false

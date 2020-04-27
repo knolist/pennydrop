@@ -75,6 +75,7 @@ class MindMap extends React.Component {
 
         // create a network
         // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
+        // TODO: Consider using hierarchical layout mode (commented out in the options)
         const container = document.getElementById("graph");
         const data = {
             nodes: nodes,
@@ -85,6 +86,7 @@ class MindMap extends React.Component {
                 shape: "box",
                 size: 16,
                 margin: 10,
+                // physics: false,
                 chosen: {
                     node: this.handleClickedNode
                 }
@@ -97,6 +99,9 @@ class MindMap extends React.Component {
                 },
                 color: "black"
             },
+            // layout: {
+            //     hierarchical: true
+            // },
             interaction: {
                 navigationButtons: true,
                 selectConnectedEdges: false
