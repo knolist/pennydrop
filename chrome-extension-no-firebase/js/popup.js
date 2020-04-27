@@ -1,18 +1,36 @@
 resetButtonClicked = () => {
     chrome.runtime.sendMessage({command: "reset"});
-}
+};
 
 viewFullWebsiteButtonClicked = () => {
-    chrome.tabs.create({url: '../html/Knolist.com.html'})
-}
+    chrome.tabs.query({
+            active: true, currentWindow: true
+        }, tabs => {
+            let index = tabs[0].index;
+            chrome.tabs.create({
+                url: '../html/Knolist.com.html',
+                index: index + 1
+            });
+        }
+    );
+    //chrome.tabs.create({url: '../html/Knolist.com.html'})
+};
 
-startTrackingButtonClicked = () => {
-  chrome.runtime.sendMessage({command: "start", project: "default"});
-}
+setTrackingState = () => {
+    chrome.runtime.sendMessage({command: "get_tracking"}, function(response) {
+        document.getElementById("switch-tracking").checked = response.trackBrowsing;
+    });
+};
 
-stopTrackingButtonClicked = () => {
-  chrome.runtime.sendMessage({command: "stop"});
-}
+window.onload = setTrackingState;
+
+switchTracking = () => {
+    if (document.getElementById("switch-tracking").checked) {
+        chrome.runtime.sendMessage({command: "start", project: "default"});
+    } else {
+        chrome.runtime.sendMessage({command: "stop"});
+    }
+};
 
 createListenerToListSitesVisited = (userId) => {
     console.log(firebase.database())
@@ -36,15 +54,14 @@ findSomethingSimilarButtonClicked = () => {
       chrome.runtime.sendMessage({command: "find_similar_msg", selectedText: selectedText, currentURL: tabs[0].url});
     });
   });
-}
+};
 
 createListeners = () => {
     // Button Listeners
     $( "#reset-button" ).click(resetButtonClicked);
     $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
-    $( "#start-browser-tracking-button" ).click(startTrackingButtonClicked);
-    $( "#stop-browser-tracking-button" ).click(stopTrackingButtonClicked);
     $( "#find-something-similar-button" ).click(findSomethingSimilarButtonClicked);
-}
+    $( "#switch-tracking" ).click(switchTracking)
+};
 
 document.addEventListener('DOMContentLoaded', createListeners, false);
