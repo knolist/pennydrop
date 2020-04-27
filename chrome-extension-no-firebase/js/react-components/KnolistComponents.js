@@ -22,10 +22,12 @@ class MindMap extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph: createNewGraph()
+            graph: createNewGraph(),
+            selectedNode: null
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
+        this.resetSelectedNode = this.resetSelectedNode.bind(this);
     }
 
     titleCase(str) {
@@ -45,9 +47,17 @@ class MindMap extends React.Component {
         // }, 200);
     }
 
-    // TODO
+    resetSelectedNode() {
+        this.setState({selectedNode: null});
+    }
+
+
     handleClickedNode(values, id, selected, hovering) {
-        console.log(id);
+        const visCloseButton = document.getElementsByClassName("vis-close")[0];
+        // Only open modal outside of edit mode
+        if (getComputedStyle(visCloseButton).display === "none") {
+            this.setState({selectedNode: this.state.graph.default[id]});
+        }
     }
 
     setupVisGraph() {
@@ -116,12 +126,24 @@ class MindMap extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        this.setupVisGraph();
+        // Don't refresh the graph if we only changed the selected node
+        // TODO: this won't be necessary once we store the positions of the nodes
+
+        const bothNull = (prevState.selectedNode === null && this.state.selectedNode === null);
+        const notNullButEqual = (
+            prevState.selectedNode !== null &&
+            this.state.selectedNode !== null &&
+            prevState.selectedNode.source === this.state.selectedNode.source
+        );
+
+        if (bothNull || notNullButEqual) {
+            this.setupVisGraph();
+        }
     }
 
     render() {
         if (this.state.graph === null) {
-            return 0;
+            return null;
         }
         return (
             <div>
@@ -130,6 +152,56 @@ class MindMap extends React.Component {
                     <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
                 </div>
                 <div id="graph"/>
+                <PageView selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
+            </div>
+        );
+    }
+}
+
+class PageView extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    componentDidMount() {
+        if (this.props.selectedNode !== null) {
+            // Get the modal
+            const modal = document.getElementById("page-view");
+
+            // Get the <span> element that closes the modal
+            const span = document.getElementById("close-page-view");
+            console.log(span);
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+                this.props.resetSelectedNode();
+                console.log("clicked");
+            };
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target === modal) {
+                    this.props.resetSelectedNode();
+                }
+            }
+        }
+    }
+
+    render() {
+        if (this.props.selectedNode === null) {
+            return null;
+        }
+        return (
+            <div id="page-view" className="modal">
+                <div className="modal-content">
+                    <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
+                    <p>{this.props.selectedNode.title}</p>
+                    <p>{this.props.selectedNode.content}</p>
+                    <p>{this.props.selectedNode.highlights}</p>
+                    <p>{this.props.selectedNode.prevURLs}</p>
+                    <p>{this.props.selectedNode.nextURLs}</p>
+                </div>
+
             </div>
         );
     }
@@ -142,7 +214,7 @@ class RefreshGraphButton extends React.Component {
 
     render() {
         return (
-            <button onClick={this.props.refresh} id="refresh-button"><img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/></button>
+            <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/></button>
         );
     }
 }

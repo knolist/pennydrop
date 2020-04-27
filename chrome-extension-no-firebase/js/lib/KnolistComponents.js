@@ -52,10 +52,12 @@ var MindMap = function (_React$Component2) {
         var _this2 = _possibleConstructorReturn(this, (MindMap.__proto__ || Object.getPrototypeOf(MindMap)).call(this, props));
 
         _this2.state = {
-            graph: createNewGraph()
+            graph: createNewGraph(),
+            selectedNode: null
         };
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
+        _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         return _this2;
     }
 
@@ -79,9 +81,18 @@ var MindMap = function (_React$Component2) {
             // }, 200);
         }
     }, {
+        key: "resetSelectedNode",
+        value: function resetSelectedNode() {
+            this.setState({ selectedNode: null });
+        }
+    }, {
         key: "handleClickedNode",
         value: function handleClickedNode(values, id, selected, hovering) {
-            console.log(id);
+            var visCloseButton = document.getElementsByClassName("vis-close")[0];
+            // Only open modal outside of edit mode
+            if (getComputedStyle(visCloseButton).display === "none") {
+                this.setState({ selectedNode: this.state.graph.default[id] });
+            }
         }
     }, {
         key: "setupVisGraph",
@@ -153,13 +164,21 @@ var MindMap = function (_React$Component2) {
     }, {
         key: "componentDidUpdate",
         value: function componentDidUpdate(prevProps, prevState) {
-            this.setupVisGraph();
+            // Don't refresh the graph if we only changed the selected node
+            // TODO: this won't be necessary once we store the positions of the nodes
+
+            var bothNull = prevState.selectedNode === null && this.state.selectedNode === null;
+            var notNullButEqual = prevState.selectedNode !== null && this.state.selectedNode !== null && prevState.selectedNode.source === this.state.selectedNode.source;
+
+            if (bothNull || notNullButEqual) {
+                this.setupVisGraph();
+            }
         }
     }, {
         key: "render",
         value: function render() {
             if (this.state.graph === null) {
-                return 0;
+                return null;
             }
             return React.createElement(
                 "div",
@@ -175,7 +194,8 @@ var MindMap = function (_React$Component2) {
                         this.titleCase(this.state.graph.curProject)
                     )
                 ),
-                React.createElement("div", { id: "graph" })
+                React.createElement("div", { id: "graph" }),
+                React.createElement(PageView, { selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
             );
         }
     }]);
@@ -183,8 +203,92 @@ var MindMap = function (_React$Component2) {
     return MindMap;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component3) {
-    _inherits(RefreshGraphButton, _React$Component3);
+var PageView = function (_React$Component3) {
+    _inherits(PageView, _React$Component3);
+
+    function PageView(props) {
+        _classCallCheck(this, PageView);
+
+        return _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+    }
+
+    _createClass(PageView, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            if (this.props.selectedNode !== null) {
+                // Get the modal
+                var modal = document.getElementById("page-view");
+
+                // Get the <span> element that closes the modal
+                var span = document.getElementById("close-page-view");
+                console.log(span);
+
+                // When the user clicks on <span> (x), close the modal
+                span.onclick = function () {
+                    this.props.resetSelectedNode();
+                    console.log("clicked");
+                };
+
+                // When the user clicks anywhere outside of the modal, close it
+                window.onclick = function (event) {
+                    if (event.target === modal) {
+                        this.props.resetSelectedNode();
+                    }
+                };
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            if (this.props.selectedNode === null) {
+                return null;
+            }
+            return React.createElement(
+                "div",
+                { id: "page-view", className: "modal" },
+                React.createElement(
+                    "div",
+                    { className: "modal-content" },
+                    React.createElement(
+                        "button",
+                        { className: "close-modal button", id: "close-page-view", onClick: this.props.resetSelectedNode },
+                        "\xD7"
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        this.props.selectedNode.title
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        this.props.selectedNode.content
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        this.props.selectedNode.highlights
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        this.props.selectedNode.prevURLs
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        this.props.selectedNode.nextURLs
+                    )
+                )
+            );
+        }
+    }]);
+
+    return PageView;
+}(React.Component);
+
+var RefreshGraphButton = function (_React$Component4) {
+    _inherits(RefreshGraphButton, _React$Component4);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -197,7 +301,7 @@ var RefreshGraphButton = function (_React$Component3) {
         value: function render() {
             return React.createElement(
                 "button",
-                { onClick: this.props.refresh, id: "refresh-button" },
+                { onClick: this.props.refresh, className: "button" },
                 React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button", style: { width: "100%" } })
             );
         }
@@ -206,8 +310,8 @@ var RefreshGraphButton = function (_React$Component3) {
     return RefreshGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component4) {
-    _inherits(Header, _React$Component4);
+var Header = function (_React$Component5) {
+    _inherits(Header, _React$Component5);
 
     function Header() {
         _classCallCheck(this, Header);
