@@ -155,7 +155,7 @@ var MindMap = function (_React$Component2) {
             var network = new vis.Network(container, data, options);
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
-                    nodeId = params.nodes[0];
+                    var nodeId = params.nodes[0];
                     _this3.handleClickedNode(nodeId);
                 }
             });

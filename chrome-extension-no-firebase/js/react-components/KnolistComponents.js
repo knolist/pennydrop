@@ -123,7 +123,7 @@ class MindMap extends React.Component {
         const network = new vis.Network(container, data, options);
         network.on("click", (params) => {
           if (params.nodes !== undefined && params.nodes.length > 0 ) {
-              nodeId = params.nodes[0]
+              const nodeId = params.nodes[0];
               this.handleClickedNode(nodeId);
           }
         });
