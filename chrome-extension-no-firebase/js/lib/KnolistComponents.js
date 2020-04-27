@@ -255,9 +255,13 @@ var PageView = function (_React$Component3) {
                         "\xD7"
                     ),
                     React.createElement(
-                        "p",
-                        null,
-                        this.props.selectedNode.title
+                        "a",
+                        { href: this.props.selectedNode.source, target: "_blank" },
+                        React.createElement(
+                            "h1",
+                            null,
+                            this.props.selectedNode.title
+                        )
                     ),
                     React.createElement(
                         "p",

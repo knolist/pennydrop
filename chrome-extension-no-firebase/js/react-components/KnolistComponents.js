@@ -195,7 +195,7 @@ class PageView extends React.Component {
             <div id="page-view" className="modal">
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
-                    <p>{this.props.selectedNode.title}</p>
+                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
                     <p>{this.props.selectedNode.content}</p>
                     <p>{this.props.selectedNode.highlights}</p>
                     <p>{this.props.selectedNode.prevURLs}</p>

@@ -1,10 +1,20 @@
 resetButtonClicked = () => {
     chrome.runtime.sendMessage({command: "reset"});
-}
+};
 
 viewFullWebsiteButtonClicked = () => {
-    chrome.tabs.create({url: '../html/Knolist.com.html'})
-}
+    chrome.tabs.query({
+            active: true, currentWindow: true
+        }, tabs => {
+            let index = tabs[0].index;
+            chrome.tabs.create({
+                url: '../html/Knolist.com.html',
+                index: index + 1
+            });
+        }
+    );
+    //chrome.tabs.create({url: '../html/Knolist.com.html'})
+};
 
 setTrackingState = () => {
     chrome.runtime.sendMessage({command: "get_tracking"}, function(response) {
@@ -44,7 +54,7 @@ findSomethingSimilarButtonClicked = () => {
       alert(response)
     });
   });
-}
+};
 
 createListeners = () => {
     // Button Listeners
@@ -52,6 +62,6 @@ createListeners = () => {
     $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
     $( "#find-something-similar-button" ).click(findSomethingSimilarButtonClicked);
     $( "#switch-tracking" ).click(switchTracking)
-}
+};
 
 document.addEventListener('DOMContentLoaded', createListeners, false);
