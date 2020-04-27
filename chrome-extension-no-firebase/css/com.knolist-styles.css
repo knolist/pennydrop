@@ -81,9 +81,10 @@ body {
 /* Modal Content/Box */
 .modal-content {
     background-color: #fefefe;
+    background-image: url("../images/background.jpg");
     margin: 5% auto; /* 15% from the top and centered */
     padding: 20px;
-    border: 1px solid #888;
+    border: 2px solid var(--text-dark-blue);
     border-radius: 16px;
     width: 80%; /* Could be more or less, depending on screen size */
 }
@@ -96,6 +97,6 @@ body {
     font-weight: bold;
 }
 
-.highlight {
+li {
     font-size: 16px;
 }

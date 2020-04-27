@@ -195,7 +195,7 @@ var MindMap = function (_React$Component2) {
                     )
                 ),
                 React.createElement("div", { id: "graph" }),
-                React.createElement(PageView, { selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
+                React.createElement(PageView, { graph: this.state.graph, selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
             );
         }
     }]);
@@ -248,14 +248,10 @@ var PageView = function (_React$Component3) {
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(
-                        "p",
-                        null,
-                        this.props.selectedNode.prevURLs
-                    ),
-                    React.createElement(
-                        "p",
-                        null,
-                        this.props.selectedNode.nextURLs
+                        "div",
+                        { style: { display: "flex" } },
+                        React.createElement(ListURL, { type: "prev", graphData: this.props.graph.default, selectedNode: this.props.selectedNode }),
+                        React.createElement(ListURL, { type: "next", graphData: this.props.graph.default, selectedNode: this.props.selectedNode })
                     )
                 )
             );
@@ -265,8 +261,79 @@ var PageView = function (_React$Component3) {
     return PageView;
 }(React.Component);
 
-var HighlightsList = function (_React$Component4) {
-    _inherits(HighlightsList, _React$Component4);
+var ListURL = function (_React$Component4) {
+    _inherits(ListURL, _React$Component4);
+
+    function ListURL(props) {
+        _classCallCheck(this, ListURL);
+
+        return _possibleConstructorReturn(this, (ListURL.__proto__ || Object.getPrototypeOf(ListURL)).call(this, props));
+    }
+
+    _createClass(ListURL, [{
+        key: "render",
+        value: function render() {
+            var _this5 = this;
+
+            if (this.props.type === "prev") {
+                return React.createElement(
+                    "div",
+                    { style: { flex: "50%" } },
+                    React.createElement(
+                        "h2",
+                        { style: { textAlign: "center" } },
+                        "Previous Connections"
+                    ),
+                    React.createElement(
+                        "ul",
+                        null,
+                        this.props.selectedNode.prevURLs.map(function (url, index) {
+                            return React.createElement(
+                                "li",
+                                { key: index },
+                                React.createElement(
+                                    "a",
+                                    { href: _this5.props.graphData[url].source, target: "_blank" },
+                                    _this5.props.graphData[url].title
+                                )
+                            );
+                        })
+                    )
+                );
+            } else if (this.props.type === "next") {
+                return React.createElement(
+                    "div",
+                    { style: { flex: "50%" } },
+                    React.createElement(
+                        "h2",
+                        { style: { textAlign: "center" } },
+                        "Next Connections"
+                    ),
+                    React.createElement(
+                        "ul",
+                        null,
+                        this.props.selectedNode.nextURLs.map(function (url, index) {
+                            return React.createElement(
+                                "li",
+                                { key: index },
+                                React.createElement(
+                                    "a",
+                                    { href: _this5.props.graphData[url].source, target: "_blank" },
+                                    _this5.props.graphData[url].title
+                                )
+                            );
+                        })
+                    )
+                );
+            } else return null;
+        }
+    }]);
+
+    return ListURL;
+}(React.Component);
+
+var HighlightsList = function (_React$Component5) {
+    _inherits(HighlightsList, _React$Component5);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -292,7 +359,7 @@ var HighlightsList = function (_React$Component4) {
                         this.props.highlights.map(function (highlight, index) {
                             return React.createElement(
                                 "li",
-                                { className: "highlight", key: index },
+                                { key: index },
                                 highlight
                             );
                         })
@@ -310,8 +377,8 @@ var HighlightsList = function (_React$Component4) {
     return HighlightsList;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component5) {
-    _inherits(RefreshGraphButton, _React$Component5);
+var RefreshGraphButton = function (_React$Component6) {
+    _inherits(RefreshGraphButton, _React$Component6);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -333,8 +400,8 @@ var RefreshGraphButton = function (_React$Component5) {
     return RefreshGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component6) {
-    _inherits(Header, _React$Component6);
+var Header = function (_React$Component7) {
+    _inherits(Header, _React$Component7);
 
     function Header() {
         _classCallCheck(this, Header);

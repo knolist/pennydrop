@@ -152,7 +152,7 @@ class MindMap extends React.Component {
                     <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
                 </div>
                 <div id="graph"/>
-                <PageView selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
+                <PageView graph={this.state.graph} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
             </div>
         );
     }
@@ -179,14 +179,45 @@ class PageView extends React.Component {
                     <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
-                    <p>{this.props.selectedNode.prevURLs}</p>
-                    <p>{this.props.selectedNode.nextURLs}</p>
+                    <div style={{display: "flex"}}>
+                        <ListURL type={"prev"} graphData={this.props.graph.default} selectedNode={this.props.selectedNode}/>
+                        <ListURL type={"next"} graphData={this.props.graph.default} selectedNode={this.props.selectedNode}/>
+                    </div>
                 </div>
 
             </div>
         );
     }
 }
+
+class ListURL extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        if (this.props.type === "prev") {
+            return (
+                <div style={{flex: "50%"}}>
+                    <h2 style={{textAlign: "center"}}>Previous Connections</h2>
+                    <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
+                        <li key={index}><a href={this.props.graphData[url].source} target="_blank">{this.props.graphData[url].title}</a></li>)}
+                    </ul>
+                </div>
+            );
+        } else if (this.props.type === "next") {
+            return (
+                <div style={{flex: "50%"}}>
+                    <h2 style={{textAlign: "center"}}>Next Connections</h2>
+                    <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
+                        <li key={index}><a href={this.props.graphData[url].source} target="_blank">{this.props.graphData[url].title}</a></li>)}
+                    </ul>
+                </div>
+            );
+        } else return null;
+    }
+}
+
 
 class HighlightsList extends React.Component {
     constructor(props) {
@@ -198,7 +229,7 @@ class HighlightsList extends React.Component {
             return (
                 <div>
                     <h2>My Highlights</h2>
-                    <ul>{this.props.highlights.map((highlight, index) => <li className="highlight" key={index}>{highlight}</li>)}</ul>
+                    <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
                 </div>
             );
         }
