@@ -44,13 +44,15 @@ var MindMap = function (_React$Component2) {
 
         _this2.state = {
             graph: createNewGraph(),
-            selectedNode: null
+            selectedNode: null,
+            displayExport: false
         };
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.exportData = _this2.exportData.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
         _this2.handleDeletedNode = _this2.handleDeletedNode.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
+        _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
         return _this2;
     }
 
@@ -76,13 +78,22 @@ var MindMap = function (_React$Component2) {
     }, {
         key: 'exportData',
         value: function exportData() {
-            // TODO: this function
-            alert("Exporting");
+            var visCloseButton = document.getElementsByClassName("vis-close")[0];
+            // Only open modal outside of edit mode
+            if (getComputedStyle(visCloseButton).display === "none") {
+                var curProject = this.state.graph.curProject;
+                this.setState({ displayExport: true });
+            }
         }
     }, {
         key: 'resetSelectedNode',
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
+        }
+    }, {
+        key: 'resetDisplayExport',
+        value: function resetDisplayExport() {
+            this.setState({ displayExport: false });
         }
     }, {
         key: 'handleClickedNode',
@@ -218,7 +229,8 @@ var MindMap = function (_React$Component2) {
                     React.createElement(ExportGraphButton, { 'export': this.exportData })
                 ),
                 React.createElement('div', { id: 'graph' }),
-                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode })
+                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
+                React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(this.state.graph), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
             );
         }
     }]);
@@ -284,8 +296,68 @@ var PageView = function (_React$Component3) {
     return PageView;
 }(React.Component);
 
-var ListURL = function (_React$Component4) {
-    _inherits(ListURL, _React$Component4);
+var ExportView = function (_React$Component4) {
+    _inherits(ExportView, _React$Component4);
+
+    function ExportView(props) {
+        _classCallCheck(this, ExportView);
+
+        // When the user clicks anywhere outside of the modal, close it
+        var _this5 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
+
+        window.onclick = function (event) {
+            if (event.target === document.getElementById("page-view")) {
+                props.resetDisplayExport();
+            }
+        };
+        return _this5;
+    }
+
+    _createClass(ExportView, [{
+        key: 'render',
+        value: function render() {
+            if (this.props.shouldShow == false) {
+                return null;
+            }
+            return React.createElement(
+                'div',
+                { id: 'page-view', className: 'modal' },
+                React.createElement(
+                    'div',
+                    { className: 'modal-content' },
+                    React.createElement(
+                        'button',
+                        { className: 'close-modal button', id: 'close-page-view', onClick: this.props.resetDisplayExport },
+                        '\xD7'
+                    ),
+                    React.createElement(
+                        'h1',
+                        null,
+                        'Export for Bibliography'
+                    ),
+                    React.createElement(
+                        'ul',
+                        null,
+                        this.props.bibliographyData.map(function (item) {
+                            return React.createElement(
+                                'li',
+                                { key: item.url },
+                                item.title,
+                                ', ',
+                                item.url
+                            );
+                        })
+                    )
+                )
+            );
+        }
+    }]);
+
+    return ExportView;
+}(React.Component);
+
+var ListURL = function (_React$Component5) {
+    _inherits(ListURL, _React$Component5);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -296,7 +368,7 @@ var ListURL = function (_React$Component4) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this6 = this;
+            var _this7 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -316,8 +388,8 @@ var ListURL = function (_React$Component4) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this6.props.graph[url].source, target: '_blank' },
-                                    _this6.props.graph[url].title
+                                    { href: _this7.props.graph[url].source, target: '_blank' },
+                                    _this7.props.graph[url].title
                                 )
                             );
                         })
@@ -341,8 +413,8 @@ var ListURL = function (_React$Component4) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this6.props.graph[url].source, target: '_blank' },
-                                    _this6.props.graph[url].title
+                                    { href: _this7.props.graph[url].source, target: '_blank' },
+                                    _this7.props.graph[url].title
                                 )
                             );
                         })
@@ -355,8 +427,8 @@ var ListURL = function (_React$Component4) {
     return ListURL;
 }(React.Component);
 
-var HighlightsList = function (_React$Component5) {
-    _inherits(HighlightsList, _React$Component5);
+var HighlightsList = function (_React$Component6) {
+    _inherits(HighlightsList, _React$Component6);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -400,8 +472,8 @@ var HighlightsList = function (_React$Component5) {
     return HighlightsList;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component6) {
-    _inherits(RefreshGraphButton, _React$Component6);
+var RefreshGraphButton = function (_React$Component7) {
+    _inherits(RefreshGraphButton, _React$Component7);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -423,8 +495,8 @@ var RefreshGraphButton = function (_React$Component6) {
     return RefreshGraphButton;
 }(React.Component);
 
-var ExportGraphButton = function (_React$Component7) {
-    _inherits(ExportGraphButton, _React$Component7);
+var ExportGraphButton = function (_React$Component8) {
+    _inherits(ExportGraphButton, _React$Component8);
 
     function ExportGraphButton(props) {
         _classCallCheck(this, ExportGraphButton);
@@ -446,8 +518,8 @@ var ExportGraphButton = function (_React$Component7) {
     return ExportGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component8) {
-    _inherits(Header, _React$Component8);
+var Header = function (_React$Component9) {
+    _inherits(Header, _React$Component9);
 
     function Header() {
         _classCallCheck(this, Header);

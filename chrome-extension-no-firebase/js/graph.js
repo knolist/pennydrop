@@ -101,6 +101,19 @@ getHighlightsFromURL = (graph, url) => {
   return graph[project][url]["highlights"];
 };
 
+getTitlesFromGraph = (graph) => {
+  const project = graph["curProject"];
+  graph = graph[project];
+  output = [];
+  for (var url in graph){
+    output.push({
+      url: url,
+      title: graph[url]["title"]
+    });
+  }
+  return output;
+};
+
 saveGraphToDisk = (graph) => {
   console.log(graph);
   chrome.storage.local.set({'itemGraph': graph});

@@ -20,13 +20,15 @@ class MindMap extends React.Component {
         super(props);
         this.state = {
             graph: createNewGraph(),
-            selectedNode: null
+            selectedNode: null,
+            displayExport: false
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
         this.handleDeletedNode = this.handleDeletedNode.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
+        this.resetDisplayExport = this.resetDisplayExport.bind(this);
     }
 
     titleCase(str) {
@@ -47,12 +49,20 @@ class MindMap extends React.Component {
     }
 
     exportData() {
-      // TODO: this function
-      alert("Exporting")
+      const visCloseButton = document.getElementsByClassName("vis-close")[0];
+      // Only open modal outside of edit mode
+      if (getComputedStyle(visCloseButton).display === "none") {
+          const curProject = this.state.graph.curProject;
+          this.setState({displayExport: true});
+      }
     }
 
     resetSelectedNode() {
         this.setState({selectedNode: null});
+    }
+
+    resetDisplayExport() {
+        this.setState({displayExport: false});
     }
 
     handleClickedNode(id) {
@@ -177,6 +187,7 @@ class MindMap extends React.Component {
                 </div>
                 <div id="graph"/>
                 <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
+                <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
             </div>
         );
     }
@@ -209,6 +220,33 @@ class PageView extends React.Component {
                     </div>
                 </div>
 
+            </div>
+        );
+    }
+}
+
+class ExportView extends React.Component {
+    constructor(props) {
+        super(props);
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target === document.getElementById("page-view")) {
+                props.resetDisplayExport();
+            }
+        }
+    }
+
+    render() {
+        if (this.props.shouldShow == false) {
+            return null;
+        }
+        return (
+            <div id="page-view" className="modal">
+                <div className="modal-content">
+                    <button className="close-modal button" id="close-page-view" onClick={this.props.resetDisplayExport}>&times;</button>
+                    <h1>Export for Bibliography</h1>
+                    <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
+                </div>
             </div>
         );
     }
