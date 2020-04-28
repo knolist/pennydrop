@@ -157,22 +157,6 @@ class MindMap extends React.Component {
         this.getDataFromServer();
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        // Don't refresh the graph if we only changed the selected node
-        // TODO: this won't be necessary once we store the positions of the nodes
-
-        const bothNull = (prevState.selectedNode === null && this.state.selectedNode === null);
-        const notNullButEqual = (
-            prevState.selectedNode !== null &&
-            this.state.selectedNode !== null &&
-            prevState.selectedNode.source === this.state.selectedNode.source
-        );
-
-        if (bothNull || notNullButEqual) {
-            this.setupVisGraph();
-        }
-    }
-
     render() {
         if (this.state.graph === null) {
             return null;

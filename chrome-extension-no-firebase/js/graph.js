@@ -143,6 +143,7 @@ getGraphFromDiskToReact = (graph, reactComponent) => {
       Object.keys(result).forEach(k => graph[k] = result[k]);
       console.log(graph);
       reactComponent.setState({graph: graph});
+      reactComponent.setupVisGraph();
     }
     else {
       console.log("Either the graph doesnt exist in storage or it's not version "+CUR_VERSION_NUM)

@@ -194,19 +194,6 @@ var MindMap = function (_React$Component2) {
             this.getDataFromServer();
         }
     }, {
-        key: 'componentDidUpdate',
-        value: function componentDidUpdate(prevProps, prevState) {
-            // Don't refresh the graph if we only changed the selected node
-            // TODO: this won't be necessary once we store the positions of the nodes
-
-            var bothNull = prevState.selectedNode === null && this.state.selectedNode === null;
-            var notNullButEqual = prevState.selectedNode !== null && this.state.selectedNode !== null && prevState.selectedNode.source === this.state.selectedNode.source;
-
-            if (bothNull || notNullButEqual) {
-                this.setupVisGraph();
-            }
-        }
-    }, {
         key: 'render',
         value: function render() {
             if (this.state.graph === null) {
