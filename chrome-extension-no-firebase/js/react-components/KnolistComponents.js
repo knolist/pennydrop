@@ -202,6 +202,7 @@ class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.closeForm = this.closeForm.bind(this);
     }
 
     handleSubmit(event) {
@@ -222,13 +223,18 @@ class NewNodeForm extends React.Component {
         event.target.reset(); // Clear the form entries
     }
 
+    closeForm() {
+        document.getElementById("new-node-form").reset();
+        this.props.switchForm();
+    }
+
     render() {
         let style = {display: "none"};
         if (this.props.showNewNodeForm) { style = {display: "block"} }
         return (
             <div className="modal" style={style}>
                 <div className="modal-content">
-                    <button className="close-modal button" onClick={this.props.switchForm}>&times;</button>
+                    <button className="close-modal button" onClick={this.closeForm}>&times;</button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
                         <label htmlFor="url">Page URL</label><br/>

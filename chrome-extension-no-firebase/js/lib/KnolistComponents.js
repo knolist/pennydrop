@@ -256,6 +256,7 @@ var NewNodeForm = function (_React$Component3) {
         var _this4 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
         _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
+        _this4.closeForm = _this4.closeForm.bind(_this4);
         return _this4;
     }
 
@@ -281,6 +282,12 @@ var NewNodeForm = function (_React$Component3) {
             event.target.reset(); // Clear the form entries
         }
     }, {
+        key: 'closeForm',
+        value: function closeForm() {
+            document.getElementById("new-node-form").reset();
+            this.props.switchForm();
+        }
+    }, {
         key: 'render',
         value: function render() {
             var style = { display: "none" };
@@ -295,7 +302,7 @@ var NewNodeForm = function (_React$Component3) {
                     { className: 'modal-content' },
                     React.createElement(
                         'button',
-                        { className: 'close-modal button', onClick: this.props.switchForm },
+                        { className: 'close-modal button', onClick: this.closeForm },
                         '\xD7'
                     ),
                     React.createElement(
