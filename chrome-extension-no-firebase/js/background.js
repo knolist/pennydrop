@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener(function(message, _sender, _sendResponse) {
     chrome.browserAction.setIcon({path: "../images/icon128.png"});
     trackBrowsing = false;
   }
-  else if (message.command == "find_similar_msg") {
+  else if (message.command === "find_similar_msg") {
     contents = getContentFromGraph(itemGraph, message.currentURL)
     console.log("Starting search to answer question: " + message.selectedText)
     contents.forEach(content => {

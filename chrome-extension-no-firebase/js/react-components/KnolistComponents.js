@@ -21,12 +21,17 @@ class MindMap extends React.Component {
         this.state = {
             graph: createNewGraph(),
             selectedNode: null,
-            displayExport: false
+            displayExport: false,
+            showNewNodeForm: false,
+            newNodeData: null,
+            newNodeCallback: null
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
         this.handleDeletedNode = this.handleDeletedNode.bind(this);
+        this.addNode = this.addNode.bind(this);
+        this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
     }
@@ -75,10 +80,23 @@ class MindMap extends React.Component {
     }
 
     handleDeletedNode(data, callback) {
-        const nodeId = data.nodes[0]
-        removeItemFromGraph(nodeId, this.state.graph)
+        const nodeId = data.nodes[0];
+        removeItemFromGraph(nodeId, this.state.graph);
         saveGraphToDisk(this.state.graph);
         callback(data);
+    }
+
+    addNode(nodeData, callback) {
+        this.setState(
+            {
+                showNewNodeForm: !this.state.showNewNodeForm,
+                newNodeData: nodeData,
+                newNodeCallback: callback
+            });
+    }
+
+    switchShowNewNodeForm() {
+        this.setState({showNewNodeForm: !this.state.showNewNodeForm});
     }
 
     setupVisGraph() {
@@ -128,7 +146,8 @@ class MindMap extends React.Component {
             },
             manipulation: {
                 enabled: true,
-                deleteNode: this.handleDeletedNode
+                deleteNode: this.handleDeletedNode,
+                addNode: this.addNode
             },
             physics: {
                 forceAtlas2Based: {
@@ -170,8 +189,43 @@ class MindMap extends React.Component {
                     <ExportGraphButton export={this.exportData}/>
                 </div>
                 <div id="graph"/>
+                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm}/>
                 <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
                 <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
+            </div>
+        );
+    }
+}
+
+class NewNodeForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event) {
+        let nodeData = this.props.nodeData;
+        nodeData.label = event.target.title.value;
+        this.props.callback(nodeData);
+        this.props.switchForm();
+        event.preventDefault(); // Stop page from reloading
+        event.target.reset(); // Clear the form entries
+    }
+
+    render() {
+        let style = {display: "none"};
+        if (this.props.showNewNodeForm) { style = {display: "block"} }
+        return (
+            <div className="modal" style={style}>
+                <div className="modal-content">
+                    <button className="close-modal button" onClick={this.props.switchForm}>&times;</button>
+                    <h1>Add new node</h1>
+                    <form id="new-node-form" onSubmit={this.handleSubmit}>
+                        <label htmlFor="title">Node label</label><br/>
+                        <input id="title" name="title" type="text" required/><br/>
+                        <button className="button" style={{width: 100}}>Add node</button>
+                    </form>
+                </div>
             </div>
         );
     }
@@ -181,6 +235,7 @@ class PageView extends React.Component {
     constructor(props) {
         super(props);
         // When the user clicks anywhere outside of the modal, close it
+        // TODO: make this work
         window.onclick = function(event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
@@ -203,7 +258,6 @@ class PageView extends React.Component {
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                     </div>
                 </div>
-
             </div>
         );
     }
@@ -221,7 +275,7 @@ class ExportView extends React.Component {
     }
 
     render() {
-        if (this.props.shouldShow == false) {
+        if (this.props.shouldShow === false) {
             return null;
         }
         return (

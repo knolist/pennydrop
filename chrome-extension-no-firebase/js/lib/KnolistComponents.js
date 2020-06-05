@@ -45,12 +45,17 @@ var MindMap = function (_React$Component2) {
         _this2.state = {
             graph: createNewGraph(),
             selectedNode: null,
-            displayExport: false
+            displayExport: false,
+            showNewNodeForm: false,
+            newNodeData: null,
+            newNodeCallback: null
         };
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.exportData = _this2.exportData.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
         _this2.handleDeletedNode = _this2.handleDeletedNode.bind(_this2);
+        _this2.addNode = _this2.addNode.bind(_this2);
+        _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
         return _this2;
@@ -114,6 +119,20 @@ var MindMap = function (_React$Component2) {
             callback(data);
         }
     }, {
+        key: 'addNode',
+        value: function addNode(nodeData, callback) {
+            this.setState({
+                showNewNodeForm: !this.state.showNewNodeForm,
+                newNodeData: nodeData,
+                newNodeCallback: callback
+            });
+        }
+    }, {
+        key: 'switchShowNewNodeForm',
+        value: function switchShowNewNodeForm() {
+            this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
+        }
+    }, {
         key: 'setupVisGraph',
         value: function setupVisGraph() {
             var _this3 = this;
@@ -164,7 +183,8 @@ var MindMap = function (_React$Component2) {
                 },
                 manipulation: {
                     enabled: true,
-                    deleteNode: this.handleDeletedNode
+                    deleteNode: this.handleDeletedNode,
+                    addNode: this.addNode
                 },
                 physics: {
                     forceAtlas2Based: {
@@ -216,6 +236,7 @@ var MindMap = function (_React$Component2) {
                     React.createElement(ExportGraphButton, { 'export': this.exportData })
                 ),
                 React.createElement('div', { id: 'graph' }),
+                React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, callback: this.state.newNodeCallback, switchForm: this.switchShowNewNodeForm }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
                 React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(this.state.graph), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
             );
@@ -225,21 +246,92 @@ var MindMap = function (_React$Component2) {
     return MindMap;
 }(React.Component);
 
-var PageView = function (_React$Component3) {
-    _inherits(PageView, _React$Component3);
+var NewNodeForm = function (_React$Component3) {
+    _inherits(NewNodeForm, _React$Component3);
+
+    function NewNodeForm(props) {
+        _classCallCheck(this, NewNodeForm);
+
+        var _this4 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+
+        _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
+        return _this4;
+    }
+
+    _createClass(NewNodeForm, [{
+        key: 'handleSubmit',
+        value: function handleSubmit(event) {
+            var nodeData = this.props.nodeData;
+            nodeData.label = event.target.title.value;
+            this.props.callback(nodeData);
+            this.props.switchForm();
+            event.preventDefault(); // Stop page from reloading
+            event.target.reset(); // Clear the form entries
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var style = { display: "none" };
+            if (this.props.showNewNodeForm) {
+                style = { display: "block" };
+            }
+            return React.createElement(
+                'div',
+                { className: 'modal', style: style },
+                React.createElement(
+                    'div',
+                    { className: 'modal-content' },
+                    React.createElement(
+                        'button',
+                        { className: 'close-modal button', onClick: this.props.switchForm },
+                        '\xD7'
+                    ),
+                    React.createElement(
+                        'h1',
+                        null,
+                        'Add new node'
+                    ),
+                    React.createElement(
+                        'form',
+                        { id: 'new-node-form', onSubmit: this.handleSubmit },
+                        React.createElement(
+                            'label',
+                            { htmlFor: 'title' },
+                            'Node label'
+                        ),
+                        React.createElement('br', null),
+                        React.createElement('input', { id: 'title', name: 'title', type: 'text', required: true }),
+                        React.createElement('br', null),
+                        React.createElement(
+                            'button',
+                            { className: 'button', style: { width: 100 } },
+                            'Add node'
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return NewNodeForm;
+}(React.Component);
+
+var PageView = function (_React$Component4) {
+    _inherits(PageView, _React$Component4);
 
     function PageView(props) {
         _classCallCheck(this, PageView);
 
         // When the user clicks anywhere outside of the modal, close it
-        var _this4 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        // TODO: make this work
+        var _this5 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
         };
-        return _this4;
+        return _this5;
     }
 
     _createClass(PageView, [{
@@ -283,27 +375,27 @@ var PageView = function (_React$Component3) {
     return PageView;
 }(React.Component);
 
-var ExportView = function (_React$Component4) {
-    _inherits(ExportView, _React$Component4);
+var ExportView = function (_React$Component5) {
+    _inherits(ExportView, _React$Component5);
 
     function ExportView(props) {
         _classCallCheck(this, ExportView);
 
         // When the user clicks anywhere outside of the modal, close it
-        var _this5 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetDisplayExport();
             }
         };
-        return _this5;
+        return _this6;
     }
 
     _createClass(ExportView, [{
         key: 'render',
         value: function render() {
-            if (this.props.shouldShow == false) {
+            if (this.props.shouldShow === false) {
                 return null;
             }
             return React.createElement(
@@ -343,8 +435,8 @@ var ExportView = function (_React$Component4) {
     return ExportView;
 }(React.Component);
 
-var ListURL = function (_React$Component5) {
-    _inherits(ListURL, _React$Component5);
+var ListURL = function (_React$Component6) {
+    _inherits(ListURL, _React$Component6);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -355,7 +447,7 @@ var ListURL = function (_React$Component5) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this7 = this;
+            var _this8 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -375,8 +467,8 @@ var ListURL = function (_React$Component5) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this7.props.graph[url].source, target: '_blank' },
-                                    _this7.props.graph[url].title
+                                    { href: _this8.props.graph[url].source, target: '_blank' },
+                                    _this8.props.graph[url].title
                                 )
                             );
                         })
@@ -400,8 +492,8 @@ var ListURL = function (_React$Component5) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this7.props.graph[url].source, target: '_blank' },
-                                    _this7.props.graph[url].title
+                                    { href: _this8.props.graph[url].source, target: '_blank' },
+                                    _this8.props.graph[url].title
                                 )
                             );
                         })
@@ -414,8 +506,8 @@ var ListURL = function (_React$Component5) {
     return ListURL;
 }(React.Component);
 
-var HighlightsList = function (_React$Component6) {
-    _inherits(HighlightsList, _React$Component6);
+var HighlightsList = function (_React$Component7) {
+    _inherits(HighlightsList, _React$Component7);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -459,8 +551,8 @@ var HighlightsList = function (_React$Component6) {
     return HighlightsList;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component7) {
-    _inherits(RefreshGraphButton, _React$Component7);
+var RefreshGraphButton = function (_React$Component8) {
+    _inherits(RefreshGraphButton, _React$Component8);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -482,8 +574,8 @@ var RefreshGraphButton = function (_React$Component7) {
     return RefreshGraphButton;
 }(React.Component);
 
-var ExportGraphButton = function (_React$Component8) {
-    _inherits(ExportGraphButton, _React$Component8);
+var ExportGraphButton = function (_React$Component9) {
+    _inherits(ExportGraphButton, _React$Component9);
 
     function ExportGraphButton(props) {
         _classCallCheck(this, ExportGraphButton);
@@ -505,8 +597,8 @@ var ExportGraphButton = function (_React$Component8) {
     return ExportGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component9) {
-    _inherits(Header, _React$Component9);
+var Header = function (_React$Component10) {
+    _inherits(Header, _React$Component10);
 
     function Header() {
         _classCallCheck(this, Header);
