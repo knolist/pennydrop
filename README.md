@@ -5,8 +5,8 @@ This is our README. Yay
 There are two directories inside `js`: `react-components` and `lib`. You should only write to files in `react-components`, since 
 `lib` only holds the compiled code. To compile the code using babel, you must (Linux commands):
 1) Install `npm` if you haven't yet
-2) Install `babel-cli` using `npm install --save-dev @babel/core @babel-cli`
-3) Install the React preset using ` npm install babel-cli@6 babel-preset-react-app@3`
+2) Install `babel-cli` using `npm install --save-dev @babel/core`
+3) Install the React preset using `npm install babel-cli@6 babel-preset-react-app@3`
 4) Compile the code by running the following command from the root directory of the project: 
 `npx babel --presets react-app/prod chrome-extension-no-firebase/js/react-components --out-dir chrome-extension-no-firebase/js/lib/` (Recommendation: set up an alias
 using by adding the following line to your `~/.bashrc`: `alias babelc_kno='npx babel --presets react-app/prod chrome-extension-no-firebase/js/react-components --out-dir chrome-extension-no-firebase/js/lib/'`, then
