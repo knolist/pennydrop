@@ -189,7 +189,8 @@ class MindMap extends React.Component {
                     <ExportGraphButton export={this.exportData}/>
                 </div>
                 <div id="graph"/>
-                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm}/>
+                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
+                             callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
                 <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
                 <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
             </div>
@@ -204,11 +205,20 @@ class NewNodeForm extends React.Component {
     }
 
     handleSubmit(event) {
-        let nodeData = this.props.nodeData;
-        nodeData.label = event.target.title.value;
-        this.props.callback(nodeData);
-        this.props.switchForm();
         event.preventDefault(); // Stop page from reloading
+        const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
+        $.getJSON(contextExtractionURL, (item) => {
+            updateItemInGraph(item, "", this.props.graph);
+            saveGraphToDisk(this.props.graph);
+        });
+
+        // let nodeData = this.props.nodeData;
+        // const curProject = this.props.graph.curProject;
+        // nodeData.id = event.target.url.value;
+        // nodeData.label = this.props.graph[curProject][event.target.url.value].title;
+        // this.props.callback(nodeData);
+        this.props.switchForm();
+        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
         event.target.reset(); // Clear the form entries
     }
 
@@ -221,8 +231,8 @@ class NewNodeForm extends React.Component {
                     <button className="close-modal button" onClick={this.props.switchForm}>&times;</button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
-                        <label htmlFor="title">Node label</label><br/>
-                        <input id="title" name="title" type="text" required/><br/>
+                        <label htmlFor="url">Page URL</label><br/>
+                        <input id="url" name="url" type="url" placeholder="Insert URL" required/><br/>
                         <button className="button" style={{width: 100}}>Add node</button>
                     </form>
                 </div>

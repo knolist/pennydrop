@@ -236,7 +236,8 @@ var MindMap = function (_React$Component2) {
                     React.createElement(ExportGraphButton, { 'export': this.exportData })
                 ),
                 React.createElement('div', { id: 'graph' }),
-                React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, callback: this.state.newNodeCallback, switchForm: this.switchShowNewNodeForm }),
+                React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, graph: this.state.graph,
+                    callback: this.state.newNodeCallback, switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
                 React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(this.state.graph), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
             );
@@ -261,11 +262,22 @@ var NewNodeForm = function (_React$Component3) {
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var nodeData = this.props.nodeData;
-            nodeData.label = event.target.title.value;
-            this.props.callback(nodeData);
-            this.props.switchForm();
+            var _this5 = this;
+
             event.preventDefault(); // Stop page from reloading
+            var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
+            $.getJSON(contextExtractionURL, function (item) {
+                updateItemInGraph(item, "", _this5.props.graph);
+                saveGraphToDisk(_this5.props.graph);
+            });
+
+            // let nodeData = this.props.nodeData;
+            // const curProject = this.props.graph.curProject;
+            // nodeData.id = event.target.url.value;
+            // nodeData.label = this.props.graph[curProject][event.target.url.value].title;
+            // this.props.callback(nodeData);
+            this.props.switchForm();
+            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
             event.target.reset(); // Clear the form entries
         }
     }, {
@@ -296,11 +308,11 @@ var NewNodeForm = function (_React$Component3) {
                         { id: 'new-node-form', onSubmit: this.handleSubmit },
                         React.createElement(
                             'label',
-                            { htmlFor: 'title' },
-                            'Node label'
+                            { htmlFor: 'url' },
+                            'Page URL'
                         ),
                         React.createElement('br', null),
-                        React.createElement('input', { id: 'title', name: 'title', type: 'text', required: true }),
+                        React.createElement('input', { id: 'url', name: 'url', type: 'url', placeholder: 'Insert URL', required: true }),
                         React.createElement('br', null),
                         React.createElement(
                             'button',
@@ -324,14 +336,14 @@ var PageView = function (_React$Component4) {
 
         // When the user clicks anywhere outside of the modal, close it
         // TODO: make this work
-        var _this5 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
         };
-        return _this5;
+        return _this6;
     }
 
     _createClass(PageView, [{
@@ -382,14 +394,14 @@ var ExportView = function (_React$Component5) {
         _classCallCheck(this, ExportView);
 
         // When the user clicks anywhere outside of the modal, close it
-        var _this6 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetDisplayExport();
             }
         };
-        return _this6;
+        return _this7;
     }
 
     _createClass(ExportView, [{
@@ -447,7 +459,7 @@ var ListURL = function (_React$Component6) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this8 = this;
+            var _this9 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -467,8 +479,8 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this8.props.graph[url].source, target: '_blank' },
-                                    _this8.props.graph[url].title
+                                    { href: _this9.props.graph[url].source, target: '_blank' },
+                                    _this9.props.graph[url].title
                                 )
                             );
                         })
@@ -492,8 +504,8 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this8.props.graph[url].source, target: '_blank' },
-                                    _this8.props.graph[url].title
+                                    { href: _this9.props.graph[url].source, target: '_blank' },
+                                    _this9.props.graph[url].title
                                 )
                             );
                         })
