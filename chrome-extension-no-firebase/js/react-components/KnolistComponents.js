@@ -24,7 +24,8 @@ class MindMap extends React.Component {
             displayExport: false,
             showNewNodeForm: false,
             newNodeData: null,
-            newNodeCallback: null
+            newNodeCallback: null,
+            visNetwork: null
         };
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
@@ -34,6 +35,14 @@ class MindMap extends React.Component {
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
+        this.testButton = this.testButton.bind(this);
+    }
+
+    testButton() {
+        console.log(this.state.visNetwork.getPositions());
+        console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/My_Last_Duchess"));
+        console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/Robert_Browning"));
+        // console.log(this.state.visNetwork.getSelection());
     }
 
     titleCase(str) {
@@ -170,6 +179,7 @@ class MindMap extends React.Component {
               this.handleClickedNode(nodeId);
           }
         });
+        this.setState({visNetwork: network});
     }
 
     componentDidMount() {
@@ -188,6 +198,7 @@ class MindMap extends React.Component {
                     <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
                     <ExportGraphButton export={this.exportData}/>
                 </div>
+                <button onClick={this.testButton}>Test whatever</button>
                 <div id="graph"/>
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
                              callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
