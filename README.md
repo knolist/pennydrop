@@ -1,5 +1,5 @@
 # Knolist
-This is our README. Yay
+Knolist is a research management tool that revolutionizes the way you organize information. 
 
 ## Installing and using Babel compiler for React
 There are two directories inside `js`: `react-components` and `lib`. You should only write to files in `react-components`, since 
@@ -15,71 +15,17 @@ run the compiler by calling `babelc_kno` from your command line)
 ## Running the server
 If running locally, you must run the server that extracts website data.
 1) Open a terminal and run `cd server`
-2) Run `python server.py`
+2) Run `python3 server.py`
 
+## Automatically Associating GitHub Activity in ClickUp 
+ClickUp will automatically pick up new activity and associate it with tasks. 
 
-## Road Map
-5 Sprints of 2 weeks each
+To enable this, you must: 
+Add the ClickUp task ID in any part of the pull request title, branch name, or commit message with CU- in front of it.
+Example: CU-ud5b
 
-### Sprint 1 (Feb 28)
-#### Android:
-	Skeleton of the app with all the activities
-	Login
-	Registration
-	Entire feed page except for advanced search features
-	Thread activity except voting for comments and info
-#### Web:
-	Login
-	Registration
-	Create a thread
-	View thread
-	Reply in thread
-
-#### Business:
-	Business Plan Intro
-	Business Plan Market Analysis
-	Business Plan Marketing Pan
-
-### Sprint 2 (Mar 13)
-#### Business:
-	Business Plan Solution
-	Business Plan Operational plan
-	Business Plan costs and financing
-	Business Plan team
-
-#### Web:
-	Research how analytics will work
-	ranking of the four votes
-#### Android:
-	Advanced search in the feed
-	Info in the thread activity
-	voting on comments
-	Sorting in thread activity
-
-### Sprint 3 (Apr 3)
-#### Web:
-	Create the analytics
-#### Android:
-	User experience and interaction
-	App redesign
-#### Business:
-	Get ready for the business plan competition
-
-### Sprint 4 (Apr 17)
-	Talk to the business and explore where to improve
-	Refine the analytics
-#### iOS:
-	Skeleton of the app with all the activities
-	Login
-	Registration
-	Entire feed page except for advanced search features
-	Thread activity except voting for comments and info
-
-### Sprint 5 (Apr 30, last day of class)
-	Talk to the business and explore where to improve
-	Refine the analytics
-#### iOS:
-	Advanced search in the feed
-	Info in the thread activity
-	voting on comments
-	Sorting in thread activity
+## Manually Associating GitHub Activity
+1. Click the GitHub icon on any task
+2. Select the pull request, branch, or commit tab
+3. Select a repo then chose a branch
+4. Attach your pull request, branch, or commit

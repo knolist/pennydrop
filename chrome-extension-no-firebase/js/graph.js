@@ -37,11 +37,6 @@ removeItemFromGraph = (item, graph) => {
   delete graph[item]
 };
 
-findAvailablePosition = (item, previousURL, graph) => {
-  // TODO
-  return [0, 0];
-};
-
 updateItemInGraph = (item, previousURL, graph) => {
   project = graph["curProject"];
   graph = graph[project];
@@ -51,10 +46,9 @@ updateItemInGraph = (item, previousURL, graph) => {
     graph[item["source"]]["prevURLs"] = [];
     graph[item["source"]]["nextURLs"] = [];
     graph[item["source"]]["highlights"] = [];
-    // Find and store the position of this node
-    const coordinates = findAvailablePosition(item, previousURL, graph);
-    graph[item["source"]]["x"] = coordinates[0];
-    graph[item["source"]]["y"] = coordinates[1];
+    // Initialize with null position
+    graph[item["source"]]["x"] = 80;
+    graph[item["source"]]["y"] = 80;
   }
   // Add edge to graph
   if (previousURL !== "" && graph[previousURL] !== undefined) {

@@ -40,8 +40,8 @@ class MindMap extends React.Component {
 
     testButton() {
         console.log(this.state.visNetwork.getPositions());
-        console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/My_Last_Duchess"));
-        console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/Robert_Browning"));
+        // console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/My_Last_Duchess"));
+        // console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/Robert_Browning"));
         // console.log(this.state.visNetwork.getSelection());
     }
 
@@ -114,7 +114,13 @@ class MindMap extends React.Component {
         const curProject = this.state.graph.curProject;
         for (let index in this.state.graph[curProject]) {
             let node = this.state.graph[curProject][index];
-            nodes.push({id: node.source, label: node.title});
+            // Deal with positions
+            if (node.x === undefined || node.y === undefined) {
+                nodes.push({id: node.source, label: node.title});
+            } else {
+                nodes.push({id: node.source, label: node.title, x: node.x, y: node.y});
+            }
+            // Deal with edges
             for (let nextIndex in node.nextURLs) {
                 edges.push({from: node.source, to: node.nextURLs[nextIndex]})
             }
@@ -124,7 +130,6 @@ class MindMap extends React.Component {
 
         // create a network
         // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
-        // TODO: Consider using hierarchical layout mode (commented out in the options)
         const container = document.getElementById("graph");
         const data = {
             nodes: nodes,
@@ -146,9 +151,6 @@ class MindMap extends React.Component {
                 },
                 color: "black"
             },
-            // layout: {
-            //     hierarchical: true
-            // },
             interaction: {
                 navigationButtons: true,
                 selectConnectedEdges: false
