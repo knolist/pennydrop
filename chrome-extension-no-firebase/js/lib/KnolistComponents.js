@@ -179,7 +179,10 @@ var MindMap = function (_React$Component2) {
                 var node = this.state.graph[curProject][index];
                 // Deal with positions
                 if (node.x === undefined || node.y === undefined) {
-                    nodes.push({ id: node.source, label: node.title });
+                    // If position is still undefined, generate random x and y in interval [-300, 300]
+                    var x = Math.floor(Math.random() * 600 - 300);
+                    var y = Math.floor(Math.random() * 600 - 300);
+                    nodes.push({ id: node.source, label: node.title, x: x, y: y });
                 } else {
                     nodes.push({ id: node.source, label: node.title, x: node.x, y: node.y });
                 }
@@ -203,7 +206,7 @@ var MindMap = function (_React$Component2) {
                     shape: "box",
                     size: 16,
                     margin: 10,
-                    // physics: false,
+                    physics: false,
                     chosen: true
                 },
                 edges: {
@@ -212,7 +215,8 @@ var MindMap = function (_React$Component2) {
                             enabled: true
                         }
                     },
-                    color: "black"
+                    color: "black",
+                    physics: false
                 },
                 interaction: {
                     navigationButtons: true,
@@ -222,28 +226,32 @@ var MindMap = function (_React$Component2) {
                     enabled: true,
                     deleteNode: this.handleDeletedNode,
                     addNode: this.addNode
-                },
-                physics: {
-                    forceAtlas2Based: {
-                        gravitationalConstant: -0.001,
-                        centralGravity: 0,
-                        springLength: 230,
-                        springConstant: 0,
-                        avoidOverlap: 1
-                    },
-                    maxVelocity: 146,
-                    solver: "forceAtlas2Based",
-                    timestep: 0.35,
-                    stabilization: { iterations: 150 }
-                }
-            };
+                    // physics: {
+                    //     forceAtlas2Based: {
+                    //         gravitationalConstant: -0.001,
+                    //         centralGravity: 0,
+                    //         springLength: 230,
+                    //         springConstant: 0,
+                    //         avoidOverlap: 1
+                    //     },
+                    //     maxVelocity: 146,
+                    //     solver: "forceAtlas2Based",
+                    //     timestep: 0.35,
+                    //     stabilization: { iterations: 150 }
+                    // }
+                } };
             var network = new vis.Network(container, data, options);
+            network.fit();
             // Handle click vs drag
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
                     _this3.handleClickedNode(nodeId);
                 }
+            });
+            // Update positions after dragging node
+            network.on("dragEnd", function () {
+                // TODO
             });
             // Store the network
             this.setState({ visNetwork: network });

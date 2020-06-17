@@ -130,8 +130,11 @@ class MindMap extends React.Component {
         for (let index in this.state.graph[curProject]) {
             let node = this.state.graph[curProject][index];
             // Deal with positions
-            if (node.x === undefined || node.y === undefined) {
-                nodes.push({id: node.source, label: node.title});
+            if (node.x === null || node.y === null) {
+                // If position is still undefined, generate random x and y in interval [-300, 300]
+                const x = Math.floor(Math.random() * 600 - 300);
+                const y = Math.floor(Math.random() * 600 - 300);
+                nodes.push({id: node.source, label: node.title, x: x, y: y});
             } else {
                 nodes.push({id: node.source, label: node.title, x: node.x, y: node.y});
             }
@@ -155,7 +158,7 @@ class MindMap extends React.Component {
                 shape: "box",
                 size: 16,
                 margin: 10,
-                // physics: false,
+                physics: false,
                 chosen: true
             },
             edges: {
@@ -164,7 +167,8 @@ class MindMap extends React.Component {
                         enabled: true
                     }
                 },
-                color: "black"
+                color: "black",
+                physics: false
             },
             interaction: {
                 navigationButtons: true,
@@ -174,28 +178,35 @@ class MindMap extends React.Component {
                 enabled: true,
                 deleteNode: this.handleDeletedNode,
                 addNode: this.addNode
-            },
-            physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -0.001,
-                    centralGravity: 0,
-                    springLength: 230,
-                    springConstant: 0,
-                    avoidOverlap: 1
-                },
-                maxVelocity: 146,
-                solver: "forceAtlas2Based",
-                timestep: 0.35,
-                stabilization: { iterations: 150 }
             }
+            // physics: {
+            //     forceAtlas2Based: {
+            //         gravitationalConstant: -0.001,
+            //         centralGravity: 0,
+            //         springLength: 230,
+            //         springConstant: 0,
+            //         avoidOverlap: 1
+            //     },
+            //     maxVelocity: 146,
+            //     solver: "forceAtlas2Based",
+            //     timestep: 0.35,
+            //     stabilization: { iterations: 150 }
+            // }
         };
         const network = new vis.Network(container, data, options);
+        network.fit(); // Zoom in or out to fit entire network on screen
+        // Store all positions
+
         // Handle click vs drag
         network.on("click", (params) => {
           if (params.nodes !== undefined && params.nodes.length > 0 ) {
               const nodeId = params.nodes[0];
               this.handleClickedNode(nodeId);
           }
+        });
+        // Update positions after dragging node
+        network.on("dragEnd", () => {
+           // TODO
         });
         // Store the network
         this.setState({visNetwork: network});
