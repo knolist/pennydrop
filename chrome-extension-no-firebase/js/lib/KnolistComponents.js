@@ -1,3 +1,5 @@
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -66,7 +68,7 @@ var MindMap = function (_React$Component2) {
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.exportData = _this2.exportData.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
-        _this2.handleDeletedNode = _this2.handleDeletedNode.bind(_this2);
+        _this2.deleteNode = _this2.deleteNode.bind(_this2);
         _this2.addNode = _this2.addNode.bind(_this2);
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
@@ -142,8 +144,8 @@ var MindMap = function (_React$Component2) {
             }
         }
     }, {
-        key: 'handleDeletedNode',
-        value: function handleDeletedNode(data, callback) {
+        key: 'deleteNode',
+        value: function deleteNode(data, callback) {
             var nodeId = data.nodes[0];
             removeItemFromGraph(nodeId, this.state.graph);
             saveGraphToDisk(this.state.graph);
@@ -164,13 +166,12 @@ var MindMap = function (_React$Component2) {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
         }
 
-        // Main function to set up the vis-network object
+        // Helper function to setup the nodes and edges for the graph
 
     }, {
-        key: 'setupVisGraph',
-        value: function setupVisGraph() {
-            var _this3 = this;
-
+        key: 'createNodesAndEdges',
+        value: function createNodesAndEdges() {
+            console.log(this.state.graph);
             var nodes = [];
             var edges = [];
             var curProject = this.state.graph.curProject;
@@ -178,7 +179,7 @@ var MindMap = function (_React$Component2) {
             for (var index in this.state.graph[curProject]) {
                 var node = this.state.graph[curProject][index];
                 // Deal with positions
-                if (node.x === undefined || node.y === undefined) {
+                if (node.x === null || node.y === null || node.x === undefined || node.y === undefined) {
                     // If position is still undefined, generate random x and y in interval [-300, 300]
                     var x = Math.floor(Math.random() * 600 - 300);
                     var y = Math.floor(Math.random() * 600 - 300);
@@ -193,9 +194,24 @@ var MindMap = function (_React$Component2) {
             }
             console.log(nodes);
             console.log(edges);
+            return [nodes, edges];
+        }
+
+        // Main function to set up the vis-network object
+
+    }, {
+        key: 'setupVisGraph',
+        value: function setupVisGraph() {
+            var _this3 = this;
+
+            var _createNodesAndEdges = this.createNodesAndEdges(),
+                _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
+                nodes = _createNodesAndEdges2[0],
+                edges = _createNodesAndEdges2[1];
 
             // create a network
-            // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
+
+
             var container = document.getElementById("graph");
             var data = {
                 nodes: nodes,
@@ -224,7 +240,7 @@ var MindMap = function (_React$Component2) {
                 },
                 manipulation: {
                     enabled: true,
-                    deleteNode: this.handleDeletedNode,
+                    deleteNode: this.deleteNode,
                     addNode: this.addNode
                     // physics: {
                     //     forceAtlas2Based: {
@@ -241,7 +257,15 @@ var MindMap = function (_React$Component2) {
                     // }
                 } };
             var network = new vis.Network(container, data, options);
-            network.fit();
+            network.fit(); // Zoom in or out to fit entire network on screen
+            // Store all positions
+            var positions = network.getPositions();
+            for (var index in positions) {
+                var x = positions[index]["x"];
+                var y = positions[index]["y"];
+                updatePositionOfNode(this.state.graph, index, x, y);
+            }
+            saveGraphToDisk(this.state.graph);
             // Handle click vs drag
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {

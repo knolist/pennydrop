@@ -40,7 +40,7 @@ class MindMap extends React.Component {
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
-        this.handleDeletedNode = this.handleDeletedNode.bind(this);
+        this.deleteNode = this.deleteNode.bind(this);
         this.addNode = this.addNode.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
@@ -101,7 +101,7 @@ class MindMap extends React.Component {
         }
     }
 
-    handleDeletedNode(data, callback) {
+    deleteNode(data, callback) {
         const nodeId = data.nodes[0];
         removeItemFromGraph(nodeId, this.state.graph);
         saveGraphToDisk(this.state.graph);
@@ -121,8 +121,9 @@ class MindMap extends React.Component {
         this.setState({showNewNodeForm: !this.state.showNewNodeForm});
     }
 
-    // Main function to set up the vis-network object
-    setupVisGraph() {
+    // Helper function to setup the nodes and edges for the graph
+    createNodesAndEdges() {
+        console.log(this.state.graph);
         let nodes = [];
         let edges = [];
         const curProject = this.state.graph.curProject;
@@ -130,7 +131,7 @@ class MindMap extends React.Component {
         for (let index in this.state.graph[curProject]) {
             let node = this.state.graph[curProject][index];
             // Deal with positions
-            if (node.x === null || node.y === null) {
+            if (node.x === null || node.y === null || node.x === undefined || node.y === undefined) {
                 // If position is still undefined, generate random x and y in interval [-300, 300]
                 const x = Math.floor(Math.random() * 600 - 300);
                 const y = Math.floor(Math.random() * 600 - 300);
@@ -145,9 +146,14 @@ class MindMap extends React.Component {
         }
         console.log(nodes);
         console.log(edges);
+        return [nodes, edges];
+    }
+
+    // Main function to set up the vis-network object
+    setupVisGraph() {
+        const [nodes, edges] = this.createNodesAndEdges();
 
         // create a network
-        // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
         const container = document.getElementById("graph");
         const data = {
             nodes: nodes,
@@ -176,7 +182,7 @@ class MindMap extends React.Component {
             },
             manipulation: {
                 enabled: true,
-                deleteNode: this.handleDeletedNode,
+                deleteNode: this.deleteNode,
                 addNode: this.addNode
             }
             // physics: {
@@ -196,7 +202,13 @@ class MindMap extends React.Component {
         const network = new vis.Network(container, data, options);
         network.fit(); // Zoom in or out to fit entire network on screen
         // Store all positions
-
+        const positions = network.getPositions();
+        for (let index in positions) {
+            const x = positions[index]["x"];
+            const y = positions[index]["y"];
+            updatePositionOfNode(this.state.graph, index, x, y);
+        }
+        saveGraphToDisk(this.state.graph);
         // Handle click vs drag
         network.on("click", (params) => {
           if (params.nodes !== undefined && params.nodes.length > 0 ) {
