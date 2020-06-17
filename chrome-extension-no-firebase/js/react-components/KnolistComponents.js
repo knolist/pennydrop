@@ -1,3 +1,11 @@
+/**
+ * This is the file that contains the React components for the web application page.
+ * You must only edit this file, not the one in the `lib` directory.
+ * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
+ * are in the README
+ */
+
+// Wrapper class for the web application
 class KnolistComponents extends React.Component {
     constructor(props) {
         super(props);
@@ -15,18 +23,20 @@ class KnolistComponents extends React.Component {
     }
 }
 
+// Wrapper for all the components inside the mindmap
 class MindMap extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph: createNewGraph(),
-            selectedNode: null,
+            graph: createNewGraph(), // All the graph data
+            selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
-            newNodeData: null,
-            newNodeCallback: null,
-            visNetwork: null
+            newNodeData: null, // Used when creating a new node
+            newNodeCallback: null, // Used when creating a new node
+            visNetwork: null // The vis-network object
         };
+        // Bind functions that need to be passed as parameters
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
@@ -53,6 +63,7 @@ class MindMap extends React.Component {
         return str.join(' ');
     }
 
+    // Calls graph.js function to pull the graph from the Chrome storage
     getDataFromServer() {
         // All the websites as a graph
         getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
@@ -62,6 +73,7 @@ class MindMap extends React.Component {
         // }, 200);
     }
 
+    // Used for the export bibliography button
     exportData() {
       const visCloseButton = document.getElementsByClassName("vis-close")[0];
       // Only open modal outside of edit mode
@@ -79,6 +91,7 @@ class MindMap extends React.Component {
         this.setState({displayExport: false});
     }
 
+    // Set selected node for the detailed view
     handleClickedNode(id) {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
@@ -108,10 +121,12 @@ class MindMap extends React.Component {
         this.setState({showNewNodeForm: !this.state.showNewNodeForm});
     }
 
+    // Main function to set up the vis-network object
     setupVisGraph() {
         let nodes = [];
         let edges = [];
         const curProject = this.state.graph.curProject;
+        // Iterate through each node in the graph and build the arrays of nodes and edges
         for (let index in this.state.graph[curProject]) {
             let node = this.state.graph[curProject][index];
             // Deal with positions
@@ -175,12 +190,14 @@ class MindMap extends React.Component {
             }
         };
         const network = new vis.Network(container, data, options);
+        // Handle click vs drag
         network.on("click", (params) => {
           if (params.nodes !== undefined && params.nodes.length > 0 ) {
               const nodeId = params.nodes[0];
               this.handleClickedNode(nodeId);
           }
         });
+        // Store the network
         this.setState({visNetwork: network});
     }
 
@@ -211,6 +228,7 @@ class MindMap extends React.Component {
     }
 }
 
+// Form that allows the user to manually add nodes
 class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
@@ -220,6 +238,7 @@ class NewNodeForm extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault(); // Stop page from reloading
+        // Call from server
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
             updateItemInGraph(item, "", this.props.graph);
@@ -260,11 +279,12 @@ class NewNodeForm extends React.Component {
     }
 }
 
+// Detailed view of a specific node
 class PageView extends React.Component {
     constructor(props) {
         super(props);
         // When the user clicks anywhere outside of the modal, close it
-        // TODO: make this work
+        // TODO: make this work (CU-8cgf5y)
         window.onclick = function(event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
@@ -292,6 +312,7 @@ class PageView extends React.Component {
     }
 }
 
+// Bibliography export
 class ExportView extends React.Component {
     constructor(props) {
         super(props);
@@ -319,6 +340,7 @@ class ExportView extends React.Component {
     }
 }
 
+// List of URLs in the detailed page view
 class ListURL extends React.Component {
     constructor(props) {
         super(props);
@@ -347,7 +369,7 @@ class ListURL extends React.Component {
     }
 }
 
-
+// List of highlights in the detailed page view
 class HighlightsList extends React.Component {
     constructor(props) {
         super(props);

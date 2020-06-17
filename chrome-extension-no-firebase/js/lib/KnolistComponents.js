@@ -6,6 +6,14 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+/**
+ * This is the file that contains the React components for the web application page.
+ * You must only edit this file, not the one in the `lib` directory.
+ * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
+ * are in the README
+ */
+
+// Wrapper class for the web application
 var KnolistComponents = function (_React$Component) {
     _inherits(KnolistComponents, _React$Component);
 
@@ -34,6 +42,9 @@ var KnolistComponents = function (_React$Component) {
     return KnolistComponents;
 }(React.Component);
 
+// Wrapper for all the components inside the mindmap
+
+
 var MindMap = function (_React$Component2) {
     _inherits(MindMap, _React$Component2);
 
@@ -43,14 +54,15 @@ var MindMap = function (_React$Component2) {
         var _this2 = _possibleConstructorReturn(this, (MindMap.__proto__ || Object.getPrototypeOf(MindMap)).call(this, props));
 
         _this2.state = {
-            graph: createNewGraph(),
-            selectedNode: null,
+            graph: createNewGraph(), // All the graph data
+            selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
-            newNodeData: null,
-            newNodeCallback: null,
-            visNetwork: null
+            newNodeData: null, // Used when creating a new node
+            newNodeCallback: null, // Used when creating a new node
+            visNetwork: null // The vis-network object
         };
+        // Bind functions that need to be passed as parameters
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.exportData = _this2.exportData.bind(_this2);
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
@@ -80,6 +92,9 @@ var MindMap = function (_React$Component2) {
             }
             return str.join(' ');
         }
+
+        // Calls graph.js function to pull the graph from the Chrome storage
+
     }, {
         key: 'getDataFromServer',
         value: function getDataFromServer() {
@@ -90,6 +105,9 @@ var MindMap = function (_React$Component2) {
             //     this.getDataFromServer();
             // }, 200);
         }
+
+        // Used for the export bibliography button
+
     }, {
         key: 'exportData',
         value: function exportData() {
@@ -110,6 +128,9 @@ var MindMap = function (_React$Component2) {
         value: function resetDisplayExport() {
             this.setState({ displayExport: false });
         }
+
+        // Set selected node for the detailed view
+
     }, {
         key: 'handleClickedNode',
         value: function handleClickedNode(id) {
@@ -142,6 +163,9 @@ var MindMap = function (_React$Component2) {
         value: function switchShowNewNodeForm() {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
         }
+
+        // Main function to set up the vis-network object
+
     }, {
         key: 'setupVisGraph',
         value: function setupVisGraph() {
@@ -150,6 +174,7 @@ var MindMap = function (_React$Component2) {
             var nodes = [];
             var edges = [];
             var curProject = this.state.graph.curProject;
+            // Iterate through each node in the graph and build the arrays of nodes and edges
             for (var index in this.state.graph[curProject]) {
                 var node = this.state.graph[curProject][index];
                 // Deal with positions
@@ -213,12 +238,14 @@ var MindMap = function (_React$Component2) {
                 }
             };
             var network = new vis.Network(container, data, options);
+            // Handle click vs drag
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
                     _this3.handleClickedNode(nodeId);
                 }
             });
+            // Store the network
             this.setState({ visNetwork: network });
         }
     }, {
@@ -265,6 +292,9 @@ var MindMap = function (_React$Component2) {
     return MindMap;
 }(React.Component);
 
+// Form that allows the user to manually add nodes
+
+
 var NewNodeForm = function (_React$Component3) {
     _inherits(NewNodeForm, _React$Component3);
 
@@ -284,6 +314,7 @@ var NewNodeForm = function (_React$Component3) {
             var _this5 = this;
 
             event.preventDefault(); // Stop page from reloading
+            // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "", _this5.props.graph);
@@ -353,6 +384,9 @@ var NewNodeForm = function (_React$Component3) {
     return NewNodeForm;
 }(React.Component);
 
+// Detailed view of a specific node
+
+
 var PageView = function (_React$Component4) {
     _inherits(PageView, _React$Component4);
 
@@ -360,7 +394,7 @@ var PageView = function (_React$Component4) {
         _classCallCheck(this, PageView);
 
         // When the user clicks anywhere outside of the modal, close it
-        // TODO: make this work
+        // TODO: make this work (CU-8cgf5y)
         var _this6 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
@@ -411,6 +445,9 @@ var PageView = function (_React$Component4) {
 
     return PageView;
 }(React.Component);
+
+// Bibliography export
+
 
 var ExportView = function (_React$Component5) {
     _inherits(ExportView, _React$Component5);
@@ -471,6 +508,9 @@ var ExportView = function (_React$Component5) {
 
     return ExportView;
 }(React.Component);
+
+// List of URLs in the detailed page view
+
 
 var ListURL = function (_React$Component6) {
     _inherits(ListURL, _React$Component6);
@@ -542,6 +582,9 @@ var ListURL = function (_React$Component6) {
 
     return ListURL;
 }(React.Component);
+
+// List of highlights in the detailed page view
+
 
 var HighlightsList = function (_React$Component7) {
     _inherits(HighlightsList, _React$Component7);
