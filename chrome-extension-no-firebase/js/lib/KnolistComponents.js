@@ -171,7 +171,6 @@ var MindMap = function (_React$Component2) {
     }, {
         key: 'createNodesAndEdges',
         value: function createNodesAndEdges() {
-            console.log(this.state.graph);
             var nodes = [];
             var edges = [];
             var curProject = this.state.graph.curProject;
@@ -265,7 +264,7 @@ var MindMap = function (_React$Component2) {
                 var y = positions[index]["y"];
                 updatePositionOfNode(this.state.graph, index, x, y);
             }
-            saveGraphToDisk(this.state.graph);
+            saveGraphToDisk(this.state.graph); // Store the updated positions
             // Handle click vs drag
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
@@ -275,7 +274,12 @@ var MindMap = function (_React$Component2) {
             });
             // Update positions after dragging node
             network.on("dragEnd", function () {
-                // TODO
+                var url = network.getSelectedNodes()[0];
+                var position = network.getPosition(url);
+                var x = position["x"];
+                var y = position["y"];
+                updatePositionOfNode(_this3.state.graph, url, x, y);
+                saveGraphToDisk(_this3.state.graph);
             });
             // Store the network
             this.setState({ visNetwork: network });

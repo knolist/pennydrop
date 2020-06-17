@@ -123,7 +123,6 @@ class MindMap extends React.Component {
 
     // Helper function to setup the nodes and edges for the graph
     createNodesAndEdges() {
-        console.log(this.state.graph);
         let nodes = [];
         let edges = [];
         const curProject = this.state.graph.curProject;
@@ -208,7 +207,7 @@ class MindMap extends React.Component {
             const y = positions[index]["y"];
             updatePositionOfNode(this.state.graph, index, x, y);
         }
-        saveGraphToDisk(this.state.graph);
+        saveGraphToDisk(this.state.graph); // Store the updated positions
         // Handle click vs drag
         network.on("click", (params) => {
           if (params.nodes !== undefined && params.nodes.length > 0 ) {
@@ -218,7 +217,12 @@ class MindMap extends React.Component {
         });
         // Update positions after dragging node
         network.on("dragEnd", () => {
-           // TODO
+           const url = network.getSelectedNodes()[0];
+           const position = network.getPosition(url);
+           const x = position["x"];
+           const y = position["y"];
+           updatePositionOfNode(this.state.graph, url, x, y);
+           saveGraphToDisk(this.state.graph);
         });
         // Store the network
         this.setState({visNetwork: network});
