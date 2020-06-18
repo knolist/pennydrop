@@ -60,6 +60,7 @@ var MindMap = function (_React$Component2) {
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
+            autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             newNodeCallback: null, // Used when creating a new node
             visNetwork: null // The vis-network object
@@ -104,7 +105,7 @@ var MindMap = function (_React$Component2) {
             getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
 
             // window.setTimeout(() => {
-            //     this.getDataFromServer();
+            //     if (this.state.autoRefresh) this.getDataFromServer();
             // }, 200);
         }
 
@@ -272,6 +273,11 @@ var MindMap = function (_React$Component2) {
                     _this3.handleClickedNode(nodeId);
                 }
             });
+            // Stop auto refresh while dragging
+            network.on("dragStart", function () {
+                // TODO
+                // this.setState({autoRefresh: false});
+            });
             // Update positions after dragging node
             network.on("dragEnd", function () {
                 var url = network.getSelectedNodes()[0];
@@ -280,6 +286,7 @@ var MindMap = function (_React$Component2) {
                 var y = position["y"];
                 updatePositionOfNode(_this3.state.graph, url, x, y);
                 saveGraphToDisk(_this3.state.graph);
+                // this.setState({autoRefresh: true});
             });
             // Store the network
             this.setState({ visNetwork: network });
