@@ -142,8 +142,8 @@ class MindMap extends React.Component {
                 edges.push({from: node.source, to: node.nextURLs[nextIndex]})
             }
         }
-        console.log(nodes);
-        console.log(edges);
+        // console.log(nodes);
+        // console.log(edges);
         return [nodes, edges];
     }
 

@@ -35,11 +35,11 @@ getContentFromGraph = (graph, exceptURL) => {
 /**
  * Removes an item from the current project.
  * @param item the item to be removed
- * @param graph the graph from which the item will be removed
+ * @param graphData the graph from which the item will be removed
  */
-removeItemFromGraph = (item, graph) => {
-    const project = graph["curProject"];
-    graph = graph[project];
+removeItemFromGraph = (item, graphData) => {
+    const project = graphData["curProject"];
+    let graph = graphData[project];
 
     // Remove forward and backward edges
     graph[item]["prevURLs"].forEach(prev => {
@@ -50,7 +50,10 @@ removeItemFromGraph = (item, graph) => {
     });
 
     // Delete the item now
-    delete graph[item]
+    delete graph[item];
+
+    // Save to disk
+    saveGraphToDisk(graphData);
 };
 
 /**
@@ -58,11 +61,11 @@ removeItemFromGraph = (item, graph) => {
  * It can also be used for a simple update in edges.
  * @param item the idem to be added/updated
  * @param previousURL the URL of this node's parent in the graph
- * @param graph the graph where the item will be added
+ * @param graphData the graph where the item will be added
  */
-updateItemInGraph = (item, previousURL, graph) => {
-    const project = graph["curProject"];
-    graph = graph[project];
+updateItemInGraph = (item, previousURL, graphData) => {
+    const project = graphData["curProject"];
+    let graph = graphData[project];
     // Create item if it doesn't exist
     if (graph[item["source"]] === undefined) {
         graph[item["source"]] = item;
@@ -78,31 +81,37 @@ updateItemInGraph = (item, previousURL, graph) => {
         graph[item["source"]]["prevURLs"].push(previousURL);
         graph[previousURL]["nextURLs"].push(item["source"]);
     }
+
+    // Save to disk
+    saveGraphToDisk(graphData);
 };
 
 /**
  * Updates the position of node with a specific url in the current project
- * @param graph the graph object that holds url. We will use the graph's current project
+ * @param graphData the graph object that holds url. We will use the graph's current project
  * @param url the url of the node whose position will be updated
  * @param x the x position
  * @param y the y position
  */
-updatePositionOfNode = (graph, url, x, y) => {
-    const project = graph["curProject"];
-    graph = graph[project];
+updatePositionOfNode = (graphData, url, x, y) => {
+    const project = graphData["curProject"];
+    let graph = graphData[project];
     graph[url]["x"] = x;
     graph[url]["y"] = y;
+
+    // Save to disk
+    saveGraphToDisk(graphData);
 };
 
 /**
  * Adds an array of highlights to an item in the current project.
  * @param item the item to receive the highlights
  * @param highlights an array of text highlights to be added
- * @param graph the graph where item is located
+ * @param graphData the graph where item is located
  */
-addHighlightsToItemInGraph = (item, highlights, graph) => {
-    const project = graph["curProject"];
-    graph = graph[project];
+addHighlightsToItemInGraph = (item, highlights, graphData) => {
+    const project = graphData["curProject"];
+    let graph = graphData[project];
     // Create item if it doesn't exist
     if (graph[item["source"]] === undefined) {
         graph[item["source"]] = item;
@@ -111,6 +120,9 @@ addHighlightsToItemInGraph = (item, highlights, graph) => {
         graph[item["source"]]["highlights"] = [];
     }
     graph[item["source"]]["highlights"].push(highlights);
+
+    // Save to disk
+    saveGraphToDisk(graphData);
 };
 
 /**
@@ -120,6 +132,9 @@ addHighlightsToItemInGraph = (item, highlights, graph) => {
 resetCurProjectInGraph = (graph) => {
     const project = graph["curProject"];
     graph[project] = {};
+
+    // Save to disk
+    saveGraphToDisk(graph);
 };
 
 /**
@@ -129,6 +144,9 @@ resetCurProjectInGraph = (graph) => {
  */
 deleteProjectFromGraph = (graph, projectName) => {
     delete graph[projectName];
+
+    // Save to disk
+    saveGraphToDisk(graph);
 };
 
 /**
@@ -139,6 +157,9 @@ deleteProjectFromGraph = (graph, projectName) => {
 createNewProjectInGraph = (graph, projectName) => {
     graph[projectName] = {};
     graph["curProject"] = projectName;
+
+    // Save to disk
+    saveGraphToDisk(graph);
 };
 
 /**
@@ -148,6 +169,9 @@ createNewProjectInGraph = (graph, projectName) => {
  */
 setCurrentProjectInGraph = (graph, projectName) => {
     graph["curProject"] = projectName;
+
+    // Save to disk
+    saveGraphToDisk(graph);
 };
 
 /**
@@ -168,7 +192,7 @@ getNextURLsFromURL = (graph, url) => {
  * @returns {*} array of the parents' URLs
  */
 getPrevURLsFromURL = (graph, url) => {
-    project = graph["curProject"];
+    const project = graph["curProject"];
     return graph[project][url]["prevURLs"];
 };
 
@@ -179,7 +203,7 @@ getPrevURLsFromURL = (graph, url) => {
  * @returns {*} array of the highlights
  */
 getHighlightsFromURL = (graph, url) => {
-    project = graph["curProject"];
+    const project = graph["curProject"];
     return graph[project][url]["highlights"];
 };
 
@@ -226,6 +250,16 @@ getGraphFromDisk = (graph) => {
         }
     });
 };
+
+// getGraphFromDisk = () => {
+//     let graph;
+//     chrome.storage.local.get('itemGraph', result => {
+//         graph = result.itemGraph;
+//     });
+//     return new Promise((resolve, reject) => {
+//         resolve(graph);
+//     })
+// };
 
 /**
  * This method updates the passed in graph variable in place but works with React.
