@@ -10,7 +10,7 @@ window.setTimeout(() => {
 
 listener = (message, _sender, _sendResponse) => {
   if (message.command === "find_similar") {
-    selectedText = window.getSelection().toString()
+    selectedText = window.getSelection().toString();
     if (selectedText === "") {
       _sendResponse("Nothing is selected")
     }
@@ -18,6 +18,6 @@ listener = (message, _sender, _sendResponse) => {
       _sendResponse(selectedText)
     }
   }
-}
+};
 
 chrome.runtime.onMessage.addListener(listener);

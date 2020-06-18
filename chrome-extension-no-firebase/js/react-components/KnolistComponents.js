@@ -34,7 +34,6 @@ class MindMap extends React.Component {
             showNewNodeForm: false,
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
-            newNodeCallback: null, // Used when creating a new node
             visNetwork: null // The vis-network object
         };
         // Bind functions that need to be passed as parameters
@@ -113,8 +112,7 @@ class MindMap extends React.Component {
         this.setState(
             {
                 showNewNodeForm: !this.state.showNewNodeForm,
-                newNodeData: nodeData,
-                newNodeCallback: callback
+                newNodeData: nodeData
             });
     }
 
@@ -174,7 +172,8 @@ class MindMap extends React.Component {
                     }
                 },
                 color: "black",
-                physics: false
+                physics: false,
+                smooth: false
             },
             interaction: {
                 navigationButtons: true,
@@ -218,7 +217,6 @@ class MindMap extends React.Component {
         });
         // Stop auto refresh while dragging
         network.on("dragStart", () => {
-            // TODO
             // this.setState({autoRefresh: false});
         });
         // Update positions after dragging node
@@ -254,7 +252,7 @@ class MindMap extends React.Component {
                 <button onClick={this.testButton}>Test whatever</button>
                 <div id="graph"/>
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
-                             callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                            switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
                 <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
                 <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
             </div>
@@ -276,16 +274,12 @@ class NewNodeForm extends React.Component {
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
             updateItemInGraph(item, "", this.props.graph);
+            updatePositionOfNode(this.props.graph, item["source"], this.props.nodeData.x, this.props.nodeData.y);
             saveGraphToDisk(this.props.graph);
         });
 
-        // let nodeData = this.props.nodeData;
-        // const curProject = this.props.graph.curProject;
-        // nodeData.id = event.target.url.value;
-        // nodeData.label = this.props.graph[curProject][event.target.url.value].title;
-        // this.props.callback(nodeData);
         this.props.switchForm();
-        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated
         event.target.reset(); // Clear the form entries
     }
 

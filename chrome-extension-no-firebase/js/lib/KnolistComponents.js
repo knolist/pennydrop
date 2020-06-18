@@ -60,9 +60,8 @@ var MindMap = function (_React$Component2) {
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
-            autoRefresh: true, // Will be set to false on drag
+            // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
-            newNodeCallback: null, // Used when creating a new node
             visNetwork: null // The vis-network object
         };
         // Bind functions that need to be passed as parameters
@@ -157,8 +156,7 @@ var MindMap = function (_React$Component2) {
         value: function addNode(nodeData, callback) {
             this.setState({
                 showNewNodeForm: !this.state.showNewNodeForm,
-                newNodeData: nodeData,
-                newNodeCallback: callback
+                newNodeData: nodeData
             });
         }
     }, {
@@ -232,7 +230,8 @@ var MindMap = function (_React$Component2) {
                         }
                     },
                     color: "black",
-                    physics: false
+                    physics: false,
+                    smooth: false
                 },
                 interaction: {
                     navigationButtons: true,
@@ -275,7 +274,6 @@ var MindMap = function (_React$Component2) {
             });
             // Stop auto refresh while dragging
             network.on("dragStart", function () {
-                // TODO
                 // this.setState({autoRefresh: false});
             });
             // Update positions after dragging node
@@ -325,7 +323,7 @@ var MindMap = function (_React$Component2) {
                 ),
                 React.createElement('div', { id: 'graph' }),
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, graph: this.state.graph,
-                    callback: this.state.newNodeCallback, switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
+                    switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
                 React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(this.state.graph), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
             );
@@ -361,16 +359,12 @@ var NewNodeForm = function (_React$Component3) {
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "", _this5.props.graph);
+                updatePositionOfNode(_this5.props.graph, item["source"], _this5.props.nodeData.x, _this5.props.nodeData.y);
                 saveGraphToDisk(_this5.props.graph);
             });
 
-            // let nodeData = this.props.nodeData;
-            // const curProject = this.props.graph.curProject;
-            // nodeData.id = event.target.url.value;
-            // nodeData.label = this.props.graph[curProject][event.target.url.value].title;
-            // this.props.callback(nodeData);
             this.props.switchForm();
-            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated
             event.target.reset(); // Clear the form entries
         }
     }, {
