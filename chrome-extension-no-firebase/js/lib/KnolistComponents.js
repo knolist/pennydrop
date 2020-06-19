@@ -351,10 +351,10 @@ var MindMap = function (_React$Component2) {
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                     graph: this.state.graph,
                     switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
-                React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
-                    resetDisplayExport: this.resetDisplayExport }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
-                    resetSelectedNode: this.resetSelectedNode })
+                    resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer }),
+                React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
+                    resetDisplayExport: this.resetDisplayExport })
             );
         }
     }]);
@@ -460,10 +460,25 @@ var PageView = function (_React$Component4) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        return _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+
+        _this9.deleteNode = _this9.deleteNode.bind(_this9);
+        return _this9;
     }
 
     _createClass(PageView, [{
+        key: "deleteNode",
+        value: function deleteNode() {
+            var _this10 = this;
+
+            // Remove from the graph
+            removeItemFromGraph(this.props.selectedNode.source).then(function () {
+                // Reset the selected node
+                _this10.props.resetSelectedNode();
+                _this10.props.refresh();
+            });
+        }
+    }, {
         key: "render",
         value: function render() {
             if (this.props.selectedNode === null) {
@@ -496,6 +511,15 @@ var PageView = function (_React$Component4) {
                         { style: { display: "flex" } },
                         React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode }),
                         React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode })
+                    ),
+                    React.createElement(
+                        "div",
+                        { style: { textAlign: "right" } },
+                        React.createElement(
+                            "button",
+                            { className: "button", onClick: this.deleteNode },
+                            React.createElement("img", { src: "../../images/delete-icon.png", alt: "Delete node", style: { width: "100%" } })
+                        )
                     )
                 )
             );
@@ -576,7 +600,7 @@ var ListURL = function (_React$Component6) {
     _createClass(ListURL, [{
         key: "render",
         value: function render() {
-            var _this12 = this;
+            var _this13 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -596,9 +620,9 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     "a",
-                                    { href: _this12.props.graph[url].source,
+                                    { href: _this13.props.graph[url].source,
                                         target: "_blank" },
-                                    _this12.props.graph[url].title
+                                    _this13.props.graph[url].title
                                 )
                             );
                         })
@@ -622,9 +646,9 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     "a",
-                                    { href: _this12.props.graph[url].source,
+                                    { href: _this13.props.graph[url].source,
                                         target: "_blank" },
-                                    _this12.props.graph[url].title
+                                    _this13.props.graph[url].title
                                 )
                             );
                         })

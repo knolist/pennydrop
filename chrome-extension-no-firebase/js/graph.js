@@ -41,23 +41,23 @@ getContentFromGraph = async (exceptURL) => {
 
 /**
  * Removes an item from the current project.
- * @param item the item to be removed
+ * @param itemURL the of the item to be removed
  */
-removeItemFromGraph = async (item) => {
+removeItemFromGraph = async (itemURL) => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
 
     // Remove forward and backward edges
-    graph[item]["prevURLs"].forEach(prev => {
-        graph[prev]["nextURLs"] = graph[prev]["nextURLs"].filter(url => url !== item)
+    graph[itemURL]["prevURLs"].forEach(prev => {
+        graph[prev]["nextURLs"] = graph[prev]["nextURLs"].filter(url => url !== itemURL)
     });
-    graph[item]["nextURLs"].forEach(next => {
-        graph[next]["prevURLs"] = graph[next]["prevURLs"].filter(url => url !== item)
+    graph[itemURL]["nextURLs"].forEach(next => {
+        graph[next]["prevURLs"] = graph[next]["prevURLs"].filter(url => url !== itemURL)
     });
 
     // Delete the item now
-    delete graph[item];
+    delete graph[itemURL];
 
     // Save to disk
     saveGraphToDisk(graphData);

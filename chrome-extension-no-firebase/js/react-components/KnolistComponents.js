@@ -273,11 +273,10 @@ class MindMap extends React.Component {
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                              graph={this.state.graph}
                              switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                          resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}/>
                 <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                             resetDisplayExport={this.resetDisplayExport}/>
-                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
-                          resetSelectedNode={this.resetSelectedNode}/>
-
             </div>
         );
     }
@@ -335,6 +334,16 @@ class NewNodeForm extends React.Component {
 class PageView extends React.Component {
     constructor(props) {
         super(props);
+        this.deleteNode = this.deleteNode.bind(this);
+    }
+
+    deleteNode() {
+        // Remove from the graph
+        removeItemFromGraph(this.props.selectedNode.source).then(() => {
+            // Reset the selected node
+            this.props.resetSelectedNode();
+            this.props.refresh();
+        });
     }
 
     render() {
@@ -352,6 +361,11 @@ class PageView extends React.Component {
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
+                    </div>
+                    <div style={{textAlign: "right"}}>
+                        <button className="button" onClick={this.deleteNode}>
+                            <img src="../../images/delete-icon.png" alt="Delete node" style={{width: "100%"}}/>
+                        </button>
                     </div>
                 </div>
             </div>
