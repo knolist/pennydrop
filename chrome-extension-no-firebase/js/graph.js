@@ -46,6 +46,7 @@ updateItemInGraph = (item, previousURL, graph) => {
     graph[item["source"]]["prevURLs"] = [];
     graph[item["source"]]["nextURLs"] = [];
     graph[item["source"]]["highlights"] = [];
+    graph[item["source"]]["notes"] = [];
   }
   // Add edge to graph
   if (previousURL !== "" && graph[previousURL] !== undefined) {
@@ -63,8 +64,23 @@ addHighlightsToItemInGraph = (item, highlights, graph) => {
     graph[item["source"]]["prevURLs"] = [];
     graph[item["source"]]["nextURLs"] = [];
     graph[item["source"]]["highlights"] = [];
+    graph[item["source"]]["notes"] = [];
   }
   graph[item["source"]]["highlights"].push(highlights);
+};
+
+addNotesToItemInGraph = (item, notes, graph) => {
+  project = graph["curProject"];
+  graph = graph[project];
+  // Create item if it doesn't exist
+  if (graph[item["source"]] === undefined) {
+    graph[item["source"]] = item;
+    graph[item["source"]]["prevURLs"] = [];
+    graph[item["source"]]["nextURLs"] = [];
+    graph[item["source"]]["highlights"] = [];
+    graph[item["source"]]["notes"] = [];
+  }
+  graph[item["source"]]["notes"].push(notes);
 };
 
 resetCurProjectInGraph = (graph) => {
@@ -99,6 +115,11 @@ getPrevURLsFromURL = (graph, url) => {
 getHighlightsFromURL = (graph, url) => {
   project = graph["curProject"];
   return graph[project][url]["highlights"];
+};
+
+getNotesFromURL = (graph, url) => {
+  project = graph["curProject"];
+  return graph[project][url]["notes"];
 };
 
 getTitlesFromGraph = (graph) => {
