@@ -1,4 +1,9 @@
-// A collection of functions to manipulate the graph
+/* A collection of functions to manipulate the graph
+For these functions, make sure to pull the graph from disk (let graph = await getGraphFromDisk();)
+and save it back after manipulation (in case any manipulation was done: saveGraphToDisk(graphData);)
+Functions must be async to use the await keyword and ensure sequential execution (i.e., waiting for the graph
+to be pulled from Chrome before attempting to access it)
+ */
 
 const CUR_VERSION_NUM = 1;
 
@@ -16,12 +21,11 @@ createNewGraph = () => {
 
 /**
  * Gets all the content from each node in the current project.
- * @param graph the graph from which we're extracting content
  * @param exceptURL a URL to be excluded from the extraction
  * @returns {[]|Array} an array with all the contents
  */
-getContentFromGraph = async (graph, exceptURL) => {
-    await getGraphFromDisk(graph);
+getContentFromGraph = async (exceptURL) => {
+    let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     graph = graph[project];
     let output = [];
@@ -36,10 +40,9 @@ getContentFromGraph = async (graph, exceptURL) => {
 /**
  * Removes an item from the current project.
  * @param item the item to be removed
- * @param graphData the graph from which the item will be removed
  */
-removeItemFromGraph = async (item, graphData) => {
-    await getGraphFromDisk(graphData);
+removeItemFromGraph = async (item) => {
+    let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
 
@@ -63,10 +66,9 @@ removeItemFromGraph = async (item, graphData) => {
  * It can also be used for a simple update in edges.
  * @param item the idem to be added/updated
  * @param previousURL the URL of this node's parent in the graph
- * @param graphData the graph where the item will be added
  */
-updateItemInGraph = async (item, previousURL, graphData) => {
-    await getGraphFromDisk(graphData);
+updateItemInGraph = async (item, previousURL) => {
+    let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
     // Create item if it doesn't exist
@@ -91,13 +93,12 @@ updateItemInGraph = async (item, previousURL, graphData) => {
 
 /**
  * Updates the position of node with a specific url in the current project
- * @param graphData the graph object that holds url. We will use the graph's current project
  * @param url the url of the node whose position will be updated
  * @param x the x position
  * @param y the y position
  */
-updatePositionOfNode = async (graphData, url, x, y) => {
-    await getGraphFromDisk(graphData);
+updatePositionOfNode = async (url, x, y) => {
+    let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
     graph[url]["x"] = x;
@@ -111,10 +112,9 @@ updatePositionOfNode = async (graphData, url, x, y) => {
  * Adds an array of highlights to an item in the current project.
  * @param item the item to receive the highlights
  * @param highlights an array of text highlights to be added
- * @param graphData the graph where item is located
  */
-addHighlightsToItemInGraph = async (item, highlights, graphData) => {
-    await getGraphFromDisk(graphData);
+addHighlightsToItemInGraph = async (item, highlights) => {
+    let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
     // Create item if it doesn't exist
@@ -132,10 +132,9 @@ addHighlightsToItemInGraph = async (item, highlights, graphData) => {
 
 /**
  * Deletes all items in the current project.
- * @param graph the graph that holds the current project
  */
-resetCurProjectInGraph = async (graph) => {
-    await getGraphFromDisk(graph);
+resetCurProjectInGraph = async () => {
+    let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     graph[project] = {};
 
@@ -145,11 +144,10 @@ resetCurProjectInGraph = async (graph) => {
 
 /**
  * Deletes a project.
- * @param graph the graph to have a project deleted
  * @param projectName the name of the project to be deleted
  */
-deleteProjectFromGraph = async (graph, projectName) => {
-    await getGraphFromDisk(graph);
+deleteProjectFromGraph = async (projectName) => {
+    let graph = await getGraphFromDisk();
     delete graph[projectName];
 
     // Save to disk
@@ -158,11 +156,10 @@ deleteProjectFromGraph = async (graph, projectName) => {
 
 /**
  * Creates new project and sets current project to this new project.
- * @param graph
  * @param projectName
  */
-createNewProjectInGraph = async (graph, projectName) => {
-    await getGraphFromDisk(graph);
+createNewProjectInGraph = async (projectName) => {
+    let graph = await getGraphFromDisk();
     graph[projectName] = {};
     graph["curProject"] = projectName;
 
@@ -172,11 +169,10 @@ createNewProjectInGraph = async (graph, projectName) => {
 
 /**
  * Set the current project.
- * @param graph the graph to have its current project set
  * @param projectName name of the project to be set
  */
-setCurrentProjectInGraph = async (graph, projectName) => {
-    await getGraphFromDisk(graph);
+setCurrentProjectInGraph = async (projectName) => {
+    let graph = await getGraphFromDisk();
     graph["curProject"] = projectName;
 
     // Save to disk
@@ -185,47 +181,43 @@ setCurrentProjectInGraph = async (graph, projectName) => {
 
 /**
  * Returns the list of children of a given node in the current project.
- * @param graph the graph in question
  * @param url the url of the node
  * @returns {*} array of the children's URLs
  */
-getNextURLsFromURL = async (graph, url) => {
-    await getGraphFromDisk(graph);
+getNextURLsFromURL = async (url) => {
+    let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     return graph[project][url]["nextURLs"];
 };
 
 /**
  * Returns the list of parents of a given node in the current project.
- * @param graph the graph in question
  * @param url the url of the node
  * @returns {*} array of the parents' URLs
  */
-getPrevURLsFromURL = async (graph, url) => {
-    await getGraphFromDisk(graph);
+getPrevURLsFromURL = async (url) => {
+    let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     return graph[project][url]["prevURLs"];
 };
 
 /**
  * Returns the list of highlights of a given node in the current project.
- * @param graph the graph in question
  * @param url the url of the node
  * @returns {*} array of the highlights
  */
-getHighlightsFromURL = async (graph, url) => {
-    await getGraphFromDisk(graph);
+getHighlightsFromURL = async (url) => {
+    let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     return graph[project][url]["highlights"];
 };
 
 /**
  * Returns a list of all titles of nodes in the current project.
- * @param graph the graph in question
  * @returns {[]|Array} the array of titles
  */
-getTitlesFromGraph = async (graph) => {
-    await getGraphFromDisk(graph);
+getTitlesFromGraph = async () => {
+    let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     graph = graph[project];
     let output = [];
@@ -247,32 +239,30 @@ saveGraphToDisk = (graph) => {
     chrome.storage.local.set({'itemGraph': graph});
 };
 
-/**
- * This method updates the passed in graph variable in place.
- * @param graph the graph to be updated
- */
-getGraphFromDisk = async (graph) => {
-    chrome.storage.local.get('itemGraph', function (result) {
-        result = result.itemGraph;
-        if (result.version === CUR_VERSION_NUM) {
-            Object.keys(graph).forEach(k => delete graph[k]);
-            Object.keys(result).forEach(k => graph[k] = result[k]);
-            console.log(graph)
-        } else {
-            console.log("Either the graph doesnt exist in storage or it's not version " + CUR_VERSION_NUM)
-        }
-    });
-};
-
-// getGraphFromDisk = () => {
-//     let graph;
-//     chrome.storage.local.get('itemGraph', result => {
-//         graph = result.itemGraph;
+// /**
+//  * This method updates the passed in graph variable in place.
+//  * @param graph the graph to be updated
+//  */
+// getGraphFromDisk = async (graph) => {
+//     chrome.storage.local.get('itemGraph', function (result) {
+//         result = result.itemGraph;
+//         if (result.version === CUR_VERSION_NUM) {
+//             Object.keys(graph).forEach(k => delete graph[k]);
+//             Object.keys(result).forEach(k => graph[k] = result[k]);
+//             console.log(graph)
+//         } else {
+//             console.log("Either the graph doesnt exist in storage or it's not version " + CUR_VERSION_NUM)
+//         }
 //     });
-//     return new Promise((resolve, reject) => {
-//         resolve(graph);
-//     })
 // };
+
+getGraphFromDisk = () => {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get('itemGraph', function(result) {
+            resolve(result.itemGraph);
+        });
+    })
+};
 
 /**
  * This method updates the passed in graph variable in place but works with React.

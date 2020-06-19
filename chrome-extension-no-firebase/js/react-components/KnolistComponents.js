@@ -45,14 +45,6 @@ class MindMap extends React.Component {
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
-        this.testButton = this.testButton.bind(this);
-    }
-
-    testButton() {
-        console.log(this.state.visNetwork.getPositions());
-        // console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/My_Last_Duchess"));
-        // console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/Robert_Browning"));
-        // console.log(this.state.visNetwork.getSelection());
     }
 
     titleCase(str) {
@@ -103,8 +95,8 @@ class MindMap extends React.Component {
 
     deleteNode(data, callback) {
         const nodeId = data.nodes[0];
-        removeItemFromGraph(nodeId, this.state.graph);
-        saveGraphToDisk(this.state.graph);
+        removeItemFromGraph(nodeId);
+        // saveGraphToDisk(this.state.graph);
         callback(data);
     }
 
@@ -184,19 +176,6 @@ class MindMap extends React.Component {
                 deleteNode: this.deleteNode,
                 addNode: this.addNode
             }
-            // physics: {
-            //     forceAtlas2Based: {
-            //         gravitationalConstant: -0.001,
-            //         centralGravity: 0,
-            //         springLength: 230,
-            //         springConstant: 0,
-            //         avoidOverlap: 1
-            //     },
-            //     maxVelocity: 146,
-            //     solver: "forceAtlas2Based",
-            //     timestep: 0.35,
-            //     stabilization: { iterations: 150 }
-            // }
         };
         const network = new vis.Network(container, data, options);
         network.fit(); // Zoom in or out to fit entire network on screen
@@ -205,7 +184,7 @@ class MindMap extends React.Component {
         for (let index in positions) {
             const x = positions[index]["x"];
             const y = positions[index]["y"];
-            updatePositionOfNode(this.state.graph, index, x, y);
+            updatePositionOfNode(index, x, y);
         }
         saveGraphToDisk(this.state.graph); // Store the updated positions
         // Handle click vs drag
@@ -225,8 +204,8 @@ class MindMap extends React.Component {
            const position = network.getPosition(url);
            const x = position["x"];
            const y = position["y"];
-           updatePositionOfNode(this.state.graph, url, x, y);
-           saveGraphToDisk(this.state.graph);
+           updatePositionOfNode(url, x, y);
+           // saveGraphToDisk(this.state.graph);
            // this.setState({autoRefresh: true});
         });
         // Store the network
@@ -249,7 +228,6 @@ class MindMap extends React.Component {
                     <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
                     <ExportGraphButton export={this.exportData}/>
                 </div>
-                <button onClick={this.testButton}>Test whatever</button>
                 <div id="graph"/>
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
                             switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
@@ -273,9 +251,9 @@ class NewNodeForm extends React.Component {
         // Call from server
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
-            updateItemInGraph(item, "", this.props.graph);
-            updatePositionOfNode(this.props.graph, item["source"], this.props.nodeData.x, this.props.nodeData.y);
-            saveGraphToDisk(this.props.graph);
+            updateItemInGraph(item, "");
+            updatePositionOfNode(item["source"], this.props.nodeData.x, this.props.nodeData.y);
+            // saveGraphToDisk(this.props.graph);
         });
 
         this.props.switchForm();

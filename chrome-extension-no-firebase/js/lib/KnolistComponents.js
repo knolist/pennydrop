@@ -73,19 +73,10 @@ var MindMap = function (_React$Component2) {
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
-        _this2.testButton = _this2.testButton.bind(_this2);
         return _this2;
     }
 
     _createClass(MindMap, [{
-        key: 'testButton',
-        value: function testButton() {
-            console.log(this.state.visNetwork.getPositions());
-            // console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/My_Last_Duchess"));
-            // console.log(this.state.visNetwork.getBoundingBox("https://en.wikipedia.org/wiki/Robert_Browning"));
-            // console.log(this.state.visNetwork.getSelection());
-        }
-    }, {
         key: 'titleCase',
         value: function titleCase(str) {
             str = str.toLowerCase().split(' ');
@@ -147,8 +138,8 @@ var MindMap = function (_React$Component2) {
         key: 'deleteNode',
         value: function deleteNode(data, callback) {
             var nodeId = data.nodes[0];
-            removeItemFromGraph(nodeId, this.state.graph);
-            saveGraphToDisk(this.state.graph);
+            removeItemFromGraph(nodeId);
+            // saveGraphToDisk(this.state.graph);
             callback(data);
         }
     }, {
@@ -241,20 +232,8 @@ var MindMap = function (_React$Component2) {
                     enabled: true,
                     deleteNode: this.deleteNode,
                     addNode: this.addNode
-                    // physics: {
-                    //     forceAtlas2Based: {
-                    //         gravitationalConstant: -0.001,
-                    //         centralGravity: 0,
-                    //         springLength: 230,
-                    //         springConstant: 0,
-                    //         avoidOverlap: 1
-                    //     },
-                    //     maxVelocity: 146,
-                    //     solver: "forceAtlas2Based",
-                    //     timestep: 0.35,
-                    //     stabilization: { iterations: 150 }
-                    // }
-                } };
+                }
+            };
             var network = new vis.Network(container, data, options);
             network.fit(); // Zoom in or out to fit entire network on screen
             // Store all positions
@@ -262,7 +241,7 @@ var MindMap = function (_React$Component2) {
             for (var index in positions) {
                 var x = positions[index]["x"];
                 var y = positions[index]["y"];
-                updatePositionOfNode(this.state.graph, index, x, y);
+                updatePositionOfNode(index, x, y);
             }
             saveGraphToDisk(this.state.graph); // Store the updated positions
             // Handle click vs drag
@@ -282,8 +261,8 @@ var MindMap = function (_React$Component2) {
                 var position = network.getPosition(url);
                 var x = position["x"];
                 var y = position["y"];
-                updatePositionOfNode(_this3.state.graph, url, x, y);
-                saveGraphToDisk(_this3.state.graph);
+                updatePositionOfNode(url, x, y);
+                // saveGraphToDisk(this.state.graph);
                 // this.setState({autoRefresh: true});
             });
             // Store the network
@@ -315,11 +294,6 @@ var MindMap = function (_React$Component2) {
                         this.titleCase(this.state.graph.curProject)
                     ),
                     React.createElement(ExportGraphButton, { 'export': this.exportData })
-                ),
-                React.createElement(
-                    'button',
-                    { onClick: this.testButton },
-                    'Test whatever'
                 ),
                 React.createElement('div', { id: 'graph' }),
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, graph: this.state.graph,
@@ -358,9 +332,9 @@ var NewNodeForm = function (_React$Component3) {
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
-                updateItemInGraph(item, "", _this5.props.graph);
-                updatePositionOfNode(_this5.props.graph, item["source"], _this5.props.nodeData.x, _this5.props.nodeData.y);
-                saveGraphToDisk(_this5.props.graph);
+                updateItemInGraph(item, "");
+                updatePositionOfNode(item["source"], _this5.props.nodeData.x, _this5.props.nodeData.y);
+                // saveGraphToDisk(this.props.graph);
             });
 
             this.props.switchForm();
