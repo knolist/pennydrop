@@ -62,7 +62,8 @@ var MindMap = function (_React$Component2) {
             showNewNodeForm: false,
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
-            visNetwork: null // The vis-network object
+            visNetwork: null, // The vis-network object
+            bibliographyData: null // The data to be exported as bibliography
         };
         // Bind functions that need to be passed as parameters
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
@@ -101,17 +102,24 @@ var MindMap = function (_React$Component2) {
             // }, 200);
         }
 
+        // Pulls the bibliography data from the backend
+
+    }, {
+        key: 'getBibliographyData',
+        value: function getBibliographyData() {
+            var _this3 = this;
+
+            getTitlesFromGraph().then(function (bibliographyData) {
+                _this3.setState({ bibliographyData: bibliographyData });
+            });
+        }
+
         // Used for the export bibliography button
 
     }, {
         key: 'exportData',
         value: function exportData() {
-            var visCloseButton = document.getElementsByClassName("vis-close")[0];
-            // Only open modal outside of edit mode
-            if (getComputedStyle(visCloseButton).display === "none") {
-                var curProject = this.state.graph.curProject;
-                this.setState({ displayExport: true });
-            }
+            this.setState({ displayExport: true });
         }
     }, {
         key: 'resetSelectedNode',
@@ -155,12 +163,12 @@ var MindMap = function (_React$Component2) {
     }, {
         key: 'deleteEdge',
         value: function deleteEdge(data, callback) {
-            var _this3 = this;
+            var _this4 = this;
 
             var edgeId = data.edges[0];
             var connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
             removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]).then(function () {
-                _this3.getDataFromServer();
+                _this4.getDataFromServer();
                 callback(data);
             });
             callback(data);
@@ -168,12 +176,12 @@ var MindMap = function (_React$Component2) {
     }, {
         key: 'addEdge',
         value: function addEdge(edgeData, callback) {
-            var _this4 = this;
+            var _this5 = this;
 
             if (edgeData.from !== edgeData.to) {
                 // Ensure that user isn't adding self edge
                 addEdgeToGraph(edgeData.from, edgeData.to).then(function () {
-                    _this4.getDataFromServer();
+                    _this5.getDataFromServer();
                     callback(edgeData);
                 });
             }
@@ -219,7 +227,7 @@ var MindMap = function (_React$Component2) {
     }, {
         key: 'setupVisGraph',
         value: function setupVisGraph() {
-            var _this5 = this;
+            var _this6 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -278,7 +286,7 @@ var MindMap = function (_React$Component2) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this5.handleClickedNode(nodeId);
+                    _this6.handleClickedNode(nodeId);
                 }
             });
             // Stop auto refresh while dragging
@@ -309,6 +317,7 @@ var MindMap = function (_React$Component2) {
             if (this.state.graph === null) {
                 return null;
             }
+            this.getBibliographyData();
             var curProject = this.state.graph.curProject;
             return React.createElement(
                 'div',
@@ -326,10 +335,13 @@ var MindMap = function (_React$Component2) {
                     React.createElement(ExportGraphButton, { 'export': this.exportData })
                 ),
                 React.createElement('div', { id: 'graph' }),
-                React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, graph: this.state.graph,
+                React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
+                    graph: this.state.graph,
                     switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
-                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
-                React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
+                React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
+                    resetDisplayExport: this.resetDisplayExport }),
+                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
+                    resetSelectedNode: this.resetSelectedNode })
             );
         }
     }]);
@@ -346,26 +358,26 @@ var NewNodeForm = function (_React$Component3) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this6 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this6.handleSubmit = _this6.handleSubmit.bind(_this6);
-        _this6.closeForm = _this6.closeForm.bind(_this6);
-        return _this6;
+        _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
+        _this7.closeForm = _this7.closeForm.bind(_this7);
+        return _this7;
     }
 
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this7 = this;
+            var _this8 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item["source"], _this7.props.nodeData.x, _this7.props.nodeData.y);
+                    return updatePositionOfNode(item["source"], _this8.props.nodeData.x, _this8.props.nodeData.y);
                 }).then(function () {
-                    return _this7.props.refresh();
+                    return _this8.props.refresh();
                 });
             });
 
@@ -437,14 +449,15 @@ var PageView = function (_React$Component4) {
 
         // When the user clicks anywhere outside of the modal, close it
         // TODO: make this work (CU-8cgf5y)
-        var _this8 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
+            console.log(event);
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
         };
-        return _this8;
+        return _this9;
     }
 
     _createClass(PageView, [{
@@ -461,7 +474,8 @@ var PageView = function (_React$Component4) {
                     { className: 'modal-content' },
                     React.createElement(
                         'button',
-                        { className: 'close-modal button', id: 'close-page-view', onClick: this.props.resetSelectedNode },
+                        { className: 'close-modal button', id: 'close-page-view',
+                            onClick: this.props.resetSelectedNode },
                         '\xD7'
                     ),
                     React.createElement(
@@ -498,14 +512,14 @@ var ExportView = function (_React$Component5) {
         _classCallCheck(this, ExportView);
 
         // When the user clicks anywhere outside of the modal, close it
-        var _this9 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetDisplayExport();
             }
         };
-        return _this9;
+        return _this10;
     }
 
     _createClass(ExportView, [{
@@ -522,7 +536,8 @@ var ExportView = function (_React$Component5) {
                     { className: 'modal-content' },
                     React.createElement(
                         'button',
-                        { className: 'close-modal button', id: 'close-page-view', onClick: this.props.resetDisplayExport },
+                        { className: 'close-modal button', id: 'close-page-view',
+                            onClick: this.props.resetDisplayExport },
                         '\xD7'
                     ),
                     React.createElement(
@@ -566,7 +581,7 @@ var ListURL = function (_React$Component6) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this11 = this;
+            var _this12 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -586,8 +601,9 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this11.props.graph[url].source, target: '_blank' },
-                                    _this11.props.graph[url].title
+                                    { href: _this12.props.graph[url].source,
+                                        target: '_blank' },
+                                    _this12.props.graph[url].title
                                 )
                             );
                         })
@@ -611,8 +627,9 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this11.props.graph[url].source, target: '_blank' },
-                                    _this11.props.graph[url].title
+                                    { href: _this12.props.graph[url].source,
+                                        target: '_blank' },
+                                    _this12.props.graph[url].title
                                 )
                             );
                         })
@@ -688,7 +705,8 @@ var RefreshGraphButton = function (_React$Component8) {
             return React.createElement(
                 'button',
                 { onClick: this.props.refresh, className: 'button' },
-                React.createElement('img', { src: '../../images/refresh-icon.png', alt: 'Refresh Button', style: { width: "100%" } })
+                React.createElement('img', { src: '../../images/refresh-icon.png',
+                    alt: 'Refresh Button', style: { width: "100%" } })
             );
         }
     }]);
@@ -711,7 +729,8 @@ var ExportGraphButton = function (_React$Component9) {
             return React.createElement(
                 'button',
                 { onClick: this.props.export, className: 'button' },
-                React.createElement('img', { src: '../../images/share-icon.webp', alt: 'Refresh Button', style: { width: "100%" } })
+                React.createElement('img', { src: '../../images/share-icon.webp',
+                    alt: 'Refresh Button', style: { width: "100%" } })
             );
         }
     }]);

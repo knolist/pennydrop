@@ -34,7 +34,8 @@ class MindMap extends React.Component {
             showNewNodeForm: false,
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
-            visNetwork: null // The vis-network object
+            visNetwork: null, // The vis-network object
+            bibliographyData: null // The data to be exported as bibliography
         };
         // Bind functions that need to be passed as parameters
         this.getDataFromServer = this.getDataFromServer.bind(this);
@@ -67,14 +68,16 @@ class MindMap extends React.Component {
         // }, 200);
     }
 
+    // Pulls the bibliography data from the backend
+    getBibliographyData() {
+        getTitlesFromGraph().then(bibliographyData => {
+            this.setState({bibliographyData: bibliographyData});
+        })
+    }
+
     // Used for the export bibliography button
     exportData() {
-      const visCloseButton = document.getElementsByClassName("vis-close")[0];
-      // Only open modal outside of edit mode
-      if (getComputedStyle(visCloseButton).display === "none") {
-          const curProject = this.state.graph.curProject;
-          this.setState({displayExport: true});
-      }
+        this.setState({displayExport: true});
     }
 
     resetSelectedNode() {
@@ -212,10 +215,10 @@ class MindMap extends React.Component {
         saveGraphToDisk(this.state.graph); // Store the updated positions
         // Handle click vs drag
         network.on("click", (params) => {
-          if (params.nodes !== undefined && params.nodes.length > 0 ) {
-              const nodeId = params.nodes[0];
-              this.handleClickedNode(nodeId);
-          }
+            if (params.nodes !== undefined && params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                this.handleClickedNode(nodeId);
+            }
         });
         // Stop auto refresh while dragging
         network.on("dragStart", () => {
@@ -223,13 +226,13 @@ class MindMap extends React.Component {
         });
         // Update positions after dragging node
         network.on("dragEnd", () => {
-           const url = network.getSelectedNodes()[0];
-           const position = network.getPosition(url);
-           const x = position["x"];
-           const y = position["y"];
-           updatePositionOfNode(url, x, y);
-           // saveGraphToDisk(this.state.graph);
-           // this.setState({autoRefresh: true});
+            const url = network.getSelectedNodes()[0];
+            const position = network.getPosition(url);
+            const x = position["x"];
+            const y = position["y"];
+            updatePositionOfNode(url, x, y);
+            // saveGraphToDisk(this.state.graph);
+            // this.setState({autoRefresh: true});
         });
         // Store the network
         this.setState({visNetwork: network});
@@ -243,19 +246,24 @@ class MindMap extends React.Component {
         if (this.state.graph === null) {
             return null;
         }
+        this.getBibliographyData();
         const curProject = this.state.graph.curProject;
         return (
             <div>
                 <div id="title-bar">
                     <RefreshGraphButton refresh={this.getDataFromServer}/>
-                    <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
+                    <h2 style={{margin: "auto auto"}}>Current
+                        Project: {this.titleCase(this.state.graph.curProject)}</h2>
                     <ExportGraphButton export={this.exportData}/>
                 </div>
                 <div id="graph"/>
-                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
-                            switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
-                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
-                <ExportView bibliographyData={getTitlesFromGraph()} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
+                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
+                             graph={this.state.graph}
+                             switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                          resetSelectedNode={this.resetSelectedNode}/>
+                <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
+                            resetDisplayExport={this.resetDisplayExport}/>
             </div>
         );
     }
@@ -290,7 +298,9 @@ class NewNodeForm extends React.Component {
 
     render() {
         let style = {display: "none"};
-        if (this.props.showNewNodeForm) { style = {display: "block"} }
+        if (this.props.showNewNodeForm) {
+            style = {display: "block"}
+        }
         return (
             <div className="modal" style={style}>
                 <div className="modal-content">
@@ -313,7 +323,7 @@ class PageView extends React.Component {
         super(props);
         // When the user clicks anywhere outside of the modal, close it
         // TODO: make this work (CU-8cgf5y)
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
@@ -327,8 +337,10 @@ class PageView extends React.Component {
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
-                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
+                    <button className="close-modal button" id="close-page-view"
+                            onClick={this.props.resetSelectedNode}>&times;</button>
+                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
+                    </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
@@ -345,7 +357,7 @@ class ExportView extends React.Component {
     constructor(props) {
         super(props);
         // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetDisplayExport();
             }
@@ -359,7 +371,8 @@ class ExportView extends React.Component {
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view" onClick={this.props.resetDisplayExport}>&times;</button>
+                    <button className="close-modal button" id="close-page-view"
+                            onClick={this.props.resetDisplayExport}>&times;</button>
                     <h1>Export for Bibliography</h1>
                     <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
                 </div>
@@ -380,7 +393,8 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Previous Connections</h2>
                     <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source} target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href={this.props.graph[url].source}
+                                           target="_blank">{this.props.graph[url].title}</a></li>)}
                     </ul>
                 </div>
             );
@@ -389,7 +403,8 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Next Connections</h2>
                     <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source} target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href={this.props.graph[url].source}
+                                           target="_blank">{this.props.graph[url].title}</a></li>)}
                     </ul>
                 </div>
             );
@@ -425,7 +440,9 @@ class RefreshGraphButton extends React.Component {
 
     render() {
         return (
-            <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/></button>
+            <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png"
+                                                                         alt="Refresh Button" style={{width: "100%"}}/>
+            </button>
         );
     }
 }
@@ -437,7 +454,9 @@ class ExportGraphButton extends React.Component {
 
     render() {
         return (
-            <button onClick={this.props.export} className="button"><img src="../../images/share-icon.webp" alt="Refresh Button" style={{width: "100%"}}/></button>
+            <button onClick={this.props.export} className="button"><img src="../../images/share-icon.webp"
+                                                                        alt="Refresh Button" style={{width: "100%"}}/>
+            </button>
         );
     }
 }
