@@ -37,6 +37,7 @@ class MindMap extends React.Component {
             visNetwork: null, // The vis-network object
             bibliographyData: null // The data to be exported as bibliography
         };
+
         // Bind functions that need to be passed as parameters
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
@@ -48,6 +49,18 @@ class MindMap extends React.Component {
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
+
+        // Set up listener to close modals when user clicks outside of them
+        window.onclick = (event) => {
+            if (event.target === document.getElementById("page-view")) {
+                if (this.state.selectedNode !== null) {
+                    this.resetSelectedNode();
+                }
+                if (this.state.displayExport) {
+                    this.resetDisplayExport();
+                }
+            }
+        }
     }
 
     titleCase(str) {
@@ -80,12 +93,12 @@ class MindMap extends React.Component {
         this.setState({displayExport: true});
     }
 
-    resetSelectedNode() {
-        this.setState({selectedNode: null});
-    }
-
     resetDisplayExport() {
         this.setState({displayExport: false});
+    }
+
+    resetSelectedNode() {
+        this.setState({selectedNode: null});
     }
 
     // Set selected node for the detailed view
@@ -260,10 +273,11 @@ class MindMap extends React.Component {
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                              graph={this.state.graph}
                              switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
-                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
-                          resetSelectedNode={this.resetSelectedNode}/>
                 <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                             resetDisplayExport={this.resetDisplayExport}/>
+                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                          resetSelectedNode={this.resetSelectedNode}/>
+
             </div>
         );
     }
@@ -321,13 +335,6 @@ class NewNodeForm extends React.Component {
 class PageView extends React.Component {
     constructor(props) {
         super(props);
-        // When the user clicks anywhere outside of the modal, close it
-        // TODO: make this work (CU-8cgf5y)
-        window.onclick = function (event) {
-            if (event.target === document.getElementById("page-view")) {
-                props.resetSelectedNode();
-            }
-        }
     }
 
     render() {
@@ -356,12 +363,6 @@ class PageView extends React.Component {
 class ExportView extends React.Component {
     constructor(props) {
         super(props);
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function (event) {
-            if (event.target === document.getElementById("page-view")) {
-                props.resetDisplayExport();
-            }
-        }
     }
 
     render() {

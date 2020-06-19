@@ -2,7 +2,9 @@
 For these functions, make sure to pull the graph from disk (let graph = await getGraphFromDisk();)
 and save it back after manipulation (in case any manipulation was done: saveGraphToDisk(graphData);)
 Functions must be async to use the await keyword and ensure sequential execution (i.e., waiting for the graph
-to be pulled from Chrome before attempting to access it)
+to be pulled from Chrome before attempting to access it).
+IMPORTANT: don't forget that async functions return promises, so you might have to deal with those when you call
+those functions.
  */
 
 const CUR_VERSION_NUM = 1;

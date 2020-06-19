@@ -26,15 +26,15 @@ var KnolistComponents = function (_React$Component) {
     }
 
     _createClass(KnolistComponents, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             return React.createElement(
-                'div',
+                "div",
                 null,
                 React.createElement(Header, null),
                 React.createElement(
-                    'div',
-                    { className: 'main-body' },
+                    "div",
+                    { className: "main-body" },
                     React.createElement(MindMap, null)
                 )
             );
@@ -65,6 +65,7 @@ var MindMap = function (_React$Component2) {
             visNetwork: null, // The vis-network object
             bibliographyData: null // The data to be exported as bibliography
         };
+
         // Bind functions that need to be passed as parameters
         _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
         _this2.exportData = _this2.exportData.bind(_this2);
@@ -76,11 +77,23 @@ var MindMap = function (_React$Component2) {
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
+
+        // Set up listener to close modals when user clicks outside of them
+        window.onclick = function (event) {
+            if (event.target === document.getElementById("page-view")) {
+                if (_this2.state.selectedNode !== null) {
+                    _this2.resetSelectedNode();
+                }
+                if (_this2.state.displayExport) {
+                    _this2.resetDisplayExport();
+                }
+            }
+        };
         return _this2;
     }
 
     _createClass(MindMap, [{
-        key: 'titleCase',
+        key: "titleCase",
         value: function titleCase(str) {
             str = str.toLowerCase().split(' ');
             for (var i = 0; i < str.length; i++) {
@@ -92,7 +105,7 @@ var MindMap = function (_React$Component2) {
         // Calls graph.js function to pull the graph from the Chrome storage
 
     }, {
-        key: 'getDataFromServer',
+        key: "getDataFromServer",
         value: function getDataFromServer() {
             // All the websites as a graph
             getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
@@ -105,7 +118,7 @@ var MindMap = function (_React$Component2) {
         // Pulls the bibliography data from the backend
 
     }, {
-        key: 'getBibliographyData',
+        key: "getBibliographyData",
         value: function getBibliographyData() {
             var _this3 = this;
 
@@ -117,25 +130,25 @@ var MindMap = function (_React$Component2) {
         // Used for the export bibliography button
 
     }, {
-        key: 'exportData',
+        key: "exportData",
         value: function exportData() {
             this.setState({ displayExport: true });
         }
     }, {
-        key: 'resetSelectedNode',
-        value: function resetSelectedNode() {
-            this.setState({ selectedNode: null });
-        }
-    }, {
-        key: 'resetDisplayExport',
+        key: "resetDisplayExport",
         value: function resetDisplayExport() {
             this.setState({ displayExport: false });
+        }
+    }, {
+        key: "resetSelectedNode",
+        value: function resetSelectedNode() {
+            this.setState({ selectedNode: null });
         }
 
         // Set selected node for the detailed view
 
     }, {
-        key: 'handleClickedNode',
+        key: "handleClickedNode",
         value: function handleClickedNode(id) {
             var visCloseButton = document.getElementsByClassName("vis-close")[0];
             // Only open modal outside of edit mode
@@ -145,7 +158,7 @@ var MindMap = function (_React$Component2) {
             }
         }
     }, {
-        key: 'deleteNode',
+        key: "deleteNode",
         value: function deleteNode(data, callback) {
             var nodeId = data.nodes[0];
             removeItemFromGraph(nodeId).then(function () {
@@ -153,7 +166,7 @@ var MindMap = function (_React$Component2) {
             });
         }
     }, {
-        key: 'addNode',
+        key: "addNode",
         value: function addNode(nodeData, callback) {
             this.setState({
                 showNewNodeForm: !this.state.showNewNodeForm,
@@ -161,7 +174,7 @@ var MindMap = function (_React$Component2) {
             });
         }
     }, {
-        key: 'deleteEdge',
+        key: "deleteEdge",
         value: function deleteEdge(data, callback) {
             var _this4 = this;
 
@@ -174,7 +187,7 @@ var MindMap = function (_React$Component2) {
             callback(data);
         }
     }, {
-        key: 'addEdge',
+        key: "addEdge",
         value: function addEdge(edgeData, callback) {
             var _this5 = this;
 
@@ -187,7 +200,7 @@ var MindMap = function (_React$Component2) {
             }
         }
     }, {
-        key: 'switchShowNewNodeForm',
+        key: "switchShowNewNodeForm",
         value: function switchShowNewNodeForm() {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
         }
@@ -195,7 +208,7 @@ var MindMap = function (_React$Component2) {
         // Helper function to setup the nodes and edges for the graph
 
     }, {
-        key: 'createNodesAndEdges',
+        key: "createNodesAndEdges",
         value: function createNodesAndEdges() {
             var nodes = [];
             var edges = [];
@@ -225,7 +238,7 @@ var MindMap = function (_React$Component2) {
         // Main function to set up the vis-network object
 
     }, {
-        key: 'setupVisGraph',
+        key: "setupVisGraph",
         value: function setupVisGraph() {
             var _this6 = this;
 
@@ -307,12 +320,12 @@ var MindMap = function (_React$Component2) {
             this.setState({ visNetwork: network });
         }
     }, {
-        key: 'componentDidMount',
+        key: "componentDidMount",
         value: function componentDidMount() {
             this.getDataFromServer();
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.state.graph === null) {
                 return null;
@@ -320,28 +333,28 @@ var MindMap = function (_React$Component2) {
             this.getBibliographyData();
             var curProject = this.state.graph.curProject;
             return React.createElement(
-                'div',
+                "div",
                 null,
                 React.createElement(
-                    'div',
-                    { id: 'title-bar' },
+                    "div",
+                    { id: "title-bar" },
                     React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
                     React.createElement(
-                        'h2',
+                        "h2",
                         { style: { margin: "auto auto" } },
-                        'Current Project: ',
+                        "Current Project: ",
                         this.titleCase(this.state.graph.curProject)
                     ),
-                    React.createElement(ExportGraphButton, { 'export': this.exportData })
+                    React.createElement(ExportGraphButton, { "export": this.exportData })
                 ),
-                React.createElement('div', { id: 'graph' }),
+                React.createElement("div", { id: "graph" }),
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                     graph: this.state.graph,
                     switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
-                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
-                    resetSelectedNode: this.resetSelectedNode }),
                 React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
-                    resetDisplayExport: this.resetDisplayExport })
+                    resetDisplayExport: this.resetDisplayExport }),
+                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
+                    resetSelectedNode: this.resetSelectedNode })
             );
         }
     }]);
@@ -366,7 +379,7 @@ var NewNodeForm = function (_React$Component3) {
     }
 
     _createClass(NewNodeForm, [{
-        key: 'handleSubmit',
+        key: "handleSubmit",
         value: function handleSubmit(event) {
             var _this8 = this;
 
@@ -385,49 +398,49 @@ var NewNodeForm = function (_React$Component3) {
             event.target.reset(); // Clear the form entries
         }
     }, {
-        key: 'closeForm',
+        key: "closeForm",
         value: function closeForm() {
             document.getElementById("new-node-form").reset();
             this.props.switchForm();
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             var style = { display: "none" };
             if (this.props.showNewNodeForm) {
                 style = { display: "block" };
             }
             return React.createElement(
-                'div',
-                { className: 'modal', style: style },
+                "div",
+                { className: "modal", style: style },
                 React.createElement(
-                    'div',
-                    { className: 'modal-content' },
+                    "div",
+                    { className: "modal-content" },
                     React.createElement(
-                        'button',
-                        { className: 'close-modal button', onClick: this.closeForm },
-                        '\xD7'
+                        "button",
+                        { className: "close-modal button", onClick: this.closeForm },
+                        "\xD7"
                     ),
                     React.createElement(
-                        'h1',
+                        "h1",
                         null,
-                        'Add new node'
+                        "Add new node"
                     ),
                     React.createElement(
-                        'form',
-                        { id: 'new-node-form', onSubmit: this.handleSubmit },
+                        "form",
+                        { id: "new-node-form", onSubmit: this.handleSubmit },
                         React.createElement(
-                            'label',
-                            { htmlFor: 'url' },
-                            'Page URL'
+                            "label",
+                            { htmlFor: "url" },
+                            "Page URL"
                         ),
-                        React.createElement('br', null),
-                        React.createElement('input', { id: 'url', name: 'url', type: 'url', placeholder: 'Insert URL', required: true }),
-                        React.createElement('br', null),
+                        React.createElement("br", null),
+                        React.createElement("input", { id: "url", name: "url", type: "url", placeholder: "Insert URL", required: true }),
+                        React.createElement("br", null),
                         React.createElement(
-                            'button',
-                            { className: 'button', style: { width: 100 } },
-                            'Add node'
+                            "button",
+                            { className: "button", style: { width: 100 } },
+                            "Add node"
                         )
                     )
                 )
@@ -447,48 +460,39 @@ var PageView = function (_React$Component4) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        // When the user clicks anywhere outside of the modal, close it
-        // TODO: make this work (CU-8cgf5y)
-        var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
-
-        window.onclick = function (event) {
-            if (event.target === document.getElementById("page-view")) {
-                props.resetSelectedNode();
-            }
-        };
-        return _this9;
+        return _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
     }
 
     _createClass(PageView, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
             }
             return React.createElement(
-                'div',
-                { id: 'page-view', className: 'modal' },
+                "div",
+                { id: "page-view", className: "modal" },
                 React.createElement(
-                    'div',
-                    { className: 'modal-content' },
+                    "div",
+                    { className: "modal-content" },
                     React.createElement(
-                        'button',
-                        { className: 'close-modal button', id: 'close-page-view',
+                        "button",
+                        { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.resetSelectedNode },
-                        '\xD7'
+                        "\xD7"
                     ),
                     React.createElement(
-                        'a',
-                        { href: this.props.selectedNode.source, target: '_blank' },
+                        "a",
+                        { href: this.props.selectedNode.source, target: "_blank" },
                         React.createElement(
-                            'h1',
+                            "h1",
                             null,
                             this.props.selectedNode.title
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(
-                        'div',
+                        "div",
                         { style: { display: "flex" } },
                         React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode }),
                         React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode })
@@ -510,49 +514,41 @@ var ExportView = function (_React$Component5) {
     function ExportView(props) {
         _classCallCheck(this, ExportView);
 
-        // When the user clicks anywhere outside of the modal, close it
-        var _this10 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
-
-        window.onclick = function (event) {
-            if (event.target === document.getElementById("page-view")) {
-                props.resetDisplayExport();
-            }
-        };
-        return _this10;
+        return _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
     }
 
     _createClass(ExportView, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.shouldShow === false) {
                 return null;
             }
             return React.createElement(
-                'div',
-                { id: 'page-view', className: 'modal' },
+                "div",
+                { id: "page-view", className: "modal" },
                 React.createElement(
-                    'div',
-                    { className: 'modal-content' },
+                    "div",
+                    { className: "modal-content" },
                     React.createElement(
-                        'button',
-                        { className: 'close-modal button', id: 'close-page-view',
+                        "button",
+                        { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.resetDisplayExport },
-                        '\xD7'
+                        "\xD7"
                     ),
                     React.createElement(
-                        'h1',
+                        "h1",
                         null,
-                        'Export for Bibliography'
+                        "Export for Bibliography"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.bibliographyData.map(function (item) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: item.url },
                                 item.title,
-                                ', ',
+                                ", ",
                                 item.url
                             );
                         })
@@ -578,30 +574,30 @@ var ListURL = function (_React$Component6) {
     }
 
     _createClass(ListURL, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             var _this12 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
-                    'div',
-                    { className: 'url-column' },
+                    "div",
+                    { className: "url-column" },
                     React.createElement(
-                        'h2',
+                        "h2",
                         { style: { textAlign: "center" } },
-                        'Previous Connections'
+                        "Previous Connections"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.selectedNode.prevURLs.map(function (url, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 React.createElement(
-                                    'a',
+                                    "a",
                                     { href: _this12.props.graph[url].source,
-                                        target: '_blank' },
+                                        target: "_blank" },
                                     _this12.props.graph[url].title
                                 )
                             );
@@ -610,24 +606,24 @@ var ListURL = function (_React$Component6) {
                 );
             } else if (this.props.type === "next") {
                 return React.createElement(
-                    'div',
-                    { className: 'url-column' },
+                    "div",
+                    { className: "url-column" },
                     React.createElement(
-                        'h2',
+                        "h2",
                         { style: { textAlign: "center" } },
-                        'Next Connections'
+                        "Next Connections"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.selectedNode.nextURLs.map(function (url, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 React.createElement(
-                                    'a',
+                                    "a",
                                     { href: _this12.props.graph[url].source,
-                                        target: '_blank' },
+                                        target: "_blank" },
                                     _this12.props.graph[url].title
                                 )
                             );
@@ -654,23 +650,23 @@ var HighlightsList = function (_React$Component7) {
     }
 
     _createClass(HighlightsList, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.highlights.length !== 0) {
                 return React.createElement(
-                    'div',
+                    "div",
                     null,
                     React.createElement(
-                        'h2',
+                        "h2",
                         null,
-                        'My Highlights'
+                        "My Highlights"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.highlights.map(function (highlight, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 highlight
                             );
@@ -679,9 +675,9 @@ var HighlightsList = function (_React$Component7) {
                 );
             }
             return React.createElement(
-                'h2',
+                "h2",
                 null,
-                'You haven\'t added any highlights yet.'
+                "You haven't added any highlights yet."
             );
         }
     }]);
@@ -699,13 +695,13 @@ var RefreshGraphButton = function (_React$Component8) {
     }
 
     _createClass(RefreshGraphButton, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             return React.createElement(
-                'button',
-                { onClick: this.props.refresh, className: 'button' },
-                React.createElement('img', { src: '../../images/refresh-icon.png',
-                    alt: 'Refresh Button', style: { width: "100%" } })
+                "button",
+                { onClick: this.props.refresh, className: "button" },
+                React.createElement("img", { src: "../../images/refresh-icon.png",
+                    alt: "Refresh Button", style: { width: "100%" } })
             );
         }
     }]);
@@ -723,13 +719,13 @@ var ExportGraphButton = function (_React$Component9) {
     }
 
     _createClass(ExportGraphButton, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             return React.createElement(
-                'button',
-                { onClick: this.props.export, className: 'button' },
-                React.createElement('img', { src: '../../images/share-icon.webp',
-                    alt: 'Refresh Button', style: { width: "100%" } })
+                "button",
+                { onClick: this.props.export, className: "button" },
+                React.createElement("img", { src: "../../images/share-icon.webp",
+                    alt: "Refresh Button", style: { width: "100%" } })
             );
         }
     }]);
@@ -747,12 +743,12 @@ var Header = function (_React$Component10) {
     }
 
     _createClass(Header, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             return React.createElement(
-                'div',
-                { className: 'header' },
-                React.createElement('img', { className: 'logo', src: '../../images/full_main.PNG', alt: 'Knolist Logo' })
+                "div",
+                { className: "header" },
+                React.createElement("img", { className: "logo", src: "../../images/full_main.PNG", alt: "Knolist Logo" })
             );
         }
     }]);
