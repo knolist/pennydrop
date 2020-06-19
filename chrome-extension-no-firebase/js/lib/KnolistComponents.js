@@ -452,7 +452,6 @@ var PageView = function (_React$Component4) {
         var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
-            console.log(event);
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
