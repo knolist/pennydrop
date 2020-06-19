@@ -140,9 +140,9 @@ var MindMap = function (_React$Component2) {
         key: 'deleteNode',
         value: function deleteNode(data, callback) {
             var nodeId = data.nodes[0];
-            removeItemFromGraph(nodeId);
-            // saveGraphToDisk(this.state.graph);
-            callback(data);
+            removeItemFromGraph(nodeId).then(function () {
+                callback(data);
+            });
         }
     }, {
         key: 'addNode',
@@ -152,9 +152,6 @@ var MindMap = function (_React$Component2) {
                 newNodeData: nodeData
             });
         }
-
-        // TODO refresh graph
-
     }, {
         key: 'deleteEdge',
         value: function deleteEdge(data, callback) {
@@ -332,7 +329,7 @@ var MindMap = function (_React$Component2) {
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, graph: this.state.graph,
                     switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
-                React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(this.state.graph), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
+                React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
             );
         }
     }]);
@@ -365,13 +362,14 @@ var NewNodeForm = function (_React$Component3) {
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
-                updateItemInGraph(item, "");
-                updatePositionOfNode(item["source"], _this7.props.nodeData.x, _this7.props.nodeData.y);
-                // saveGraphToDisk(this.props.graph);
+                updateItemInGraph(item, "").then(function () {
+                    return updatePositionOfNode(item["source"], _this7.props.nodeData.x, _this7.props.nodeData.y);
+                }).then(function () {
+                    return _this7.props.refresh();
+                });
             });
 
             this.props.switchForm();
-            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated
             event.target.reset(); // Clear the form entries
         }
     }, {

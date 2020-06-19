@@ -97,9 +97,9 @@ class MindMap extends React.Component {
 
     deleteNode(data, callback) {
         const nodeId = data.nodes[0];
-        removeItemFromGraph(nodeId);
-        // saveGraphToDisk(this.state.graph);
-        callback(data);
+        removeItemFromGraph(nodeId).then(() => {
+            callback(data);
+        });
     }
 
     addNode(nodeData, callback) {
@@ -207,7 +207,7 @@ class MindMap extends React.Component {
         for (let index in positions) {
             const x = positions[index]["x"];
             const y = positions[index]["y"];
-            updatePositionOfNode(index, x, y);
+            updatePositionOfNode(index, x, y)
         }
         saveGraphToDisk(this.state.graph); // Store the updated positions
         // Handle click vs drag
@@ -255,7 +255,7 @@ class MindMap extends React.Component {
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
                             switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
                 <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
-                <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
+                <ExportView bibliographyData={getTitlesFromGraph()} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
             </div>
         );
     }
@@ -274,13 +274,12 @@ class NewNodeForm extends React.Component {
         // Call from server
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
-            updateItemInGraph(item, "");
-            updatePositionOfNode(item["source"], this.props.nodeData.x, this.props.nodeData.y);
-            // saveGraphToDisk(this.props.graph);
+            updateItemInGraph(item, "").then(() => {
+                return updatePositionOfNode(item["source"], this.props.nodeData.x, this.props.nodeData.y);
+            }).then(() => this.props.refresh());
         });
 
         this.props.switchForm();
-        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated
         event.target.reset(); // Clear the form entries
     }
 
