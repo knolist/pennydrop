@@ -256,6 +256,12 @@ saveGraphToDisk = (graph) => {
 //     });
 // };
 
+/**
+ * This method returns a promise that resolves to the graph stored in the chrome storage.
+ * A promise was used to ensure that other functions wait for the graph to be retrived before
+ * attempting to manipulate it.
+ * @returns {Promise<unknown>} a promise that will resolve to the graph stored.
+ */
 getGraphFromDisk = () => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get('itemGraph', function(result) {

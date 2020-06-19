@@ -1,9 +1,6 @@
 // All the websites as a graph
 let itemGraph = createNewGraph();
 // getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
-// getGraphFromDisk().then(graph => {
-//   itemGraph = graph;
-// });
 let trackBrowsing = false;
 
 const contextMenuItem = {
