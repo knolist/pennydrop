@@ -338,10 +338,10 @@ var MindMap = function (_React$Component2) {
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                     graph: this.state.graph,
                     switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
-                React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
-                    resetDisplayExport: this.resetDisplayExport }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
-                    resetSelectedNode: this.resetSelectedNode })
+                    resetSelectedNode: this.resetSelectedNode }),
+                React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
+                    resetDisplayExport: this.resetDisplayExport })
             );
         }
     }]);
