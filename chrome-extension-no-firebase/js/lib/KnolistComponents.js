@@ -380,6 +380,7 @@ var PageView = function (_React$Component4) {
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
+                    React.createElement(NotesList, { notes: this.props.selectedNode.notes }),
                     React.createElement(
                         'div',
                         { style: { display: "flex" } },
@@ -570,8 +571,53 @@ var HighlightsList = function (_React$Component7) {
     return HighlightsList;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component8) {
-    _inherits(RefreshGraphButton, _React$Component8);
+var NotesList = function (_React$Component8) {
+    _inherits(NotesList, _React$Component8);
+
+    function NotesList(props) {
+        _classCallCheck(this, NotesList);
+
+        return _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+    }
+
+    _createClass(NotesList, [{
+        key: 'render',
+        value: function render() {
+            if (this.props.notes.length !== 0) {
+                return React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'h2',
+                        null,
+                        'My Notes'
+                    ),
+                    React.createElement(
+                        'ul',
+                        null,
+                        this.props.notes.map(function (notes, index) {
+                            return React.createElement(
+                                'li',
+                                { key: index },
+                                notes
+                            );
+                        })
+                    )
+                );
+            }
+            return React.createElement(
+                'h2',
+                null,
+                'You haven\'t added any notes yet.'
+            );
+        }
+    }]);
+
+    return NotesList;
+}(React.Component);
+
+var RefreshGraphButton = function (_React$Component9) {
+    _inherits(RefreshGraphButton, _React$Component9);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -593,8 +639,8 @@ var RefreshGraphButton = function (_React$Component8) {
     return RefreshGraphButton;
 }(React.Component);
 
-var ExportGraphButton = function (_React$Component9) {
-    _inherits(ExportGraphButton, _React$Component9);
+var ExportGraphButton = function (_React$Component10) {
+    _inherits(ExportGraphButton, _React$Component10);
 
     function ExportGraphButton(props) {
         _classCallCheck(this, ExportGraphButton);
@@ -616,8 +662,8 @@ var ExportGraphButton = function (_React$Component9) {
     return ExportGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component10) {
-    _inherits(Header, _React$Component10);
+var Header = function (_React$Component11) {
+    _inherits(Header, _React$Component11);
 
     function Header() {
         _classCallCheck(this, Header);

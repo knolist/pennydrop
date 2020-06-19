@@ -269,6 +269,7 @@ class PageView extends React.Component {
                     <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
+                    <NotesList notes={this.props.selectedNode.notes}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
@@ -351,6 +352,26 @@ class HighlightsList extends React.Component {
         }
         return (
             <h2>You haven't added any highlights yet.</h2>
+        );
+    }
+}
+
+class NotesList extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        if (this.props.notes.length !== 0) {
+            return (
+                <div>
+                    <h2>My Notes</h2>
+                    <ul>{this.props.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
+                </div>
+            );
+        }
+        return (
+            <h2>You haven't added any notes yet.</h2>
         );
     }
 }

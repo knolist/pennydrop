@@ -36,7 +36,8 @@ def extract():
         "content": realText,
         "source": url,
         "title": getTitle(response.content),
-        "highlights": []
+        "highlights": [],
+        "notes": []
     }
     outputJson = json.dumps(outputObj)
     return outputJson
