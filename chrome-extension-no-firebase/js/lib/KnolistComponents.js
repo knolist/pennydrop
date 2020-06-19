@@ -71,6 +71,7 @@ var MindMap = function (_React$Component2) {
         _this2.deleteNode = _this2.deleteNode.bind(_this2);
         _this2.addNode = _this2.addNode.bind(_this2);
         _this2.deleteEdge = _this2.deleteEdge.bind(_this2);
+        _this2.addEdge = _this2.addEdge.bind(_this2);
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
@@ -151,13 +152,34 @@ var MindMap = function (_React$Component2) {
                 newNodeData: nodeData
             });
         }
+
+        // TODO refresh graph
+
     }, {
         key: 'deleteEdge',
         value: function deleteEdge(data, callback) {
+            var _this3 = this;
+
             var edgeId = data.edges[0];
             var connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
-            removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]);
+            removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]).then(function () {
+                _this3.getDataFromServer();
+                callback(data);
+            });
             callback(data);
+        }
+    }, {
+        key: 'addEdge',
+        value: function addEdge(edgeData, callback) {
+            var _this4 = this;
+
+            if (edgeData.from !== edgeData.to) {
+                // Ensure that user isn't adding self edge
+                addEdgeToGraph(edgeData.from, edgeData.to).then(function () {
+                    _this4.getDataFromServer();
+                    callback(edgeData);
+                });
+            }
         }
     }, {
         key: 'switchShowNewNodeForm',
@@ -200,7 +222,7 @@ var MindMap = function (_React$Component2) {
     }, {
         key: 'setupVisGraph',
         value: function setupVisGraph() {
-            var _this3 = this;
+            var _this5 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -241,7 +263,8 @@ var MindMap = function (_React$Component2) {
                     enabled: true,
                     deleteNode: this.deleteNode,
                     addNode: this.addNode,
-                    deleteEdge: this.deleteEdge
+                    deleteEdge: this.deleteEdge,
+                    addEdge: this.addEdge
                 }
             };
             var network = new vis.Network(container, data, options);
@@ -258,7 +281,7 @@ var MindMap = function (_React$Component2) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this3.handleClickedNode(nodeId);
+                    _this5.handleClickedNode(nodeId);
                 }
             });
             // Stop auto refresh while dragging
@@ -326,24 +349,24 @@ var NewNodeForm = function (_React$Component3) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this4 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
-        _this4.closeForm = _this4.closeForm.bind(_this4);
-        return _this4;
+        _this6.handleSubmit = _this6.handleSubmit.bind(_this6);
+        _this6.closeForm = _this6.closeForm.bind(_this6);
+        return _this6;
     }
 
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this5 = this;
+            var _this7 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "");
-                updatePositionOfNode(item["source"], _this5.props.nodeData.x, _this5.props.nodeData.y);
+                updatePositionOfNode(item["source"], _this7.props.nodeData.x, _this7.props.nodeData.y);
                 // saveGraphToDisk(this.props.graph);
             });
 
@@ -416,14 +439,14 @@ var PageView = function (_React$Component4) {
 
         // When the user clicks anywhere outside of the modal, close it
         // TODO: make this work (CU-8cgf5y)
-        var _this6 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
             }
         };
-        return _this6;
+        return _this8;
     }
 
     _createClass(PageView, [{
@@ -477,14 +500,14 @@ var ExportView = function (_React$Component5) {
         _classCallCheck(this, ExportView);
 
         // When the user clicks anywhere outside of the modal, close it
-        var _this7 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
 
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetDisplayExport();
             }
         };
-        return _this7;
+        return _this9;
     }
 
     _createClass(ExportView, [{
@@ -545,7 +568,7 @@ var ListURL = function (_React$Component6) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this9 = this;
+            var _this11 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -565,8 +588,8 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this9.props.graph[url].source, target: '_blank' },
-                                    _this9.props.graph[url].title
+                                    { href: _this11.props.graph[url].source, target: '_blank' },
+                                    _this11.props.graph[url].title
                                 )
                             );
                         })
@@ -590,8 +613,8 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this9.props.graph[url].source, target: '_blank' },
-                                    _this9.props.graph[url].title
+                                    { href: _this11.props.graph[url].source, target: '_blank' },
+                                    _this11.props.graph[url].title
                                 )
                             );
                         })

@@ -91,6 +91,24 @@ removeEdgeFromGraph = async (fromURL, toURL) => {
     saveGraphToDisk(graphData);
 };
 
+addEdgeToGraph = async (fromURL, toURL) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Check if the edge does not exist
+    if (graph[fromURL]["nextURLs"].indexOf(toURL) === -1 && graph[fromURL]["prevURLs"].indexOf(fromURL) === -1) {
+        // Add forward edge in "from"
+        graph[fromURL]["nextURLs"].push(toURL);
+
+        // Add incoming edge in "to"
+        graph[toURL]["prevURLs"].push(fromURL);
+
+        // Save to disk
+        saveGraphToDisk(graphData);
+    }
+};
+
 /**
  * Main function used to add items to the graph (inside current project).
  * It can also be used for a simple update in edges.
