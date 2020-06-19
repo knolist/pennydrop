@@ -62,6 +62,36 @@ removeItemFromGraph = async (item) => {
 };
 
 /**
+ * Removes an edge from the current project.
+ * @param fromURL the URL from where the edge leaves
+ * @param toURL the URL where the edge goes into
+ */
+removeEdgeFromGraph = async (fromURL, toURL) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Remove forward edge in "from"
+    let index = graph[fromURL]["nextURLs"].indexOf(toURL);
+    if (index > -1) {
+        graph[fromURL]["nextURLs"].splice(index, 1);
+    } else {
+        console.log("ERROR: next url could not be found");
+    }
+
+    // Remove incoming edge in "to"
+    index = graph[toURL]["prevURLs"].indexOf(fromURL);
+    if (index > -1) {
+        graph[toURL]["prevURLs"].splice(index, 1);
+    } else {
+        console.log("ERROR: prev url could not be found");
+    }
+
+    // Save to disk
+    saveGraphToDisk(graphData);
+};
+
+/**
  * Main function used to add items to the graph (inside current project).
  * It can also be used for a simple update in edges.
  * @param item the idem to be added/updated
@@ -264,7 +294,7 @@ saveGraphToDisk = (graph) => {
  */
 getGraphFromDisk = () => {
     return new Promise((resolve, reject) => {
-        chrome.storage.local.get('itemGraph', function(result) {
+        chrome.storage.local.get('itemGraph', function (result) {
             resolve(result.itemGraph);
         });
     })

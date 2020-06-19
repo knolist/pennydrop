@@ -42,6 +42,7 @@ class MindMap extends React.Component {
         this.handleClickedNode = this.handleClickedNode.bind(this);
         this.deleteNode = this.deleteNode.bind(this);
         this.addNode = this.addNode.bind(this);
+        this.deleteEdge = this.deleteEdge.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
@@ -106,6 +107,13 @@ class MindMap extends React.Component {
                 showNewNodeForm: !this.state.showNewNodeForm,
                 newNodeData: nodeData
             });
+    }
+
+    deleteEdge(data, callback) {
+        const edgeId = data.edges[0];
+        const connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
+        removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]);
+        callback(data);
     }
 
     switchShowNewNodeForm() {
@@ -174,7 +182,8 @@ class MindMap extends React.Component {
             manipulation: {
                 enabled: true,
                 deleteNode: this.deleteNode,
-                addNode: this.addNode
+                addNode: this.addNode,
+                deleteEdge: this.deleteEdge
             }
         };
         const network = new vis.Network(container, data, options);

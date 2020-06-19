@@ -70,6 +70,7 @@ var MindMap = function (_React$Component2) {
         _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
         _this2.deleteNode = _this2.deleteNode.bind(_this2);
         _this2.addNode = _this2.addNode.bind(_this2);
+        _this2.deleteEdge = _this2.deleteEdge.bind(_this2);
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
@@ -149,6 +150,14 @@ var MindMap = function (_React$Component2) {
                 showNewNodeForm: !this.state.showNewNodeForm,
                 newNodeData: nodeData
             });
+        }
+    }, {
+        key: 'deleteEdge',
+        value: function deleteEdge(data, callback) {
+            var edgeId = data.edges[0];
+            var connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
+            removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]);
+            callback(data);
         }
     }, {
         key: 'switchShowNewNodeForm',
@@ -231,7 +240,8 @@ var MindMap = function (_React$Component2) {
                 manipulation: {
                     enabled: true,
                     deleteNode: this.deleteNode,
-                    addNode: this.addNode
+                    addNode: this.addNode,
+                    deleteEdge: this.deleteEdge
                 }
             };
             var network = new vis.Network(container, data, options);
