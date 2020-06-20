@@ -158,6 +158,24 @@ updatePositionOfNode = async (url, x, y) => {
     saveGraphToDisk(graphData);
 };
 
+updateAllPositionsInGraph = async (positions) => {
+    // Get graph from storage
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Update all positions
+    for (let url in positions) {
+        const x = positions[url].x;
+        const y = positions[url].y;
+        graph[url]["x"] = x;
+        graph[url]["y"] = y;
+    }
+
+    // Save to disk after all positions have been updated
+    saveGraphToDisk(graphData);
+};
+
 /**
  * Adds an array of highlights to an item in the current project.
  * @param item the item to receive the highlights

@@ -149,6 +149,34 @@ class MindMap extends React.Component {
         this.setState({showNewNodeForm: !this.state.showNewNodeForm});
     }
 
+    /* Helper function to generate position for nodes
+    This function adds an offset to  the randomly generated position based on the
+    position of the node's parent (if it has one)
+     */
+    generateNodePositions(node) {
+        let xOffset = 0;
+        let yOffset = 0;
+        // Update the offset if the node has a parent
+        if (node.prevURLs.length !== 0) {
+            const prevURL = node.prevURLs[0];
+            const curProject = this.state.graph.curProject;
+            const prevNode = this.state.graph[curProject][prevURL];
+            // Check if the previous node has defined coordinates
+            if (prevNode.x !== null && prevNode.y !== null) {
+                xOffset = prevNode.x;
+                yOffset = prevNode.y;
+            }
+        }
+        // Helper variable to generate random positions
+        const rangeLimit = 300; // To generate positions in the interval [-rangeLimit, rangeLimit]
+        // Generate random positions
+        const xRandom = Math.floor(Math.random() * 2 * rangeLimit - rangeLimit);
+        const yRandom = Math.floor(Math.random() * 2 * rangeLimit - rangeLimit);
+
+        // Return positions with offset
+        return [xRandom + xOffset, yRandom + yOffset];
+    }
+
     // Helper function to setup the nodes and edges for the graph
     createNodesAndEdges() {
         let nodes = [];
@@ -160,8 +188,7 @@ class MindMap extends React.Component {
             // Deal with positions
             if (node.x === null || node.y === null || node.x === undefined || node.y === undefined) {
                 // If position is still undefined, generate random x and y in interval [-300, 300]
-                const x = Math.floor(Math.random() * 600 - 300);
-                const y = Math.floor(Math.random() * 600 - 300);
+                const [x, y] = this.generateNodePositions(node);
                 nodes.push({id: node.source, label: node.title, x: x, y: y});
             } else {
                 nodes.push({id: node.source, label: node.title, x: node.x, y: node.y});
@@ -218,14 +245,11 @@ class MindMap extends React.Component {
         };
         const network = new vis.Network(container, data, options);
         network.fit(); // Zoom in or out to fit entire network on screen
+
         // Store all positions
         const positions = network.getPositions();
-        for (let index in positions) {
-            const x = positions[index]["x"];
-            const y = positions[index]["y"];
-            updatePositionOfNode(index, x, y)
-        }
-        saveGraphToDisk(this.state.graph); // Store the updated positions
+        updateAllPositionsInGraph(positions);
+
         // Handle click vs drag
         network.on("click", (params) => {
             if (params.nodes !== undefined && params.nodes.length > 0) {
@@ -233,20 +257,22 @@ class MindMap extends React.Component {
                 this.handleClickedNode(nodeId);
             }
         });
+
         // Stop auto refresh while dragging
         network.on("dragStart", () => {
             // this.setState({autoRefresh: false});
         });
+
         // Update positions after dragging node
         network.on("dragEnd", () => {
             const url = network.getSelectedNodes()[0];
             const position = network.getPosition(url);
-            const x = position["x"];
-            const y = position["y"];
+            const x = position.x;
+            const y = position.y;
             updatePositionOfNode(url, x, y);
-            // saveGraphToDisk(this.state.graph);
             // this.setState({autoRefresh: true});
         });
+
         // Store the network
         this.setState({visNetwork: network});
     }
@@ -296,7 +322,7 @@ class NewNodeForm extends React.Component {
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
             updateItemInGraph(item, "").then(() => {
-                return updatePositionOfNode(item["source"], this.props.nodeData.x, this.props.nodeData.y);
+                return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
             }).then(() => this.props.refresh());
         });
 

@@ -205,6 +205,37 @@ var MindMap = function (_React$Component2) {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
         }
 
+        /* Helper function to generate position for nodes
+        This function adds an offset to  the randomly generated position based on the
+        position of the node's parent (if it has one)
+         */
+
+    }, {
+        key: "generateNodePositions",
+        value: function generateNodePositions(node) {
+            var xOffset = 0;
+            var yOffset = 0;
+            // Update the offset if the node has a parent
+            if (node.prevURLs.length !== 0) {
+                var prevURL = node.prevURLs[0];
+                var curProject = this.state.graph.curProject;
+                var prevNode = this.state.graph[curProject][prevURL];
+                // Check if the previous node has defined coordinates
+                if (prevNode.x !== null && prevNode.y !== null) {
+                    xOffset = prevNode.x;
+                    yOffset = prevNode.y;
+                }
+            }
+            // Helper variable to generate random positions
+            var rangeLimit = 300; // To generate positions in the interval [-rangeLimit, rangeLimit]
+            // Generate random positions
+            var xRandom = Math.floor(Math.random() * 2 * rangeLimit - rangeLimit);
+            var yRandom = Math.floor(Math.random() * 2 * rangeLimit - rangeLimit);
+
+            // Return positions with offset
+            return [xRandom + xOffset, yRandom + yOffset];
+        }
+
         // Helper function to setup the nodes and edges for the graph
 
     }, {
@@ -219,8 +250,11 @@ var MindMap = function (_React$Component2) {
                 // Deal with positions
                 if (node.x === null || node.y === null || node.x === undefined || node.y === undefined) {
                     // If position is still undefined, generate random x and y in interval [-300, 300]
-                    var x = Math.floor(Math.random() * 600 - 300);
-                    var y = Math.floor(Math.random() * 600 - 300);
+                    var _generateNodePosition = this.generateNodePositions(node),
+                        _generateNodePosition2 = _slicedToArray(_generateNodePosition, 2),
+                        x = _generateNodePosition2[0],
+                        y = _generateNodePosition2[1];
+
                     nodes.push({ id: node.source, label: node.title, x: x, y: y });
                 } else {
                     nodes.push({ id: node.source, label: node.title, x: node.x, y: node.y });
@@ -287,14 +321,11 @@ var MindMap = function (_React$Component2) {
             };
             var network = new vis.Network(container, data, options);
             network.fit(); // Zoom in or out to fit entire network on screen
+
             // Store all positions
             var positions = network.getPositions();
-            for (var index in positions) {
-                var x = positions[index]["x"];
-                var y = positions[index]["y"];
-                updatePositionOfNode(index, x, y);
-            }
-            saveGraphToDisk(this.state.graph); // Store the updated positions
+            updateAllPositionsInGraph(positions);
+
             // Handle click vs drag
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
@@ -302,20 +333,22 @@ var MindMap = function (_React$Component2) {
                     _this6.handleClickedNode(nodeId);
                 }
             });
+
             // Stop auto refresh while dragging
             network.on("dragStart", function () {
                 // this.setState({autoRefresh: false});
             });
+
             // Update positions after dragging node
             network.on("dragEnd", function () {
                 var url = network.getSelectedNodes()[0];
                 var position = network.getPosition(url);
-                var x = position["x"];
-                var y = position["y"];
+                var x = position.x;
+                var y = position.y;
                 updatePositionOfNode(url, x, y);
-                // saveGraphToDisk(this.state.graph);
                 // this.setState({autoRefresh: true});
             });
+
             // Store the network
             this.setState({ visNetwork: network });
         }
@@ -388,7 +421,7 @@ var NewNodeForm = function (_React$Component3) {
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item["source"], _this8.props.nodeData.x, _this8.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this8.props.nodeData.x, _this8.props.nodeData.y);
                 }).then(function () {
                     return _this8.props.refresh();
                 });
