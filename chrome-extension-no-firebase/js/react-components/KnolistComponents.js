@@ -1,3 +1,11 @@
+/**
+ * This is the file that contains the React components for the web application page.
+ * You must only edit this file, not the one in the `lib` directory.
+ * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
+ * are in the README
+ */
+
+// Wrapper class for the web application
 class KnolistComponents extends React.Component {
     constructor(props) {
         super(props);
@@ -15,27 +23,46 @@ class KnolistComponents extends React.Component {
     }
 }
 
+// Wrapper for all the components inside the mindmap
 class MindMap extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph: createNewGraph(),
-            selectedNode: null,
+            graph: createNewGraph(), // All the graph data
+            selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
-            newNodeData: null,
-            newNodeCallback: null
+            // autoRefresh: true, // Will be set to false on drag
+            newNodeData: null, // Used when creating a new node
+            visNetwork: null, // The vis-network object
+            bibliographyData: null // The data to be exported as bibliography
         };
+
+        // Bind functions that need to be passed as parameters
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
-        this.handleDeletedNode = this.handleDeletedNode.bind(this);
+        this.deleteNode = this.deleteNode.bind(this);
         this.addNode = this.addNode.bind(this);
+        this.deleteEdge = this.deleteEdge.bind(this);
+        this.addEdge = this.addEdge.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
+
+        // Set up listener to close modals when user clicks outside of them
+        window.onclick = (event) => {
+            if (event.target === document.getElementById("page-view")) {
+                if (this.state.selectedNode !== null) {
+                    this.resetSelectedNode();
+                }
+                if (this.state.displayExport) {
+                    this.resetDisplayExport();
+                }
+            }
+        }
     }
 
     titleCase(str) {
@@ -46,32 +73,37 @@ class MindMap extends React.Component {
         return str.join(' ');
     }
 
+    // Calls graph.js function to pull the graph from the Chrome storage
     getDataFromServer() {
         // All the websites as a graph
         getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
 
         // window.setTimeout(() => {
-        //     this.getDataFromServer();
+        //     if (this.state.autoRefresh) this.getDataFromServer();
         // }, 200);
     }
 
-    exportData() {
-      const visCloseButton = document.getElementsByClassName("vis-close")[0];
-      // Only open modal outside of edit mode
-      if (getComputedStyle(visCloseButton).display === "none") {
-          const curProject = this.state.graph.curProject;
-          this.setState({displayExport: true});
-      }
+    // Pulls the bibliography data from the backend
+    getBibliographyData() {
+        getTitlesFromGraph().then(bibliographyData => {
+            this.setState({bibliographyData: bibliographyData});
+        })
     }
 
-    resetSelectedNode() {
-        this.setState({selectedNode: null});
+    // Used for the export bibliography button
+    exportData() {
+        this.setState({displayExport: true});
     }
 
     resetDisplayExport() {
         this.setState({displayExport: false});
     }
 
+    resetSelectedNode() {
+        this.setState({selectedNode: null});
+    }
+
+    // Set selected node for the detailed view
     handleClickedNode(id) {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
@@ -81,20 +113,38 @@ class MindMap extends React.Component {
         }
     }
 
-    handleDeletedNode(data, callback) {
+    deleteNode(data, callback) {
         const nodeId = data.nodes[0];
-        removeItemFromGraph(nodeId, this.state.graph);
-        saveGraphToDisk(this.state.graph);
-        callback(data);
+        removeItemFromGraph(nodeId).then(() => {
+            callback(data);
+        });
     }
 
     addNode(nodeData, callback) {
         this.setState(
             {
                 showNewNodeForm: !this.state.showNewNodeForm,
-                newNodeData: nodeData,
-                newNodeCallback: callback
+                newNodeData: nodeData
             });
+    }
+
+    deleteEdge(data, callback) {
+        const edgeId = data.edges[0];
+        const connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
+        removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]).then(() => {
+            this.getDataFromServer();
+            callback(data);
+        });
+        callback(data);
+    }
+
+    addEdge(edgeData, callback) {
+        if (edgeData.from !== edgeData.to) { // Ensure that user isn't adding self edge
+            addEdgeToGraph(edgeData.from, edgeData.to).then(() => {
+                this.getDataFromServer();
+                callback(edgeData);
+            });
+        }
     }
 
     switchShowNewNodeForm() {
@@ -105,23 +155,65 @@ class MindMap extends React.Component {
         this.setState({showNewNotesForm: !this.state.showNewNotesForm});
     }
 
-    setupVisGraph() {
+    /* Helper function to generate position for nodes
+    This function adds an offset to  the randomly generated position based on the
+    position of the node's parent (if it has one)
+     */
+    generateNodePositions(node) {
+        let xOffset = 0;
+        let yOffset = 0;
+        // Update the offset if the node has a parent
+        if (node.prevURLs.length !== 0) {
+            const prevURL = node.prevURLs[0];
+            const curProject = this.state.graph.curProject;
+            const prevNode = this.state.graph[curProject][prevURL];
+            // Check if the previous node has defined coordinates
+            if (prevNode.x !== null && prevNode.y !== null) {
+                xOffset = prevNode.x;
+                yOffset = prevNode.y;
+            }
+        }
+        // Helper variable to generate random positions
+        const rangeLimit = 300; // To generate positions in the interval [-rangeLimit, rangeLimit]
+        // Generate random positions
+        const xRandom = Math.floor(Math.random() * 2 * rangeLimit - rangeLimit);
+        const yRandom = Math.floor(Math.random() * 2 * rangeLimit - rangeLimit);
+
+        // Return positions with offset
+        return [xRandom + xOffset, yRandom + yOffset];
+    }
+
+    // Helper function to setup the nodes and edges for the graph
+    createNodesAndEdges() {
         let nodes = [];
         let edges = [];
         const curProject = this.state.graph.curProject;
+        // Iterate through each node in the graph and build the arrays of nodes and edges
         for (let index in this.state.graph[curProject]) {
             let node = this.state.graph[curProject][index];
-            nodes.push({id: node.source, label: node.title});
+            // Deal with positions
+            if (node.x === null || node.y === null || node.x === undefined || node.y === undefined) {
+                // If position is still undefined, generate random x and y in interval [-300, 300]
+                const [x, y] = this.generateNodePositions(node);
+                nodes.push({id: node.source, label: node.title, x: x, y: y});
+            } else {
+                nodes.push({id: node.source, label: node.title, x: node.x, y: node.y});
+            }
+            // Deal with edges
             for (let nextIndex in node.nextURLs) {
                 edges.push({from: node.source, to: node.nextURLs[nextIndex]})
             }
         }
-        console.log(nodes);
-        console.log(edges);
+        // console.log(nodes);
+        // console.log(edges);
+        return [nodes, edges];
+    }
+
+    // Main function to set up the vis-network object
+    setupVisGraph() {
+        const [nodes, edges] = this.createNodesAndEdges();
 
         // create a network
-        // TODO: Store the positions of each node to always render in the same way (allow user to move them around)
-        // TODO: Consider using hierarchical layout mode (commented out in the options)
         const container = document.getElementById("graph");
         const data = {
             nodes: nodes,
@@ -132,7 +224,7 @@ class MindMap extends React.Component {
                 shape: "box",
                 size: 16,
                 margin: 10,
-                // physics: false,
+                physics: false,
                 chosen: true
             },
             edges: {
@@ -141,42 +233,36 @@ class MindMap extends React.Component {
                         enabled: true
                     }
                 },
-                color: "black"
+                color: "black",
+                physics: false,
+                smooth: false
             },
-            // layout: {
-            //     hierarchical: true
-            // },
             interaction: {
                 navigationButtons: true,
                 selectConnectedEdges: false
             },
             manipulation: {
                 enabled: true,
-                deleteNode: this.handleDeletedNode,
-                addNode: this.addNode
-            },
-            physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -0.001,
-                    centralGravity: 0,
-                    springLength: 230,
-                    springConstant: 0,
-                    avoidOverlap: 1
-                },
-                maxVelocity: 146,
-                solver: "forceAtlas2Based",
-                timestep: 0.35,
-                stabilization: { iterations: 150 }
+                deleteNode: this.deleteNode,
+                addNode: this.addNode,
+                deleteEdge: this.deleteEdge,
+                addEdge: this.addEdge
             }
         };
         const network = new vis.Network(container, data, options);
+        network.fit(); // Zoom in or out to fit entire network on screen
+
+        // Store all positions
+        const positions = network.getPositions();
+        updateAllPositionsInGraph(positions);
+
+        // Handle click vs drag
         network.on("click", (params) => {
-          if (params.nodes !== undefined && params.nodes.length > 0 ) {
-              const nodeId = params.nodes[0];
-              this.handleClickedNode(nodeId);
-          }
+            if (params.nodes !== undefined && params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                this.handleClickedNode(nodeId);
+            }
         });
-    }
 
     componentDidMount() {
         this.getDataFromServer();
@@ -186,25 +272,31 @@ class MindMap extends React.Component {
         if (this.state.graph === null) {
             return null;
         }
+        this.getBibliographyData();
         const curProject = this.state.graph.curProject;
         return (
             <div>
                 <div id="title-bar">
                     <RefreshGraphButton refresh={this.getDataFromServer}/>
-                    <h2 style={{margin: "auto auto"}}>Current Project: {this.titleCase(this.state.graph.curProject)}</h2>
+                    <h2 style={{margin: "auto auto"}}>Current
+                        Project: {this.titleCase(this.state.graph.curProject)}</h2>
                     <ExportGraphButton export={this.exportData}/>
                 </div>
                 <div id="graph"/>
-                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
-                             callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
-                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}
-                             showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
-                <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
+                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
+                             graph={this.state.graph}
+                             switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                          resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
+                          showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
+                <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
+                            resetDisplayExport={this.resetDisplayExport}/>
             </div>
         );
     }
 }
 
+// Form that allows the user to manually add nodes
 class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
@@ -214,19 +306,15 @@ class NewNodeForm extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault(); // Stop page from reloading
+        // Call from server
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
-            updateItemInGraph(item, "", this.props.graph);
-            saveGraphToDisk(this.props.graph);
+            updateItemInGraph(item, "").then(() => {
+                return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
+            }).then(() => this.props.refresh());
         });
 
-        // let nodeData = this.props.nodeData;
-        // const curProject = this.props.graph.curProject;
-        // nodeData.id = event.target.url.value;
-        // nodeData.label = this.props.graph[curProject][event.target.url.value].title;
-        // this.props.callback(nodeData);
         this.props.switchForm();
-        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
         event.target.reset(); // Clear the form entries
     }
 
@@ -237,7 +325,9 @@ class NewNodeForm extends React.Component {
 
     render() {
         let style = {display: "none"};
-        if (this.props.showNewNodeForm) { style = {display: "block"} }
+        if (this.props.showNewNodeForm) {
+            style = {display: "block"}
+        }
         return (
             <div className="modal" style={style}>
                 <div className="modal-content">
@@ -254,19 +344,22 @@ class NewNodeForm extends React.Component {
     }
 }
 
+// Detailed view of a specific node
 class PageView extends React.Component {
     constructor(props) {
         super(props);
+        this.deleteNode = this.deleteNode.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.closeForm = this.closeForm.bind(this);
+    }
 
-        // When the user clicks anywhere outside of the modal, close it
-        // TODO: make this work
-        window.onclick = function(event) {
-            if (event.target === document.getElementById("page-view")) {
-                props.resetSelectedNode();
-            }
-        }
+    deleteNode() {
+        // Remove from the graph
+        removeItemFromGraph(this.props.selectedNode.source).then(() => {
+            // Reset the selected node
+            this.props.resetSelectedNode();
+            this.props.refresh();
+        });
     }
 
     handleSubmit(event) {
@@ -297,8 +390,10 @@ class PageView extends React.Component {
             <div id="page-view" className="modal">
                 <div className="modal-content">
                     <button className="button" id="add-notes" onClick={this.props.switchForm} style={{width: 100}}>Add Notes</button>
-                    <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
-                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
+                    <button className="close-modal button" id="close-page-view"
+                            onClick={this.props.resetSelectedNode}>&times;</button>
+                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
+                    </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <NotesList notes={this.props.selectedNode.notes}/>
                     <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
@@ -310,21 +405,21 @@ class PageView extends React.Component {
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                     </div>
+                    <div style={{textAlign: "right"}}>
+                        <button className="button" onClick={this.deleteNode}>
+                            <img src="../../images/delete-icon.png" alt="Delete node" style={{width: "100%"}}/>
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     }
 }
 
+// Bibliography export
 class ExportView extends React.Component {
     constructor(props) {
         super(props);
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
-            if (event.target === document.getElementById("page-view")) {
-                props.resetDisplayExport();
-            }
-        }
     }
 
     render() {
@@ -334,7 +429,8 @@ class ExportView extends React.Component {
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view" onClick={this.props.resetDisplayExport}>&times;</button>
+                    <button className="close-modal button" id="close-page-view"
+                            onClick={this.props.resetDisplayExport}>&times;</button>
                     <h1>Export for Bibliography</h1>
                     <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
                 </div>
@@ -343,6 +439,7 @@ class ExportView extends React.Component {
     }
 }
 
+// List of URLs in the detailed page view
 class ListURL extends React.Component {
     constructor(props) {
         super(props);
@@ -354,7 +451,8 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Previous Connections</h2>
                     <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source} target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href={this.props.graph[url].source}
+                                           target="_blank">{this.props.graph[url].title}</a></li>)}
                     </ul>
                 </div>
             );
@@ -363,7 +461,8 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Next Connections</h2>
                     <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source} target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href={this.props.graph[url].source}
+                                           target="_blank">{this.props.graph[url].title}</a></li>)}
                     </ul>
                 </div>
             );
@@ -371,7 +470,7 @@ class ListURL extends React.Component {
     }
 }
 
-
+// List of highlights in the detailed page view
 class HighlightsList extends React.Component {
     constructor(props) {
         super(props);
@@ -419,7 +518,9 @@ class RefreshGraphButton extends React.Component {
 
     render() {
         return (
-            <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/></button>
+            <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png"
+                                                                         alt="Refresh Button" style={{width: "100%"}}/>
+            </button>
         );
     }
 }
@@ -431,7 +532,9 @@ class ExportGraphButton extends React.Component {
 
     render() {
         return (
-            <button onClick={this.props.export} className="button"><img src="../../images/share-icon.webp" alt="Refresh Button" style={{width: "100%"}}/></button>
+            <button onClick={this.props.export} className="button"><img src="../../images/share-icon.webp"
+                                                                        alt="Refresh Button" style={{width: "100%"}}/>
+            </button>
         );
     }
 }
