@@ -263,6 +263,7 @@ class MindMap extends React.Component {
                 this.handleClickedNode(nodeId);
             }
         });
+    }
 
     componentDidMount() {
         this.getDataFromServer();

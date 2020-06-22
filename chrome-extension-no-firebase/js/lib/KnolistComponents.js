@@ -60,6 +60,7 @@ var MindMap = function (_React$Component2) {
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
+            showNewNotesForm: false,
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
@@ -75,6 +76,7 @@ var MindMap = function (_React$Component2) {
         _this2.deleteEdge = _this2.deleteEdge.bind(_this2);
         _this2.addEdge = _this2.addEdge.bind(_this2);
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
+        _this2.switchShowNewNotesForm = _this2.switchShowNewNotesForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
 
@@ -203,6 +205,11 @@ var MindMap = function (_React$Component2) {
         key: "switchShowNewNodeForm",
         value: function switchShowNewNodeForm() {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
+        }
+    }, {
+        key: "switchShowNewNotesForm",
+        value: function switchShowNewNotesForm() {
+            this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
         }
 
         /* Helper function to generate position for nodes
@@ -333,24 +340,6 @@ var MindMap = function (_React$Component2) {
                     _this6.handleClickedNode(nodeId);
                 }
             });
-
-            // Stop auto refresh while dragging
-            network.on("dragStart", function () {
-                // this.setState({autoRefresh: false});
-            });
-
-            // Update positions after dragging node
-            network.on("dragEnd", function () {
-                var url = network.getSelectedNodes()[0];
-                var position = network.getPosition(url);
-                var x = position.x;
-                var y = position.y;
-                updatePositionOfNode(url, x, y);
-                // this.setState({autoRefresh: true});
-            });
-
-            // Store the network
-            this.setState({ visNetwork: network });
         }
     }, {
         key: "componentDidMount",
@@ -385,7 +374,8 @@ var MindMap = function (_React$Component2) {
                     graph: this.state.graph,
                     switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
                 React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
-                    resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer }),
+                    resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer,
+                    showNewNotesForm: this.state.showNewNotesForm, switchForm: this.switchShowNewNotesForm }),
                 React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
                     resetDisplayExport: this.resetDisplayExport })
             );
@@ -496,6 +486,8 @@ var PageView = function (_React$Component4) {
         var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         _this9.deleteNode = _this9.deleteNode.bind(_this9);
+        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
+        _this9.closeForm = _this9.closeForm.bind(_this9);
         return _this9;
     }
 
@@ -512,17 +504,46 @@ var PageView = function (_React$Component4) {
             });
         }
     }, {
+        key: "handleSubmit",
+        value: function handleSubmit(event) {
+            event.preventDefault();
+            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph);
+            // saveGraphToDisk(this.props.graph);
+
+            this.props.switchForm();
+            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+            event.target.reset(); // Clear the form entries
+        }
+    }, {
+        key: "closeForm",
+        value: function closeForm() {
+            document.getElementById("new-notes-form").reset();
+            this.props.switchForm();
+        }
+    }, {
         key: "render",
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
             }
+
+            // Hidden form for adding notes
+            var style = { display: "none" };
+            if (this.props.showNewNotesForm) {
+                style = { display: "block" };
+            }
+
             return React.createElement(
                 "div",
                 { id: "page-view", className: "modal" },
                 React.createElement(
                     "div",
                     { className: "modal-content" },
+                    React.createElement(
+                        "button",
+                        { className: "button", id: "add-notes", onClick: this.props.switchForm, style: { width: 100 } },
+                        "Add Notes"
+                    ),
                     React.createElement(
                         "button",
                         { className: "close-modal button", id: "close-page-view",
@@ -539,6 +560,23 @@ var PageView = function (_React$Component4) {
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
+                    React.createElement(NotesList, { notes: this.props.selectedNode.notes }),
+                    React.createElement(
+                        "form",
+                        { id: "new-notes-form", onSubmit: this.handleSubmit, style: style },
+                        React.createElement(
+                            "label",
+                            { htmlFor: "notes" },
+                            "Notes:"
+                        ),
+                        React.createElement("br", null),
+                        React.createElement("input", { id: "notes", name: "notes", type: "notes", placeholder: "Insert Notes", required: true }),
+                        React.createElement(
+                            "button",
+                            { className: "button", style: { width: 100 } },
+                            "+"
+                        )
+                    ),
                     React.createElement(
                         "div",
                         { style: { display: "flex" } },
@@ -742,8 +780,53 @@ var HighlightsList = function (_React$Component7) {
     return HighlightsList;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component8) {
-    _inherits(RefreshGraphButton, _React$Component8);
+var NotesList = function (_React$Component8) {
+    _inherits(NotesList, _React$Component8);
+
+    function NotesList(props) {
+        _classCallCheck(this, NotesList);
+
+        return _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+    }
+
+    _createClass(NotesList, [{
+        key: "render",
+        value: function render() {
+            if (this.props.notes.length !== 0) {
+                return React.createElement(
+                    "div",
+                    null,
+                    React.createElement(
+                        "h2",
+                        null,
+                        "My Notes"
+                    ),
+                    React.createElement(
+                        "ul",
+                        null,
+                        this.props.notes.map(function (notes, index) {
+                            return React.createElement(
+                                "li",
+                                { key: index },
+                                notes
+                            );
+                        })
+                    )
+                );
+            }
+            return React.createElement(
+                "h2",
+                null,
+                "You haven't added any notes yet."
+            );
+        }
+    }]);
+
+    return NotesList;
+}(React.Component);
+
+var RefreshGraphButton = function (_React$Component9) {
+    _inherits(RefreshGraphButton, _React$Component9);
 
     function RefreshGraphButton(props) {
         _classCallCheck(this, RefreshGraphButton);
@@ -766,8 +849,8 @@ var RefreshGraphButton = function (_React$Component8) {
     return RefreshGraphButton;
 }(React.Component);
 
-var ExportGraphButton = function (_React$Component9) {
-    _inherits(ExportGraphButton, _React$Component9);
+var ExportGraphButton = function (_React$Component10) {
+    _inherits(ExportGraphButton, _React$Component10);
 
     function ExportGraphButton(props) {
         _classCallCheck(this, ExportGraphButton);
@@ -790,8 +873,8 @@ var ExportGraphButton = function (_React$Component9) {
     return ExportGraphButton;
 }(React.Component);
 
-var Header = function (_React$Component10) {
-    _inherits(Header, _React$Component10);
+var Header = function (_React$Component11) {
+    _inherits(Header, _React$Component11);
 
     function Header() {
         _classCallCheck(this, Header);
