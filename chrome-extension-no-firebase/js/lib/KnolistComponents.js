@@ -340,6 +340,24 @@ var MindMap = function (_React$Component2) {
                     _this6.handleClickedNode(nodeId);
                 }
             });
+
+            // Stop auto refresh while dragging
+            network.on("dragStart", function () {
+                // this.setState({autoRefresh: false});
+            });
+
+            // Update positions after dragging node
+            network.on("dragEnd", function () {
+                var url = network.getSelectedNodes()[0];
+                var position = network.getPosition(url);
+                var x = position.x;
+                var y = position.y;
+                updatePositionOfNode(url, x, y);
+                // this.setState({autoRefresh: true});
+            });
+
+            // Store the network
+            this.setState({ visNetwork: network });
         }
     }, {
         key: "componentDidMount",

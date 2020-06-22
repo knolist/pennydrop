@@ -263,6 +263,24 @@ class MindMap extends React.Component {
                 this.handleClickedNode(nodeId);
             }
         });
+
+        // Stop auto refresh while dragging
+        network.on("dragStart", () => {
+            // this.setState({autoRefresh: false});
+        });
+
+        // Update positions after dragging node
+        network.on("dragEnd", () => {
+            const url = network.getSelectedNodes()[0];
+            const position = network.getPosition(url);
+            const x = position.x;
+            const y = position.y;
+            updatePositionOfNode(url, x, y);
+            // this.setState({autoRefresh: true});
+        });
+
+        // Store the network
+        this.setState({visNetwork: network});
     }
 
     componentDidMount() {
