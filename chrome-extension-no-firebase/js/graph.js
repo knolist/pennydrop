@@ -70,8 +70,8 @@ addHighlightsToItemInGraph = (item, highlights, graph) => {
 };
 
 addNotesToItemInGraph = (item, notes, graph) => {
-  project = graph["curProject"];
-  graph = graph[project];
+  // project = graph["curProject"];
+  // graph = graph[project];
   // Create item if it doesn't exist
   if (graph[item["source"]] === undefined) {
     graph[item["source"]] = item;
