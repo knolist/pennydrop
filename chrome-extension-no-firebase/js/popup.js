@@ -2,6 +2,11 @@ resetButtonClicked = () => {
     chrome.runtime.sendMessage({command: "reset"});
 };
 
+notesButtonClicked = () => {
+    var txt;
+    var person = prompt("Please enter your name:", "Harry Potter");
+};
+
 viewFullWebsiteButtonClicked = () => {
     chrome.tabs.query({
             active: true, currentWindow: true
@@ -59,6 +64,7 @@ findSomethingSimilarButtonClicked = () => {
 createListeners = () => {
     // Button Listeners
     $( "#reset-button" ).click(resetButtonClicked);
+    $( "#notes-botton" ).click(notesButtonClicked);
     $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
     $( "#find-something-similar-button" ).click(findSomethingSimilarButtonClicked);
     $( "#switch-tracking" ).click(switchTracking)
