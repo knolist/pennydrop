@@ -23,6 +23,7 @@ class MindMap extends React.Component {
             selectedNode: null,
             displayExport: false,
             showNewNodeForm: false,
+            showNewNotesForm: false,
             newNodeData: null,
             newNodeCallback: null
         };
@@ -32,6 +33,7 @@ class MindMap extends React.Component {
         this.handleDeletedNode = this.handleDeletedNode.bind(this);
         this.addNode = this.addNode.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
+        this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
     }
@@ -97,6 +99,10 @@ class MindMap extends React.Component {
 
     switchShowNewNodeForm() {
         this.setState({showNewNodeForm: !this.state.showNewNodeForm});
+    }
+
+    switchShowNewNotesForm() {
+        this.setState({showNewNotesForm: !this.state.showNewNotesForm});
     }
 
     setupVisGraph() {
@@ -191,7 +197,8 @@ class MindMap extends React.Component {
                 <div id="graph"/>
                 <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData} graph={this.state.graph}
                              callback={this.state.newNodeCallback} switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
-                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}/>
+                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode} resetSelectedNode={this.resetSelectedNode}
+                             showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
                 <ExportView bibliographyData={getTitlesFromGraph(this.state.graph)} shouldShow={this.state.displayExport} resetDisplayExport={this.resetDisplayExport} />
             </div>
         );
@@ -250,6 +257,9 @@ class NewNodeForm extends React.Component {
 class PageView extends React.Component {
     constructor(props) {
         super(props);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.closeForm = this.closeForm.bind(this);
+
         // When the user clicks anywhere outside of the modal, close it
         // TODO: make this work
         window.onclick = function(event) {
@@ -259,17 +269,43 @@ class PageView extends React.Component {
         }
     }
 
+    handleSubmit(event) {
+        event.preventDefault();
+        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph)
+        // saveGraphToDisk(this.props.graph);
+
+        this.props.switchForm();
+        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+        event.target.reset(); // Clear the form entries
+    }
+
+    closeForm() {
+        document.getElementById("new-notes-form").reset();
+        this.props.switchForm();
+    }
+
     render() {
         if (this.props.selectedNode === null) {
             return null;
         }
+
+        // Hidden form for adding notes
+        let style = {display: "none"};
+        if (this.props.showNewNotesForm) { style = {display: "block"} }
+
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
+                    <button className="button" id="add-notes" onClick={this.props.switchForm} style={{width: 100}}>Add Notes</button>
                     <button className="close-modal button" id="close-page-view" onClick={this.props.resetSelectedNode}>&times;</button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1></a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <NotesList notes={this.props.selectedNode.notes}/>
+                    <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
+                        <label htmlFor="notes">Notes:</label><br/>
+                        <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
+                        <button className="button" style={{width: 100}}>+</button>
+                    </form>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>

@@ -47,6 +47,7 @@ var MindMap = function (_React$Component2) {
             selectedNode: null,
             displayExport: false,
             showNewNodeForm: false,
+            showNewNotesForm: false,
             newNodeData: null,
             newNodeCallback: null
         };
@@ -56,6 +57,7 @@ var MindMap = function (_React$Component2) {
         _this2.handleDeletedNode = _this2.handleDeletedNode.bind(_this2);
         _this2.addNode = _this2.addNode.bind(_this2);
         _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
+        _this2.switchShowNewNotesForm = _this2.switchShowNewNotesForm.bind(_this2);
         _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
         _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
         return _this2;
@@ -131,6 +133,11 @@ var MindMap = function (_React$Component2) {
         key: 'switchShowNewNodeForm',
         value: function switchShowNewNodeForm() {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
+        }
+    }, {
+        key: 'switchShowNewNotesForm',
+        value: function switchShowNewNotesForm() {
+            this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
         }
     }, {
         key: 'setupVisGraph',
@@ -238,7 +245,8 @@ var MindMap = function (_React$Component2) {
                 React.createElement('div', { id: 'graph' }),
                 React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData, graph: this.state.graph,
                     callback: this.state.newNodeCallback, switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
-                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode }),
+                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode, resetSelectedNode: this.resetSelectedNode,
+                    showNewNotesForm: this.state.showNewNotesForm, switchForm: this.switchShowNewNotesForm }),
                 React.createElement(ExportView, { bibliographyData: getTitlesFromGraph(this.state.graph), shouldShow: this.state.displayExport, resetDisplayExport: this.resetDisplayExport })
             );
         }
@@ -341,10 +349,13 @@ var PageView = function (_React$Component4) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        // When the user clicks anywhere outside of the modal, close it
-        // TODO: make this work
         var _this6 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
+        _this6.handleSubmit = _this6.handleSubmit.bind(_this6);
+        _this6.closeForm = _this6.closeForm.bind(_this6);
+
+        // When the user clicks anywhere outside of the modal, close it
+        // TODO: make this work
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
                 props.resetSelectedNode();
@@ -354,17 +365,46 @@ var PageView = function (_React$Component4) {
     }
 
     _createClass(PageView, [{
+        key: 'handleSubmit',
+        value: function handleSubmit(event) {
+            event.preventDefault();
+            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph);
+            // saveGraphToDisk(this.props.graph);
+
+            this.props.switchForm();
+            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+            event.target.reset(); // Clear the form entries
+        }
+    }, {
+        key: 'closeForm',
+        value: function closeForm() {
+            document.getElementById("new-notes-form").reset();
+            this.props.switchForm();
+        }
+    }, {
         key: 'render',
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
             }
+
+            // Hidden form for adding notes
+            var style = { display: "none" };
+            if (this.props.showNewNotesForm) {
+                style = { display: "block" };
+            }
+
             return React.createElement(
                 'div',
                 { id: 'page-view', className: 'modal' },
                 React.createElement(
                     'div',
                     { className: 'modal-content' },
+                    React.createElement(
+                        'button',
+                        { className: 'button', id: 'add-notes', onClick: this.props.switchForm, style: { width: 100 } },
+                        'Add Notes'
+                    ),
                     React.createElement(
                         'button',
                         { className: 'close-modal button', id: 'close-page-view', onClick: this.props.resetSelectedNode },
@@ -381,6 +421,22 @@ var PageView = function (_React$Component4) {
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(NotesList, { notes: this.props.selectedNode.notes }),
+                    React.createElement(
+                        'form',
+                        { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
+                        React.createElement(
+                            'label',
+                            { htmlFor: 'notes' },
+                            'Notes:'
+                        ),
+                        React.createElement('br', null),
+                        React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
+                        React.createElement(
+                            'button',
+                            { className: 'button', style: { width: 100 } },
+                            '+'
+                        )
+                    ),
                     React.createElement(
                         'div',
                         { style: { display: "flex" } },
