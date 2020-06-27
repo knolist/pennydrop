@@ -832,31 +832,54 @@ function ExportGraphButton(props) {
     );
 }
 
-function Header(props) {
-    return React.createElement(
-        'div',
-        { className: 'header' },
-        React.createElement('img', { className: 'logo', src: '../../images/horizontal_main.PNG', alt: 'Knolist Logo' }),
-        React.createElement(
-            'div',
-            null,
-            React.createElement(
-                'h5',
-                { id: 'project-name' },
-                'Current Project: ',
-                props.projectName
-            )
-        ),
-        React.createElement(
-            'div',
-            null,
-            React.createElement(
-                'button',
-                null,
-                'Your projects'
-            )
-        )
-    );
-}
+var Header = function (_React$Component8) {
+    _inherits(Header, _React$Component8);
+
+    function Header(props) {
+        _classCallCheck(this, Header);
+
+        var _this15 = _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).call(this, props));
+
+        _this15.openProjectsTab = _this15.openProjectsTab.bind(_this15);
+        return _this15;
+    }
+
+    _createClass(Header, [{
+        key: 'openProjectsTab',
+        value: function openProjectsTab() {
+            setCurrentProjectInGraph("default");
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            return React.createElement(
+                'div',
+                { className: 'header' },
+                React.createElement('img', { className: 'logo', src: '../../images/horizontal_main.PNG', alt: 'Knolist Logo' }),
+                React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'h5',
+                        { id: 'project-name' },
+                        'Current Project: ',
+                        this.props.projectName
+                    )
+                ),
+                React.createElement(
+                    'div',
+                    null,
+                    React.createElement(
+                        'button',
+                        { onClick: this.openProjectsTab },
+                        'Your projects'
+                    )
+                )
+            );
+        }
+    }]);
+
+    return Header;
+}(React.Component);
 
 ReactDOM.render(React.createElement(KnolistComponents, null), document.querySelector("#knolist-page"));

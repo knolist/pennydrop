@@ -12,6 +12,9 @@ There are two directories inside `js`: `react-components` and `lib`. You should 
 using by adding the following line to your `~/.bashrc`: `alias babelc_kno='npx babel --presets react-app/prod chrome-extension-no-firebase/js/react-components --out-dir chrome-extension-no-firebase/js/lib/'`, then
 run the compiler by calling `babelc_kno` from your command line)  
 
+## Other npm commands to run
+1) `npm install uuid`
+
 ## Running the server
 If running locally, you must run the server that extracts website data.
 1) Open a terminal and run `cd server`

@@ -538,18 +538,30 @@ function ExportGraphButton(props) {
     );
 }
 
-function Header(props) {
-    return (
-        <div className="header">
-            <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
-            <div>
-                <h5 id="project-name">Current Project: {props.projectName}</h5>
+class Header extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.openProjectsTab = this.openProjectsTab.bind(this);
+    }
+
+    openProjectsTab() {
+        setCurrentProjectInGraph("default");
+    }
+
+    render() {
+        return (
+            <div className="header">
+                <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
+                <div>
+                    <h5 id="project-name">Current Project: {this.props.projectName}</h5>
+                </div>
+                <div>
+                    <button onClick={this.openProjectsTab}>Your projects</button>
+                </div>
             </div>
-            <div>
-                <button>Your projects</button>
-            </div>
-        </div>
-    );
+        );
+    }
 }
 
 ReactDOM.render(<KnolistComponents/>, document.querySelector("#knolist-page"));
