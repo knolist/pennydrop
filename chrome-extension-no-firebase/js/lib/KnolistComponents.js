@@ -15,47 +15,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * are in the README
  */
 
-// Wrapper class for the web application
+// Wrapper for all the components in the page
 var KnolistComponents = function (_React$Component) {
     _inherits(KnolistComponents, _React$Component);
 
     function KnolistComponents(props) {
         _classCallCheck(this, KnolistComponents);
 
-        return _possibleConstructorReturn(this, (KnolistComponents.__proto__ || Object.getPrototypeOf(KnolistComponents)).call(this, props));
-    }
+        var _this = _possibleConstructorReturn(this, (KnolistComponents.__proto__ || Object.getPrototypeOf(KnolistComponents)).call(this, props));
 
-    _createClass(KnolistComponents, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "div",
-                null,
-                React.createElement(Header, null),
-                React.createElement(
-                    "div",
-                    { className: "main-body" },
-                    React.createElement(MindMap, null)
-                )
-            );
-        }
-    }]);
-
-    return KnolistComponents;
-}(React.Component);
-
-// Wrapper for all the components inside the mindmap
-
-
-var MindMap = function (_React$Component2) {
-    _inherits(MindMap, _React$Component2);
-
-    function MindMap(props) {
-        _classCallCheck(this, MindMap);
-
-        var _this2 = _possibleConstructorReturn(this, (MindMap.__proto__ || Object.getPrototypeOf(MindMap)).call(this, props));
-
-        _this2.state = {
+        _this.state = {
             graph: createNewGraph(), // All the graph data
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
@@ -68,34 +37,34 @@ var MindMap = function (_React$Component2) {
         };
 
         // Bind functions that need to be passed as parameters
-        _this2.getDataFromServer = _this2.getDataFromServer.bind(_this2);
-        _this2.exportData = _this2.exportData.bind(_this2);
-        _this2.handleClickedNode = _this2.handleClickedNode.bind(_this2);
-        _this2.deleteNode = _this2.deleteNode.bind(_this2);
-        _this2.addNode = _this2.addNode.bind(_this2);
-        _this2.deleteEdge = _this2.deleteEdge.bind(_this2);
-        _this2.addEdge = _this2.addEdge.bind(_this2);
-        _this2.switchShowNewNodeForm = _this2.switchShowNewNodeForm.bind(_this2);
-        _this2.switchShowNewNotesForm = _this2.switchShowNewNotesForm.bind(_this2);
-        _this2.resetSelectedNode = _this2.resetSelectedNode.bind(_this2);
-        _this2.resetDisplayExport = _this2.resetDisplayExport.bind(_this2);
+        _this.getDataFromServer = _this.getDataFromServer.bind(_this);
+        _this.exportData = _this.exportData.bind(_this);
+        _this.handleClickedNode = _this.handleClickedNode.bind(_this);
+        _this.deleteNode = _this.deleteNode.bind(_this);
+        _this.addNode = _this.addNode.bind(_this);
+        _this.deleteEdge = _this.deleteEdge.bind(_this);
+        _this.addEdge = _this.addEdge.bind(_this);
+        _this.switchShowNewNodeForm = _this.switchShowNewNodeForm.bind(_this);
+        _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
+        _this.resetSelectedNode = _this.resetSelectedNode.bind(_this);
+        _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
             if (event.target === document.getElementById("page-view")) {
-                if (_this2.state.selectedNode !== null) {
-                    _this2.resetSelectedNode();
+                if (_this.state.selectedNode !== null) {
+                    _this.resetSelectedNode();
                 }
-                if (_this2.state.displayExport) {
-                    _this2.resetDisplayExport();
+                if (_this.state.displayExport) {
+                    _this.resetDisplayExport();
                 }
             }
         };
-        return _this2;
+        return _this;
     }
 
-    _createClass(MindMap, [{
-        key: "titleCase",
+    _createClass(KnolistComponents, [{
+        key: 'titleCase',
         value: function titleCase(str) {
             str = str.toLowerCase().split(' ');
             for (var i = 0; i < str.length; i++) {
@@ -107,7 +76,7 @@ var MindMap = function (_React$Component2) {
         // Calls graph.js function to pull the graph from the Chrome storage
 
     }, {
-        key: "getDataFromServer",
+        key: 'getDataFromServer',
         value: function getDataFromServer() {
             // All the websites as a graph
             getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
@@ -120,29 +89,29 @@ var MindMap = function (_React$Component2) {
         // Pulls the bibliography data from the backend
 
     }, {
-        key: "getBibliographyData",
+        key: 'getBibliographyData',
         value: function getBibliographyData() {
-            var _this3 = this;
+            var _this2 = this;
 
             getTitlesFromGraph().then(function (bibliographyData) {
-                _this3.setState({ bibliographyData: bibliographyData });
+                _this2.setState({ bibliographyData: bibliographyData });
             });
         }
 
         // Used for the export bibliography button
 
     }, {
-        key: "exportData",
+        key: 'exportData',
         value: function exportData() {
             this.setState({ displayExport: true });
         }
     }, {
-        key: "resetDisplayExport",
+        key: 'resetDisplayExport',
         value: function resetDisplayExport() {
             this.setState({ displayExport: false });
         }
     }, {
-        key: "resetSelectedNode",
+        key: 'resetSelectedNode',
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
         }
@@ -150,7 +119,7 @@ var MindMap = function (_React$Component2) {
         // Set selected node for the detailed view
 
     }, {
-        key: "handleClickedNode",
+        key: 'handleClickedNode',
         value: function handleClickedNode(id) {
             var visCloseButton = document.getElementsByClassName("vis-close")[0];
             // Only open modal outside of edit mode
@@ -160,7 +129,7 @@ var MindMap = function (_React$Component2) {
             }
         }
     }, {
-        key: "deleteNode",
+        key: 'deleteNode',
         value: function deleteNode(data, callback) {
             var nodeId = data.nodes[0];
             removeItemFromGraph(nodeId).then(function () {
@@ -168,7 +137,7 @@ var MindMap = function (_React$Component2) {
             });
         }
     }, {
-        key: "addNode",
+        key: 'addNode',
         value: function addNode(nodeData, callback) {
             this.setState({
                 showNewNodeForm: !this.state.showNewNodeForm,
@@ -176,38 +145,38 @@ var MindMap = function (_React$Component2) {
             });
         }
     }, {
-        key: "deleteEdge",
+        key: 'deleteEdge',
         value: function deleteEdge(data, callback) {
-            var _this4 = this;
+            var _this3 = this;
 
             var edgeId = data.edges[0];
             var connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
             removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]).then(function () {
-                _this4.getDataFromServer();
+                _this3.getDataFromServer();
                 callback(data);
             });
             callback(data);
         }
     }, {
-        key: "addEdge",
+        key: 'addEdge',
         value: function addEdge(edgeData, callback) {
-            var _this5 = this;
+            var _this4 = this;
 
             if (edgeData.from !== edgeData.to) {
                 // Ensure that user isn't adding self edge
                 addEdgeToGraph(edgeData.from, edgeData.to).then(function () {
-                    _this5.getDataFromServer();
+                    _this4.getDataFromServer();
                     callback(edgeData);
                 });
             }
         }
     }, {
-        key: "switchShowNewNodeForm",
+        key: 'switchShowNewNodeForm',
         value: function switchShowNewNodeForm() {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
         }
     }, {
-        key: "switchShowNewNotesForm",
+        key: 'switchShowNewNotesForm',
         value: function switchShowNewNotesForm() {
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
         }
@@ -218,7 +187,7 @@ var MindMap = function (_React$Component2) {
          */
 
     }, {
-        key: "generateNodePositions",
+        key: 'generateNodePositions',
         value: function generateNodePositions(node) {
             var xOffset = 0;
             var yOffset = 0;
@@ -246,7 +215,7 @@ var MindMap = function (_React$Component2) {
         // Helper function to setup the nodes and edges for the graph
 
     }, {
-        key: "createNodesAndEdges",
+        key: 'createNodesAndEdges',
         value: function createNodesAndEdges() {
             var nodes = [];
             var edges = [];
@@ -279,9 +248,9 @@ var MindMap = function (_React$Component2) {
         // Main function to set up the vis-network object
 
     }, {
-        key: "setupVisGraph",
+        key: 'setupVisGraph',
         value: function setupVisGraph() {
-            var _this6 = this;
+            var _this5 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -337,7 +306,7 @@ var MindMap = function (_React$Component2) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this6.handleClickedNode(nodeId);
+                    _this5.handleClickedNode(nodeId);
                 }
             });
 
@@ -360,78 +329,82 @@ var MindMap = function (_React$Component2) {
             this.setState({ visNetwork: network });
         }
     }, {
-        key: "componentDidMount",
+        key: 'componentDidMount',
         value: function componentDidMount() {
             this.getDataFromServer();
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.state.graph === null) {
-                return null;
+                return React.createElement(
+                    'div',
+                    null,
+                    React.createElement(Header, null),
+                    React.createElement('div', { className: 'main-body' })
+                );
             }
             this.getBibliographyData();
             var curProject = this.state.graph.curProject;
             return React.createElement(
-                "div",
+                'div',
                 null,
+                React.createElement(Header, { projectName: this.titleCase(this.state.graph.curProject) }),
                 React.createElement(
-                    "div",
-                    { id: "title-bar" },
-                    React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
+                    'div',
+                    { className: 'main-body' },
                     React.createElement(
-                        "h2",
-                        { style: { margin: "auto auto" } },
-                        "Current Project: ",
-                        this.titleCase(this.state.graph.curProject)
+                        'div',
+                        { id: 'buttons-bar' },
+                        React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
+                        React.createElement(ExportGraphButton, { 'export': this.exportData })
                     ),
-                    React.createElement(ExportGraphButton, { "export": this.exportData })
-                ),
-                React.createElement("div", { id: "graph" }),
-                React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
-                    graph: this.state.graph,
-                    switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
-                React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
-                    resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer,
-                    showNewNotesForm: this.state.showNewNotesForm, switchForm: this.switchShowNewNotesForm }),
-                React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
-                    resetDisplayExport: this.resetDisplayExport })
+                    React.createElement('div', { id: 'graph' }),
+                    React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
+                        graph: this.state.graph,
+                        switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
+                    React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
+                        resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer,
+                        showNewNotesForm: this.state.showNewNotesForm, switchForm: this.switchShowNewNotesForm }),
+                    React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
+                        resetDisplayExport: this.resetDisplayExport })
+                )
             );
         }
     }]);
 
-    return MindMap;
+    return KnolistComponents;
 }(React.Component);
 
 // Form that allows the user to manually add nodes
 
 
-var NewNodeForm = function (_React$Component3) {
-    _inherits(NewNodeForm, _React$Component3);
+var NewNodeForm = function (_React$Component2) {
+    _inherits(NewNodeForm, _React$Component2);
 
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this7 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
-        _this7.closeForm = _this7.closeForm.bind(_this7);
-        return _this7;
+        _this6.handleSubmit = _this6.handleSubmit.bind(_this6);
+        _this6.closeForm = _this6.closeForm.bind(_this6);
+        return _this6;
     }
 
     _createClass(NewNodeForm, [{
-        key: "handleSubmit",
+        key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this8 = this;
+            var _this7 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this8.props.nodeData.x, _this8.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this7.props.nodeData.x, _this7.props.nodeData.y);
                 }).then(function () {
-                    return _this8.props.refresh();
+                    return _this7.props.refresh();
                 });
             });
 
@@ -439,49 +412,49 @@ var NewNodeForm = function (_React$Component3) {
             event.target.reset(); // Clear the form entries
         }
     }, {
-        key: "closeForm",
+        key: 'closeForm',
         value: function closeForm() {
             document.getElementById("new-node-form").reset();
             this.props.switchForm();
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             var style = { display: "none" };
             if (this.props.showNewNodeForm) {
                 style = { display: "block" };
             }
             return React.createElement(
-                "div",
-                { className: "modal", style: style },
+                'div',
+                { className: 'modal', style: style },
                 React.createElement(
-                    "div",
-                    { className: "modal-content" },
+                    'div',
+                    { className: 'modal-content' },
                     React.createElement(
-                        "button",
-                        { className: "close-modal button", onClick: this.closeForm },
-                        "\xD7"
+                        'button',
+                        { className: 'close-modal button', onClick: this.closeForm },
+                        '\xD7'
                     ),
                     React.createElement(
-                        "h1",
+                        'h1',
                         null,
-                        "Add new node"
+                        'Add new node'
                     ),
                     React.createElement(
-                        "form",
-                        { id: "new-node-form", onSubmit: this.handleSubmit },
+                        'form',
+                        { id: 'new-node-form', onSubmit: this.handleSubmit },
                         React.createElement(
-                            "label",
-                            { htmlFor: "url" },
-                            "Page URL"
+                            'label',
+                            { htmlFor: 'url' },
+                            'Page URL'
                         ),
-                        React.createElement("br", null),
-                        React.createElement("input", { id: "url", name: "url", type: "url", placeholder: "Insert URL", required: true }),
-                        React.createElement("br", null),
+                        React.createElement('br', null),
+                        React.createElement('input', { id: 'url', name: 'url', type: 'url', placeholder: 'Insert URL', required: true }),
+                        React.createElement('br', null),
                         React.createElement(
-                            "button",
-                            { className: "button", style: { width: 100 } },
-                            "Add node"
+                            'button',
+                            { className: 'button', style: { width: 100 } },
+                            'Add node'
                         )
                     )
                 )
@@ -495,34 +468,34 @@ var NewNodeForm = function (_React$Component3) {
 // Detailed view of a specific node
 
 
-var PageView = function (_React$Component4) {
-    _inherits(PageView, _React$Component4);
+var PageView = function (_React$Component3) {
+    _inherits(PageView, _React$Component3);
 
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this9.deleteNode = _this9.deleteNode.bind(_this9);
-        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
-        _this9.closeForm = _this9.closeForm.bind(_this9);
-        return _this9;
+        _this8.deleteNode = _this8.deleteNode.bind(_this8);
+        _this8.handleSubmit = _this8.handleSubmit.bind(_this8);
+        _this8.closeForm = _this8.closeForm.bind(_this8);
+        return _this8;
     }
 
     _createClass(PageView, [{
-        key: "deleteNode",
+        key: 'deleteNode',
         value: function deleteNode() {
-            var _this10 = this;
+            var _this9 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this10.props.resetSelectedNode();
-                _this10.props.refresh();
+                _this9.props.resetSelectedNode();
+                _this9.props.refresh();
             });
         }
     }, {
-        key: "handleSubmit",
+        key: 'handleSubmit',
         value: function handleSubmit(event) {
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph);
@@ -533,13 +506,13 @@ var PageView = function (_React$Component4) {
             event.target.reset(); // Clear the form entries
         }
     }, {
-        key: "closeForm",
+        key: 'closeForm',
         value: function closeForm() {
             document.getElementById("new-notes-form").reset();
             this.props.switchForm();
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
@@ -552,27 +525,27 @@ var PageView = function (_React$Component4) {
             }
 
             return React.createElement(
-                "div",
-                { id: "page-view", className: "modal" },
+                'div',
+                { id: 'page-view', className: 'modal' },
                 React.createElement(
-                    "div",
-                    { className: "modal-content" },
+                    'div',
+                    { className: 'modal-content' },
                     React.createElement(
-                        "button",
-                        { className: "button", id: "add-notes", onClick: this.props.switchForm, style: { width: 100 } },
-                        "Add Notes"
+                        'button',
+                        { className: 'button', id: 'add-notes', onClick: this.props.switchForm, style: { width: 100 } },
+                        'Add Notes'
                     ),
                     React.createElement(
-                        "button",
-                        { className: "close-modal button", id: "close-page-view",
+                        'button',
+                        { className: 'close-modal button', id: 'close-page-view',
                             onClick: this.props.resetSelectedNode },
-                        "\xD7"
+                        '\xD7'
                     ),
                     React.createElement(
-                        "a",
-                        { href: this.props.selectedNode.source, target: "_blank" },
+                        'a',
+                        { href: this.props.selectedNode.source, target: '_blank' },
                         React.createElement(
-                            "h1",
+                            'h1',
                             null,
                             this.props.selectedNode.title
                         )
@@ -580,34 +553,34 @@ var PageView = function (_React$Component4) {
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(NotesList, { notes: this.props.selectedNode.notes }),
                     React.createElement(
-                        "form",
-                        { id: "new-notes-form", onSubmit: this.handleSubmit, style: style },
+                        'form',
+                        { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
                         React.createElement(
-                            "label",
-                            { htmlFor: "notes" },
-                            "Notes:"
+                            'label',
+                            { htmlFor: 'notes' },
+                            'Notes:'
                         ),
-                        React.createElement("br", null),
-                        React.createElement("input", { id: "notes", name: "notes", type: "notes", placeholder: "Insert Notes", required: true }),
+                        React.createElement('br', null),
+                        React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
                         React.createElement(
-                            "button",
-                            { className: "button", style: { width: 100 } },
-                            "+"
+                            'button',
+                            { className: 'button', style: { width: 100 } },
+                            '+'
                         )
                     ),
                     React.createElement(
-                        "div",
+                        'div',
                         { style: { display: "flex" } },
                         React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode }),
                         React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode })
                     ),
                     React.createElement(
-                        "div",
+                        'div',
                         { style: { textAlign: "right" } },
                         React.createElement(
-                            "button",
-                            { className: "button", onClick: this.deleteNode },
-                            React.createElement("img", { src: "../../images/delete-icon.png", alt: "Delete node", style: { width: "100%" } })
+                            'button',
+                            { className: 'button', onClick: this.deleteNode },
+                            React.createElement('img', { src: '../../images/delete-icon.png', alt: 'Delete node', style: { width: "100%" } })
                         )
                     )
                 )
@@ -621,8 +594,8 @@ var PageView = function (_React$Component4) {
 // Bibliography export
 
 
-var ExportView = function (_React$Component5) {
-    _inherits(ExportView, _React$Component5);
+var ExportView = function (_React$Component4) {
+    _inherits(ExportView, _React$Component4);
 
     function ExportView(props) {
         _classCallCheck(this, ExportView);
@@ -631,37 +604,37 @@ var ExportView = function (_React$Component5) {
     }
 
     _createClass(ExportView, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.props.shouldShow === false) {
                 return null;
             }
             return React.createElement(
-                "div",
-                { id: "page-view", className: "modal" },
+                'div',
+                { id: 'page-view', className: 'modal' },
                 React.createElement(
-                    "div",
-                    { className: "modal-content" },
+                    'div',
+                    { className: 'modal-content' },
                     React.createElement(
-                        "button",
-                        { className: "close-modal button", id: "close-page-view",
+                        'button',
+                        { className: 'close-modal button', id: 'close-page-view',
                             onClick: this.props.resetDisplayExport },
-                        "\xD7"
+                        '\xD7'
                     ),
                     React.createElement(
-                        "h1",
+                        'h1',
                         null,
-                        "Export for Bibliography"
+                        'Export for Bibliography'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.bibliographyData.map(function (item) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: item.url },
                                 item.title,
-                                ", ",
+                                ', ',
                                 item.url
                             );
                         })
@@ -677,8 +650,8 @@ var ExportView = function (_React$Component5) {
 // List of URLs in the detailed page view
 
 
-var ListURL = function (_React$Component6) {
-    _inherits(ListURL, _React$Component6);
+var ListURL = function (_React$Component5) {
+    _inherits(ListURL, _React$Component5);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -687,31 +660,31 @@ var ListURL = function (_React$Component6) {
     }
 
     _createClass(ListURL, [{
-        key: "render",
+        key: 'render',
         value: function render() {
-            var _this13 = this;
+            var _this12 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
-                    "div",
-                    { className: "url-column" },
+                    'div',
+                    { className: 'url-column' },
                     React.createElement(
-                        "h2",
+                        'h2',
                         { style: { textAlign: "center" } },
-                        "Previous Connections"
+                        'Previous Connections'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.selectedNode.prevURLs.map(function (url, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 React.createElement(
-                                    "a",
-                                    { href: _this13.props.graph[url].source,
-                                        target: "_blank" },
-                                    _this13.props.graph[url].title
+                                    'a',
+                                    { href: _this12.props.graph[url].source,
+                                        target: '_blank' },
+                                    _this12.props.graph[url].title
                                 )
                             );
                         })
@@ -719,25 +692,25 @@ var ListURL = function (_React$Component6) {
                 );
             } else if (this.props.type === "next") {
                 return React.createElement(
-                    "div",
-                    { className: "url-column" },
+                    'div',
+                    { className: 'url-column' },
                     React.createElement(
-                        "h2",
+                        'h2',
                         { style: { textAlign: "center" } },
-                        "Next Connections"
+                        'Next Connections'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.selectedNode.nextURLs.map(function (url, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 React.createElement(
-                                    "a",
-                                    { href: _this13.props.graph[url].source,
-                                        target: "_blank" },
-                                    _this13.props.graph[url].title
+                                    'a',
+                                    { href: _this12.props.graph[url].source,
+                                        target: '_blank' },
+                                    _this12.props.graph[url].title
                                 )
                             );
                         })
@@ -753,8 +726,8 @@ var ListURL = function (_React$Component6) {
 // List of highlights in the detailed page view
 
 
-var HighlightsList = function (_React$Component7) {
-    _inherits(HighlightsList, _React$Component7);
+var HighlightsList = function (_React$Component6) {
+    _inherits(HighlightsList, _React$Component6);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -763,23 +736,23 @@ var HighlightsList = function (_React$Component7) {
     }
 
     _createClass(HighlightsList, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.props.highlights.length !== 0) {
                 return React.createElement(
-                    "div",
+                    'div',
                     null,
                     React.createElement(
-                        "h2",
+                        'h2',
                         null,
-                        "My Highlights"
+                        'My Highlights'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.highlights.map(function (highlight, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 highlight
                             );
@@ -788,9 +761,9 @@ var HighlightsList = function (_React$Component7) {
                 );
             }
             return React.createElement(
-                "h2",
+                'h2',
                 null,
-                "You haven't added any highlights yet."
+                'You haven\'t added any highlights yet.'
             );
         }
     }]);
@@ -798,8 +771,8 @@ var HighlightsList = function (_React$Component7) {
     return HighlightsList;
 }(React.Component);
 
-var NotesList = function (_React$Component8) {
-    _inherits(NotesList, _React$Component8);
+var NotesList = function (_React$Component7) {
+    _inherits(NotesList, _React$Component7);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
@@ -808,23 +781,23 @@ var NotesList = function (_React$Component8) {
     }
 
     _createClass(NotesList, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             if (this.props.notes.length !== 0) {
                 return React.createElement(
-                    "div",
+                    'div',
                     null,
                     React.createElement(
-                        "h2",
+                        'h2',
                         null,
-                        "My Notes"
+                        'My Notes'
                     ),
                     React.createElement(
-                        "ul",
+                        'ul',
                         null,
                         this.props.notes.map(function (notes, index) {
                             return React.createElement(
-                                "li",
+                                'li',
                                 { key: index },
                                 notes
                             );
@@ -833,9 +806,9 @@ var NotesList = function (_React$Component8) {
                 );
             }
             return React.createElement(
-                "h2",
+                'h2',
                 null,
-                "You haven't added any notes yet."
+                'You haven\'t added any notes yet.'
             );
         }
     }]);
@@ -843,75 +816,47 @@ var NotesList = function (_React$Component8) {
     return NotesList;
 }(React.Component);
 
-var RefreshGraphButton = function (_React$Component9) {
-    _inherits(RefreshGraphButton, _React$Component9);
+function RefreshGraphButton(props) {
+    return React.createElement(
+        'button',
+        { onClick: props.refresh, className: 'button' },
+        React.createElement('img', { src: '../../images/refresh-icon.png', alt: 'Refresh Button', style: { width: "100%" } })
+    );
+}
 
-    function RefreshGraphButton(props) {
-        _classCallCheck(this, RefreshGraphButton);
+function ExportGraphButton(props) {
+    return React.createElement(
+        'button',
+        { onClick: props.export, className: 'button' },
+        React.createElement('img', { src: '../../images/share-icon.webp', alt: 'Refresh Button', style: { width: "100%" } })
+    );
+}
 
-        return _possibleConstructorReturn(this, (RefreshGraphButton.__proto__ || Object.getPrototypeOf(RefreshGraphButton)).call(this, props));
-    }
-
-    _createClass(RefreshGraphButton, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "button",
-                { onClick: this.props.refresh, className: "button" },
-                React.createElement("img", { src: "../../images/refresh-icon.png",
-                    alt: "Refresh Button", style: { width: "100%" } })
-            );
-        }
-    }]);
-
-    return RefreshGraphButton;
-}(React.Component);
-
-var ExportGraphButton = function (_React$Component10) {
-    _inherits(ExportGraphButton, _React$Component10);
-
-    function ExportGraphButton(props) {
-        _classCallCheck(this, ExportGraphButton);
-
-        return _possibleConstructorReturn(this, (ExportGraphButton.__proto__ || Object.getPrototypeOf(ExportGraphButton)).call(this, props));
-    }
-
-    _createClass(ExportGraphButton, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "button",
-                { onClick: this.props.export, className: "button" },
-                React.createElement("img", { src: "../../images/share-icon.webp",
-                    alt: "Refresh Button", style: { width: "100%" } })
-            );
-        }
-    }]);
-
-    return ExportGraphButton;
-}(React.Component);
-
-var Header = function (_React$Component11) {
-    _inherits(Header, _React$Component11);
-
-    function Header() {
-        _classCallCheck(this, Header);
-
-        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).apply(this, arguments));
-    }
-
-    _createClass(Header, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "div",
-                { className: "header" },
-                React.createElement("img", { className: "logo", src: "../../images/full_main.PNG", alt: "Knolist Logo" })
-            );
-        }
-    }]);
-
-    return Header;
-}(React.Component);
+function Header(props) {
+    return React.createElement(
+        'div',
+        { className: 'header' },
+        React.createElement('img', { className: 'logo', src: '../../images/horizontal_main.PNG', alt: 'Knolist Logo' }),
+        React.createElement(
+            'div',
+            null,
+            React.createElement(
+                'h5',
+                { id: 'project-name' },
+                'Current Project: ',
+                props.projectName
+            )
+        ),
+        React.createElement(
+            'div',
+            null,
+            React.createElement(
+                'button',
+                null,
+                'Your projects'
+            )
+        )
+    );
+}
 
 ReactDOM.render(React.createElement(KnolistComponents, null), document.querySelector("#knolist-page"));

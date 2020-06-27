@@ -5,26 +5,8 @@
  * are in the README
  */
 
-// Wrapper class for the web application
+// Wrapper for all the components in the page
 class KnolistComponents extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        return (
-            <div>
-                <Header/>
-                <div className="main-body">
-                    <MindMap/>
-                </div>
-            </div>
-        );
-    }
-}
-
-// Wrapper for all the components inside the mindmap
-class MindMap extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -289,27 +271,33 @@ class MindMap extends React.Component {
 
     render() {
         if (this.state.graph === null) {
-            return null;
+            return (
+                <div>
+                    <Header/>
+                    <div className="main-body"/>
+                </div>
+            );
         }
         this.getBibliographyData();
         const curProject = this.state.graph.curProject;
         return (
             <div>
-                <div id="title-bar">
-                    <RefreshGraphButton refresh={this.getDataFromServer}/>
-                    <h2 style={{margin: "auto auto"}}>Current
-                        Project: {this.titleCase(this.state.graph.curProject)}</h2>
-                    <ExportGraphButton export={this.exportData}/>
+                <Header projectName={this.titleCase(this.state.graph.curProject)}/>
+                <div className="main-body">
+                    <div id="buttons-bar">
+                        <RefreshGraphButton refresh={this.getDataFromServer}/>
+                        <ExportGraphButton export={this.exportData}/>
+                    </div>
+                    <div id="graph"/>
+                    <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
+                                 graph={this.state.graph}
+                                 switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                    <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                              resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
+                              showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
+                    <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
+                                resetDisplayExport={this.resetDisplayExport}/>
                 </div>
-                <div id="graph"/>
-                <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
-                             graph={this.state.graph}
-                             switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
-                <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
-                          resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
-                          showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
-                <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
-                            resetDisplayExport={this.resetDisplayExport}/>
             </div>
         );
     }
@@ -403,12 +391,16 @@ class PageView extends React.Component {
 
         // Hidden form for adding notes
         let style = {display: "none"};
-        if (this.props.showNewNotesForm) { style = {display: "block"} }
+        if (this.props.showNewNotesForm) {
+            style = {display: "block"}
+        }
 
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="button" id="add-notes" onClick={this.props.switchForm} style={{width: 100}}>Add Notes</button>
+                    <button className="button" id="add-notes" onClick={this.props.switchForm} style={{width: 100}}>Add
+                        Notes
+                    </button>
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.resetSelectedNode}>&times;</button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
@@ -530,43 +522,34 @@ class NotesList extends React.Component {
     }
 }
 
-class RefreshGraphButton extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        return (
-            <button onClick={this.props.refresh} className="button"><img src="../../images/refresh-icon.png"
-                                                                         alt="Refresh Button" style={{width: "100%"}}/>
-            </button>
-        );
-    }
+function RefreshGraphButton(props) {
+    return (
+        <button onClick={props.refresh} className="button">
+            <img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/>
+        </button>
+    );
 }
 
-class ExportGraphButton extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        return (
-            <button onClick={this.props.export} className="button"><img src="../../images/share-icon.webp"
-                                                                        alt="Refresh Button" style={{width: "100%"}}/>
-            </button>
-        );
-    }
+function ExportGraphButton(props) {
+    return (
+        <button onClick={props.export} className="button">
+            <img src="../../images/share-icon.webp" alt="Refresh Button" style={{width: "100%"}}/>
+        </button>
+    );
 }
 
-class Header extends React.Component {
-    render() {
-        return (
-            <div className="header">
-                <img className="logo" src="../../images/full_main.PNG" alt="Knolist Logo"/>
+function Header(props) {
+    return (
+        <div className="header">
+            <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
+            <div>
+                <h5 id="project-name">Current Project: {props.projectName}</h5>
             </div>
-        );
-    }
+            <div>
+                <button>Your projects</button>
+            </div>
+        </div>
+    );
 }
-
 
 ReactDOM.render(<KnolistComponents/>, document.querySelector("#knolist-page"));
