@@ -6,17 +6,17 @@ to be pulled from Chrome before attempting to access it).
 IMPORTANT: don't forget that async functions return promises, so you might have to deal with those when you call
 those functions.
  */
-
 const CUR_VERSION_NUM = 1;
 
 /**
  * Creates graph with default project.
- * @returns {{default: {}, curProject: string, version: *}} the graph with an empty default project
+ * @returns {{[p: string]: *|number, curProject: *, version: *}} the graph with an empty default project
  */
 createNewGraph = () => {
+    let id = uuidv4(); // Using UUID to generate a unique ID for the project
     return {
-        "default": {},
-        "curProject": "default",
+        [id]: {},
+        "curProject": id,
         "version": CUR_VERSION_NUM
     };
 };
