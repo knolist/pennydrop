@@ -9,7 +9,7 @@
     --light-blue: #1dcdfe;
     --java-color: #21d0b2;
     --bright-turquoise: #34f5c5;
-    --text-dark-blue: #2f455c;
+    --dark-blue: #2f455c;
 }
 
 #graph {
@@ -31,7 +31,6 @@ body {
 }
 
 .header {
-    padding: 6px;
     text-align: center;
     font-size: 30px;
     display: flex;
@@ -39,7 +38,7 @@ body {
     height: 50px;
     background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url("../images/background.jpg");
     border-style: none none solid none;
-    border-bottom-color: var(--text-dark-blue);
+    border-bottom-color: var(--dark-blue);
 }
 
 #project-name {
@@ -91,7 +90,7 @@ body {
     background-image: url("../images/background.jpg");
     margin: 5% auto; /* 15% from the top and centered */
     padding: 20px;
-    border: 2px solid var(--text-dark-blue);
+    border: 2px solid var(--dark-blue);
     border-radius: 16px;
     width: 80%; /* Could be more or less, depending on screen size */
 }
@@ -121,4 +120,52 @@ input[type=url] {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+}
+
+/* Sidebar selectors. Adapted from https://www.w3schools.com/howto/howto_js_collapse_sidebar.asp" */
+.sidebar {
+    height: 100%; /* 100% Full-height */
+    width: 0; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Stay on top */
+    top: 0;
+    right: 0;
+    background-color: var(--dark-blue);
+    overflow-x: hidden; /* Disable horizontal scroll */
+    padding-top: 60px; /* Place content 60px from the top */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
+}
+
+.sidebar p {
+    color: white;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+    .sidebar {padding-top: 15px;}
+    .sidebar p {font-size: 18px;}
+}
+
+#projects-sidebar-btn {
+    border-radius: 10px 0 0 10px;
+    border-right: 0;
+    height: 40px;
+    position: absolute;
+    top: 5px;
+    right: 0;
+    width: 60px;
+    transition: 0.5s;
+    background-color: var(--dark-blue);
+    outline: none;
+}
+
+#projects-sidebar-btn p {
+    color: white;
+    font-family: "Product Sans", sans-serif;
+    margin: 0;
+}
+
+#close-sidebar-btn {
+    height: 70%;
+    margin: 5px;
 }

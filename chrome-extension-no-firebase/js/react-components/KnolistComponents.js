@@ -18,7 +18,8 @@ class KnolistComponents extends React.Component {
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
-            bibliographyData: null // The data to be exported as bibliography
+            bibliographyData: null, // The data to be exported as bibliography
+            showProjectsSidebar: false
         };
 
         // Bind functions that need to be passed as parameters
@@ -33,6 +34,7 @@ class KnolistComponents extends React.Component {
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
+        this.switchShowProjectsSidebar = this.switchShowProjectsSidebar.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -135,6 +137,10 @@ class KnolistComponents extends React.Component {
 
     switchShowNewNotesForm() {
         this.setState({showNewNotesForm: !this.state.showNewNotesForm});
+    }
+
+    switchShowProjectsSidebar() {
+        this.setState({showProjectsSidebar: !this.state.showProjectsSidebar});
     }
 
     /* Helper function to generate position for nodes
@@ -271,24 +277,22 @@ class KnolistComponents extends React.Component {
 
     render() {
         if (this.state.graph === null) {
-            return (
-                <div>
-                    <Header/>
-                    <div className="main-body"/>
-                </div>
-            );
+            return null;
         }
         this.getBibliographyData();
         const curProject = this.state.graph.curProject;
         return (
             <div>
-                <Header projectName={this.titleCase(this.state.graph.curProject)}/>
+                <Header projectName={this.titleCase(curProject)} refresh={this.getDataFromServer}
+                        showProjectsSidebar={this.state.showProjectsSidebar}
+                        switchShowProjectsSidebar={this.switchShowProjectsSidebar}/>
                 <div className="main-body">
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph"/>
+                    <ProjectsSidebar/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                                  graph={this.state.graph}
                                  switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
@@ -298,6 +302,21 @@ class KnolistComponents extends React.Component {
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
+            </div>
+        );
+    }
+}
+
+// Sidebar to switch between projects
+class ProjectsSidebar extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div id="projects-sidebar" className="sidebar">
+                <p>Test</p>
             </div>
         );
     }
@@ -541,12 +560,6 @@ function ExportGraphButton(props) {
 class Header extends React.Component {
     constructor(props) {
         super(props);
-
-        this.openProjectsTab = this.openProjectsTab.bind(this);
-    }
-
-    openProjectsTab() {
-        setCurrentProjectInGraph("default");
     }
 
     render() {
@@ -557,9 +570,44 @@ class Header extends React.Component {
                     <h5 id="project-name">Current Project: {this.props.projectName}</h5>
                 </div>
                 <div>
-                    <button onClick={this.openProjectsTab}>Your projects</button>
+                    <ProjectsSidebarButton showSidebar={this.props.showProjectsSidebar}
+                                           switchShowSidebar={this.props.switchShowProjectsSidebar}/>
                 </div>
             </div>
+        );
+    }
+}
+
+class ProjectsSidebarButton extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.openProjectsTab = this.openProjectsTab.bind(this);
+        this.closeProjectsTab = this.closeProjectsTab.bind(this);
+    }
+
+    openProjectsTab() {
+        this.props.switchShowSidebar();
+        document.getElementById("projects-sidebar").style.width = "400px";
+        document.getElementById("projects-sidebar-btn").style.right = "400px";
+    }
+
+    closeProjectsTab() {
+        this.props.switchShowSidebar();
+        document.getElementById("projects-sidebar").style.width = "0";
+        document.getElementById("projects-sidebar-btn").style.right = "0";
+    }
+
+    render() {
+        if (this.props.showSidebar) {
+            return <button id="projects-sidebar-btn" onClick={this.closeProjectsTab}>
+                <img src="../../images/close-icon.png" alt="Close" id="close-sidebar-btn"/>
+            </button>
+        }
+        return (
+            <button id="projects-sidebar-btn" onClick={this.openProjectsTab}>
+                <p>Your projects</p>
+            </button>
         );
     }
 }

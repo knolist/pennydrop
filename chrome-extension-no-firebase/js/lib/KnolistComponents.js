@@ -33,7 +33,8 @@ var KnolistComponents = function (_React$Component) {
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
-            bibliographyData: null // The data to be exported as bibliography
+            bibliographyData: null, // The data to be exported as bibliography
+            showProjectsSidebar: false
         };
 
         // Bind functions that need to be passed as parameters
@@ -48,6 +49,7 @@ var KnolistComponents = function (_React$Component) {
         _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
         _this.resetSelectedNode = _this.resetSelectedNode.bind(_this);
         _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
+        _this.switchShowProjectsSidebar = _this.switchShowProjectsSidebar.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
@@ -179,6 +181,11 @@ var KnolistComponents = function (_React$Component) {
         key: 'switchShowNewNotesForm',
         value: function switchShowNewNotesForm() {
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
+        }
+    }, {
+        key: 'switchShowProjectsSidebar',
+        value: function switchShowProjectsSidebar() {
+            this.setState({ showProjectsSidebar: !this.state.showProjectsSidebar });
         }
 
         /* Helper function to generate position for nodes
@@ -337,19 +344,16 @@ var KnolistComponents = function (_React$Component) {
         key: 'render',
         value: function render() {
             if (this.state.graph === null) {
-                return React.createElement(
-                    'div',
-                    null,
-                    React.createElement(Header, null),
-                    React.createElement('div', { className: 'main-body' })
-                );
+                return null;
             }
             this.getBibliographyData();
             var curProject = this.state.graph.curProject;
             return React.createElement(
                 'div',
                 null,
-                React.createElement(Header, { projectName: this.titleCase(this.state.graph.curProject) }),
+                React.createElement(Header, { projectName: this.titleCase(curProject), refresh: this.getDataFromServer,
+                    showProjectsSidebar: this.state.showProjectsSidebar,
+                    switchShowProjectsSidebar: this.switchShowProjectsSidebar }),
                 React.createElement(
                     'div',
                     { className: 'main-body' },
@@ -360,6 +364,7 @@ var KnolistComponents = function (_React$Component) {
                         React.createElement(ExportGraphButton, { 'export': this.exportData })
                     ),
                     React.createElement('div', { id: 'graph' }),
+                    React.createElement(ProjectsSidebar, null),
                     React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                         graph: this.state.graph,
                         switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
@@ -376,35 +381,65 @@ var KnolistComponents = function (_React$Component) {
     return KnolistComponents;
 }(React.Component);
 
+// Sidebar to switch between projects
+
+
+var ProjectsSidebar = function (_React$Component2) {
+    _inherits(ProjectsSidebar, _React$Component2);
+
+    function ProjectsSidebar(props) {
+        _classCallCheck(this, ProjectsSidebar);
+
+        return _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
+    }
+
+    _createClass(ProjectsSidebar, [{
+        key: 'render',
+        value: function render() {
+            return React.createElement(
+                'div',
+                { id: 'projects-sidebar', className: 'sidebar' },
+                React.createElement(
+                    'p',
+                    null,
+                    'Test'
+                )
+            );
+        }
+    }]);
+
+    return ProjectsSidebar;
+}(React.Component);
+
 // Form that allows the user to manually add nodes
 
 
-var NewNodeForm = function (_React$Component2) {
-    _inherits(NewNodeForm, _React$Component2);
+var NewNodeForm = function (_React$Component3) {
+    _inherits(NewNodeForm, _React$Component3);
 
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this6 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this6.handleSubmit = _this6.handleSubmit.bind(_this6);
-        _this6.closeForm = _this6.closeForm.bind(_this6);
-        return _this6;
+        _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
+        _this7.closeForm = _this7.closeForm.bind(_this7);
+        return _this7;
     }
 
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this7 = this;
+            var _this8 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this7.props.nodeData.x, _this7.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this8.props.nodeData.x, _this8.props.nodeData.y);
                 }).then(function () {
-                    return _this7.props.refresh();
+                    return _this8.props.refresh();
                 });
             });
 
@@ -468,30 +503,30 @@ var NewNodeForm = function (_React$Component2) {
 // Detailed view of a specific node
 
 
-var PageView = function (_React$Component3) {
-    _inherits(PageView, _React$Component3);
+var PageView = function (_React$Component4) {
+    _inherits(PageView, _React$Component4);
 
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this8 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this8.deleteNode = _this8.deleteNode.bind(_this8);
-        _this8.handleSubmit = _this8.handleSubmit.bind(_this8);
-        _this8.closeForm = _this8.closeForm.bind(_this8);
-        return _this8;
+        _this9.deleteNode = _this9.deleteNode.bind(_this9);
+        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
+        _this9.closeForm = _this9.closeForm.bind(_this9);
+        return _this9;
     }
 
     _createClass(PageView, [{
         key: 'deleteNode',
         value: function deleteNode() {
-            var _this9 = this;
+            var _this10 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this9.props.resetSelectedNode();
-                _this9.props.refresh();
+                _this10.props.resetSelectedNode();
+                _this10.props.refresh();
             });
         }
     }, {
@@ -594,8 +629,8 @@ var PageView = function (_React$Component3) {
 // Bibliography export
 
 
-var ExportView = function (_React$Component4) {
-    _inherits(ExportView, _React$Component4);
+var ExportView = function (_React$Component5) {
+    _inherits(ExportView, _React$Component5);
 
     function ExportView(props) {
         _classCallCheck(this, ExportView);
@@ -650,8 +685,8 @@ var ExportView = function (_React$Component4) {
 // List of URLs in the detailed page view
 
 
-var ListURL = function (_React$Component5) {
-    _inherits(ListURL, _React$Component5);
+var ListURL = function (_React$Component6) {
+    _inherits(ListURL, _React$Component6);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -662,7 +697,7 @@ var ListURL = function (_React$Component5) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this12 = this;
+            var _this13 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -682,9 +717,9 @@ var ListURL = function (_React$Component5) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this12.props.graph[url].source,
+                                    { href: _this13.props.graph[url].source,
                                         target: '_blank' },
-                                    _this12.props.graph[url].title
+                                    _this13.props.graph[url].title
                                 )
                             );
                         })
@@ -708,9 +743,9 @@ var ListURL = function (_React$Component5) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this12.props.graph[url].source,
+                                    { href: _this13.props.graph[url].source,
                                         target: '_blank' },
-                                    _this12.props.graph[url].title
+                                    _this13.props.graph[url].title
                                 )
                             );
                         })
@@ -726,8 +761,8 @@ var ListURL = function (_React$Component5) {
 // List of highlights in the detailed page view
 
 
-var HighlightsList = function (_React$Component6) {
-    _inherits(HighlightsList, _React$Component6);
+var HighlightsList = function (_React$Component7) {
+    _inherits(HighlightsList, _React$Component7);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -771,8 +806,8 @@ var HighlightsList = function (_React$Component6) {
     return HighlightsList;
 }(React.Component);
 
-var NotesList = function (_React$Component7) {
-    _inherits(NotesList, _React$Component7);
+var NotesList = function (_React$Component8) {
+    _inherits(NotesList, _React$Component8);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
@@ -832,24 +867,16 @@ function ExportGraphButton(props) {
     );
 }
 
-var Header = function (_React$Component8) {
-    _inherits(Header, _React$Component8);
+var Header = function (_React$Component9) {
+    _inherits(Header, _React$Component9);
 
     function Header(props) {
         _classCallCheck(this, Header);
 
-        var _this15 = _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).call(this, props));
-
-        _this15.openProjectsTab = _this15.openProjectsTab.bind(_this15);
-        return _this15;
+        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).call(this, props));
     }
 
     _createClass(Header, [{
-        key: 'openProjectsTab',
-        value: function openProjectsTab() {
-            setCurrentProjectInGraph("default");
-        }
-    }, {
         key: 'render',
         value: function render() {
             return React.createElement(
@@ -869,17 +896,66 @@ var Header = function (_React$Component8) {
                 React.createElement(
                     'div',
                     null,
-                    React.createElement(
-                        'button',
-                        { onClick: this.openProjectsTab },
-                        'Your projects'
-                    )
+                    React.createElement(ProjectsSidebarButton, { showSidebar: this.props.showProjectsSidebar,
+                        switchShowSidebar: this.props.switchShowProjectsSidebar })
                 )
             );
         }
     }]);
 
     return Header;
+}(React.Component);
+
+var ProjectsSidebarButton = function (_React$Component10) {
+    _inherits(ProjectsSidebarButton, _React$Component10);
+
+    function ProjectsSidebarButton(props) {
+        _classCallCheck(this, ProjectsSidebarButton);
+
+        var _this17 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
+
+        _this17.openProjectsTab = _this17.openProjectsTab.bind(_this17);
+        _this17.closeProjectsTab = _this17.closeProjectsTab.bind(_this17);
+        return _this17;
+    }
+
+    _createClass(ProjectsSidebarButton, [{
+        key: 'openProjectsTab',
+        value: function openProjectsTab() {
+            this.props.switchShowSidebar();
+            document.getElementById("projects-sidebar").style.width = "400px";
+            document.getElementById("projects-sidebar-btn").style.right = "400px";
+        }
+    }, {
+        key: 'closeProjectsTab',
+        value: function closeProjectsTab() {
+            this.props.switchShowSidebar();
+            document.getElementById("projects-sidebar").style.width = "0";
+            document.getElementById("projects-sidebar-btn").style.right = "0";
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            if (this.props.showSidebar) {
+                return React.createElement(
+                    'button',
+                    { id: 'projects-sidebar-btn', onClick: this.closeProjectsTab },
+                    React.createElement('img', { src: '../../images/close-icon.png', alt: 'Close', id: 'close-sidebar-btn' })
+                );
+            }
+            return React.createElement(
+                'button',
+                { id: 'projects-sidebar-btn', onClick: this.openProjectsTab },
+                React.createElement(
+                    'p',
+                    null,
+                    'Your projects'
+                )
+            );
+        }
+    }]);
+
+    return ProjectsSidebarButton;
 }(React.Component);
 
 ReactDOM.render(React.createElement(KnolistComponents, null), document.querySelector("#knolist-page"));
