@@ -15,7 +15,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * are in the README
  */
 
+// Helper global function for title case
+function titleCase(str) {
+    str = str.toLowerCase().split(' ');
+    for (var i = 0; i < str.length; i++) {
+        str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+    }
+    return str.join(' ');
+}
+
 // Wrapper for all the components in the page
+
 var KnolistComponents = function (_React$Component) {
     _inherits(KnolistComponents, _React$Component);
 
@@ -65,19 +75,10 @@ var KnolistComponents = function (_React$Component) {
         return _this;
     }
 
+    // Calls graph.js function to pull the graph from the Chrome storage
+
+
     _createClass(KnolistComponents, [{
-        key: 'titleCase',
-        value: function titleCase(str) {
-            str = str.toLowerCase().split(' ');
-            for (var i = 0; i < str.length; i++) {
-                str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
-            }
-            return str.join(' ');
-        }
-
-        // Calls graph.js function to pull the graph from the Chrome storage
-
-    }, {
         key: 'getDataFromServer',
         value: function getDataFromServer() {
             // All the websites as a graph
@@ -351,7 +352,7 @@ var KnolistComponents = function (_React$Component) {
             return React.createElement(
                 'div',
                 null,
-                React.createElement(Header, { projectName: this.titleCase(curProject), refresh: this.getDataFromServer,
+                React.createElement(Header, { projectName: titleCase(curProject), refresh: this.getDataFromServer,
                     showProjectsSidebar: this.state.showProjectsSidebar,
                     switchShowProjectsSidebar: this.switchShowProjectsSidebar }),
                 React.createElement(
@@ -364,7 +365,7 @@ var KnolistComponents = function (_React$Component) {
                         React.createElement(ExportGraphButton, { 'export': this.exportData })
                     ),
                     React.createElement('div', { id: 'graph' }),
-                    React.createElement(ProjectsSidebar, null),
+                    React.createElement(ProjectsSidebar, { graph: this.state.graph, refresh: this.getDataFromServer }),
                     React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                         graph: this.state.graph,
                         switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
@@ -396,6 +397,8 @@ var ProjectsSidebar = function (_React$Component2) {
     _createClass(ProjectsSidebar, [{
         key: 'render',
         value: function render() {
+            var _this7 = this;
+
             return React.createElement(
                 'div',
                 { id: 'projects-sidebar', className: 'sidebar' },
@@ -403,6 +406,15 @@ var ProjectsSidebar = function (_React$Component2) {
                     'h1',
                     { id: 'sidebar-title' },
                     'Your Projects'
+                ),
+                React.createElement(
+                    'div',
+                    { id: 'sidebar-content' },
+                    Object.keys(this.props.graph).map(function (project) {
+                        return React.createElement(ProjectItem, { key: project, graph: _this7.props.graph,
+                            project: project,
+                            refresh: _this7.props.refresh });
+                    })
                 )
             );
         }
@@ -411,35 +423,95 @@ var ProjectsSidebar = function (_React$Component2) {
     return ProjectsSidebar;
 }(React.Component);
 
+// Visualization of a project in the sidebar, used to switch active projects
+
+
+var ProjectItem = function (_React$Component3) {
+    _inherits(ProjectItem, _React$Component3);
+
+    function ProjectItem(props) {
+        _classCallCheck(this, ProjectItem);
+
+        var _this8 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+
+        _this8.switchProject = _this8.switchProject.bind(_this8);
+        return _this8;
+    }
+
+    _createClass(ProjectItem, [{
+        key: 'switchProject',
+        value: function switchProject() {
+            var _this9 = this;
+
+            setCurrentProjectInGraph(this.props.project).then(function () {
+                return _this9.props.refresh();
+            });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            var project = this.props.project;
+            // Ignore properties that are not project names
+            if (project === "version" || project === "curProject") {
+                return null;
+            }
+            // Display the active project in a different color and show more info
+            if (project === this.props.graph.curProject) {
+                return React.createElement(
+                    'div',
+                    { className: 'project-item active-project', onClick: this.switchProject },
+                    React.createElement(
+                        'h2',
+                        null,
+                        titleCase(this.props.project)
+                    )
+                );
+            }
+            // Display other projects
+            return React.createElement(
+                'div',
+                { className: 'project-item', onClick: this.switchProject },
+                React.createElement(
+                    'h2',
+                    null,
+                    titleCase(this.props.project)
+                )
+            );
+        }
+    }]);
+
+    return ProjectItem;
+}(React.Component);
+
 // Form that allows the user to manually add nodes
 
 
-var NewNodeForm = function (_React$Component3) {
-    _inherits(NewNodeForm, _React$Component3);
+var NewNodeForm = function (_React$Component4) {
+    _inherits(NewNodeForm, _React$Component4);
 
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this7 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
-        _this7.closeForm = _this7.closeForm.bind(_this7);
-        return _this7;
+        _this10.handleSubmit = _this10.handleSubmit.bind(_this10);
+        _this10.closeForm = _this10.closeForm.bind(_this10);
+        return _this10;
     }
 
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this8 = this;
+            var _this11 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this8.props.nodeData.x, _this8.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this11.props.nodeData.x, _this11.props.nodeData.y);
                 }).then(function () {
-                    return _this8.props.refresh();
+                    return _this11.props.refresh();
                 });
             });
 
@@ -503,30 +575,30 @@ var NewNodeForm = function (_React$Component3) {
 // Detailed view of a specific node
 
 
-var PageView = function (_React$Component4) {
-    _inherits(PageView, _React$Component4);
+var PageView = function (_React$Component5) {
+    _inherits(PageView, _React$Component5);
 
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this9 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this9.deleteNode = _this9.deleteNode.bind(_this9);
-        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
-        _this9.closeForm = _this9.closeForm.bind(_this9);
-        return _this9;
+        _this12.deleteNode = _this12.deleteNode.bind(_this12);
+        _this12.handleSubmit = _this12.handleSubmit.bind(_this12);
+        _this12.closeForm = _this12.closeForm.bind(_this12);
+        return _this12;
     }
 
     _createClass(PageView, [{
         key: 'deleteNode',
         value: function deleteNode() {
-            var _this10 = this;
+            var _this13 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this10.props.resetSelectedNode();
-                _this10.props.refresh();
+                _this13.props.resetSelectedNode();
+                _this13.props.refresh();
             });
         }
     }, {
@@ -629,8 +701,8 @@ var PageView = function (_React$Component4) {
 // Bibliography export
 
 
-var ExportView = function (_React$Component5) {
-    _inherits(ExportView, _React$Component5);
+var ExportView = function (_React$Component6) {
+    _inherits(ExportView, _React$Component6);
 
     function ExportView(props) {
         _classCallCheck(this, ExportView);
@@ -685,8 +757,8 @@ var ExportView = function (_React$Component5) {
 // List of URLs in the detailed page view
 
 
-var ListURL = function (_React$Component6) {
-    _inherits(ListURL, _React$Component6);
+var ListURL = function (_React$Component7) {
+    _inherits(ListURL, _React$Component7);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -697,7 +769,7 @@ var ListURL = function (_React$Component6) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this13 = this;
+            var _this16 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -717,9 +789,9 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this13.props.graph[url].source,
+                                    { href: _this16.props.graph[url].source,
                                         target: '_blank' },
-                                    _this13.props.graph[url].title
+                                    _this16.props.graph[url].title
                                 )
                             );
                         })
@@ -743,9 +815,9 @@ var ListURL = function (_React$Component6) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this13.props.graph[url].source,
+                                    { href: _this16.props.graph[url].source,
                                         target: '_blank' },
-                                    _this13.props.graph[url].title
+                                    _this16.props.graph[url].title
                                 )
                             );
                         })
@@ -761,8 +833,8 @@ var ListURL = function (_React$Component6) {
 // List of highlights in the detailed page view
 
 
-var HighlightsList = function (_React$Component7) {
-    _inherits(HighlightsList, _React$Component7);
+var HighlightsList = function (_React$Component8) {
+    _inherits(HighlightsList, _React$Component8);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -806,8 +878,8 @@ var HighlightsList = function (_React$Component7) {
     return HighlightsList;
 }(React.Component);
 
-var NotesList = function (_React$Component8) {
-    _inherits(NotesList, _React$Component8);
+var NotesList = function (_React$Component9) {
+    _inherits(NotesList, _React$Component9);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
@@ -867,8 +939,8 @@ function ExportGraphButton(props) {
     );
 }
 
-var Header = function (_React$Component9) {
-    _inherits(Header, _React$Component9);
+var Header = function (_React$Component10) {
+    _inherits(Header, _React$Component10);
 
     function Header(props) {
         _classCallCheck(this, Header);
@@ -906,17 +978,17 @@ var Header = function (_React$Component9) {
     return Header;
 }(React.Component);
 
-var ProjectsSidebarButton = function (_React$Component10) {
-    _inherits(ProjectsSidebarButton, _React$Component10);
+var ProjectsSidebarButton = function (_React$Component11) {
+    _inherits(ProjectsSidebarButton, _React$Component11);
 
     function ProjectsSidebarButton(props) {
         _classCallCheck(this, ProjectsSidebarButton);
 
-        var _this17 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
 
-        _this17.openProjectsTab = _this17.openProjectsTab.bind(_this17);
-        _this17.closeProjectsTab = _this17.closeProjectsTab.bind(_this17);
-        return _this17;
+        _this20.openProjectsTab = _this20.openProjectsTab.bind(_this20);
+        _this20.closeProjectsTab = _this20.closeProjectsTab.bind(_this20);
+        return _this20;
     }
 
     _createClass(ProjectsSidebarButton, [{

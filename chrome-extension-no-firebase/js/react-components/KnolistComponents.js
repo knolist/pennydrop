@@ -5,6 +5,15 @@
  * are in the README
  */
 
+// Helper global function for title case
+function titleCase(str) {
+    str = str.toLowerCase().split(' ');
+    for (let i = 0; i < str.length; i++) {
+        str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+    }
+    return str.join(' ');
+}
+
 // Wrapper for all the components in the page
 class KnolistComponents extends React.Component {
     constructor(props) {
@@ -47,14 +56,6 @@ class KnolistComponents extends React.Component {
                 }
             }
         }
-    }
-
-    titleCase(str) {
-        str = str.toLowerCase().split(' ');
-        for (let i = 0; i < str.length; i++) {
-            str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
-        }
-        return str.join(' ');
     }
 
     // Calls graph.js function to pull the graph from the Chrome storage
@@ -283,7 +284,7 @@ class KnolistComponents extends React.Component {
         const curProject = this.state.graph.curProject;
         return (
             <div>
-                <Header projectName={this.titleCase(curProject)} refresh={this.getDataFromServer}
+                <Header projectName={titleCase(curProject)} refresh={this.getDataFromServer}
                         showProjectsSidebar={this.state.showProjectsSidebar}
                         switchShowProjectsSidebar={this.switchShowProjectsSidebar}/>
                 <div className="main-body">
@@ -292,7 +293,7 @@ class KnolistComponents extends React.Component {
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph"/>
-                    <ProjectsSidebar/>
+                    <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                                  graph={this.state.graph}
                                  switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
@@ -317,10 +318,51 @@ class ProjectsSidebar extends React.Component {
         return (
             <div id="projects-sidebar" className="sidebar">
                 <h1 id="sidebar-title">Your Projects</h1>
+                <div id="sidebar-content">
+                    {Object.keys(this.props.graph).map(project => <ProjectItem key={project} graph={this.props.graph}
+                                                                               project={project}
+                                                                               refresh={this.props.refresh}/>)}
+                </div>
             </div>
         );
     }
 }
+
+// Visualization of a project in the sidebar, used to switch active projects
+class ProjectItem extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.switchProject = this.switchProject.bind(this);
+    }
+
+    switchProject() {
+        setCurrentProjectInGraph(this.props.project).then(() => this.props.refresh());
+    }
+
+    render() {
+        const project = this.props.project;
+        // Ignore properties that are not project names
+        if (project === "version" || project === "curProject") {
+            return null;
+        }
+        // Display the active project in a different color and show more info
+        if (project === this.props.graph.curProject) {
+            return (
+                <div className="project-item active-project" onClick={this.switchProject}>
+                    <h2>{titleCase(this.props.project)}</h2>
+                </div>
+            );
+        }
+        // Display other projects
+        return (
+            <div className="project-item" onClick={this.switchProject}>
+                <h2>{titleCase(this.props.project)}</h2>
+            </div>
+        );
+    }
+}
+
 
 // Form that allows the user to manually add nodes
 class NewNodeForm extends React.Component {

@@ -11,12 +11,12 @@ const CUR_VERSION_NUM = 1;
 
 /**
  * Creates graph with default project.
- * @returns {{default: {}, curProject: string, version: *}} the graph with an empty default project
+ * @returns {{Default: {}, curProject: string, version: *}} the graph with an empty default project
  */
 createNewGraph = () => {
     return {
-        "default": {},
-        "curProject": "default",
+        "Default": {},
+        "curProject": "Default",
         "version": CUR_VERSION_NUM
     };
 };
@@ -245,6 +245,7 @@ deleteProjectFromGraph = async (projectName) => {
  * Creates new project and sets current project to this new project.
  * @param projectName
  */
+// TODO make sure that you can't create projects named curProject or overwrite an existing project
 createNewProjectInGraph = async (projectName) => {
     let graph = await getGraphFromDisk();
     graph[projectName] = {};

@@ -11,6 +11,7 @@
     --bright-turquoise: #34f5c5;
     --dark-blue: #2f455c;
     --sidebar-background: #326697;
+    --active-project-background: #3e87cc;
 }
 
 #graph {
@@ -136,8 +137,9 @@ input[type=url] {
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
 }
 
-.sidebar p, .sidebar h1 {
+.sidebar p, .sidebar h1, .project-item {
     color: white;
+    font-family: "Product Sans", sans-serif;
 }
 
 #sidebar-title {
@@ -146,10 +148,17 @@ input[type=url] {
     text-align: center;
     position: absolute;
     width: 400px;
-    padding: 10px 0;
+    padding: 10px 0 10.8px 0;
     border-style: none none solid none;
     border-bottom-color: black;
     background-color: var(--dark-blue);
+}
+
+#sidebar-content {
+    border-style: none none none solid;
+    border-bottom-color: black;
+    height: 100%;
+    margin-top: 50px;
 }
 
 /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
@@ -180,4 +189,24 @@ input[type=url] {
 #close-sidebar-btn {
     height: 70%;
     margin: 5px;
+}
+
+.project-item {
+    height: 50px;
+    border-style: none none solid none;
+    border-bottom-color: black;
+}
+
+.project-item:hover {
+    background-color: var(--active-project-background);
+    cursor: pointer;
+}
+
+.project-item h2 {
+    margin: 0;
+    padding: 14px;
+}
+
+.active-project {
+    background-color: var(--active-project-background);
 }
