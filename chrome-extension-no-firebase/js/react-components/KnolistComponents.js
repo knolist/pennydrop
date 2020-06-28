@@ -316,7 +316,7 @@ class ProjectsSidebar extends React.Component {
     render() {
         return (
             <div id="projects-sidebar" className="sidebar">
-                <p>Test</p>
+                <h1 id="sidebar-title">Your Projects</h1>
             </div>
         );
     }

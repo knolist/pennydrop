@@ -10,6 +10,7 @@
     --java-color: #21d0b2;
     --bright-turquoise: #34f5c5;
     --dark-blue: #2f455c;
+    --sidebar-background: #326697;
 }
 
 #graph {
@@ -130,14 +131,25 @@ input[type=url] {
     z-index: 1; /* Stay on top */
     top: 0;
     right: 0;
-    background-color: var(--dark-blue);
+    background-color: var(--sidebar-background);
     overflow-x: hidden; /* Disable horizontal scroll */
-    padding-top: 60px; /* Place content 60px from the top */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
 }
 
-.sidebar p {
+.sidebar p, .sidebar h1 {
     color: white;
+}
+
+#sidebar-title {
+    max-height: 50px;
+    margin: 0;
+    text-align: center;
+    position: absolute;
+    width: 400px;
+    padding: 10px 0;
+    border-style: none none solid none;
+    border-bottom-color: black;
+    background-color: var(--dark-blue);
 }
 
 /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */

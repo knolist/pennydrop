@@ -400,9 +400,9 @@ var ProjectsSidebar = function (_React$Component2) {
                 'div',
                 { id: 'projects-sidebar', className: 'sidebar' },
                 React.createElement(
-                    'p',
-                    null,
-                    'Test'
+                    'h1',
+                    { id: 'sidebar-title' },
+                    'Your Projects'
                 )
             );
         }
