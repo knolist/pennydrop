@@ -565,7 +565,6 @@ var ProjectItem = function (_React$Component4) {
         value: function deleteProject() {
             var _this12 = this;
 
-            console.log(this.props.project);
             deleteProjectFromGraph(this.props.project).then(function () {
                 return _this12.props.refresh();
             });
@@ -587,6 +586,11 @@ var ProjectItem = function (_React$Component4) {
                         'h2',
                         null,
                         this.props.project
+                    ),
+                    React.createElement(
+                        'button',
+                        { className: 'button new-project-button delete-project-button', onClick: this.deleteProject },
+                        React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
                     )
                 );
             }
@@ -601,7 +605,7 @@ var ProjectItem = function (_React$Component4) {
                 ),
                 React.createElement(
                     'button',
-                    { className: 'button new-project-button', onClick: this.deleteProject },
+                    { className: 'button new-project-button delete-project-button', onClick: this.deleteProject },
                     React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
                 )
             );

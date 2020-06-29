@@ -242,7 +242,7 @@ deleteProjectFromGraph = async (projectName) => {
         const keys = Object.keys(graph);
         for (let index in keys) {
             // Ensure valid key (not one of the reserved options
-            if (keys[index] !== "version" && keys[index !== "curProject"]) {
+            if (keys[index] !== "version" && keys[index] !== "curProject") {
                 graph["curProject"] = keys[index];
                 break;
             }

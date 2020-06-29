@@ -438,6 +438,9 @@ class ProjectItem extends React.Component {
             return (
                 <div className="project-item active-project" onClick={this.switchProject}>
                     <h2>{this.props.project}</h2>
+                    <button className="button new-project-button delete-project-button" onClick={this.deleteProject}>
+                        <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
+                    </button>
                 </div>
             );
         }
@@ -445,7 +448,7 @@ class ProjectItem extends React.Component {
         return (
             <div className="project-item" onClick={this.switchProject}>
                 <h2>{this.props.project}</h2>
-                <button className="button new-project-button" onClick={this.deleteProject}>
+                <button className="button new-project-button delete-project-button" onClick={this.deleteProject}>
                     <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
                 </button>
             </div>
