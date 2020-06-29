@@ -63,8 +63,9 @@ body {
     width: 40px;
     border: 2px solid var(--java-color);
     transition: 0.3s;
-    box-shadow: black;
     border-radius: 4px;
+    outline: none;
+    padding: 6px;
 }
 
 .button:hover {
@@ -99,10 +100,7 @@ body {
 
 /* The Close Button */
 .close-modal {
-    color: black;
     float: right;
-    font-size: 30px;
-    font-weight: bold;
 }
 
 li {
@@ -142,16 +140,21 @@ input[type=url] {
     font-family: "Product Sans", sans-serif;
 }
 
-#sidebar-title {
+#sidebar-header {
     max-height: 50px;
     margin: 0;
     text-align: center;
     position: absolute;
     width: 400px;
-    padding: 10px 0 10.8px 0;
     border-style: none none solid none;
     border-bottom-color: black;
     background-color: var(--dark-blue);
+    display: flex;
+}
+
+#sidebar-title {
+    margin: 0;
+    padding: 10px 100px;
 }
 
 #sidebar-content {
@@ -178,6 +181,11 @@ input[type=url] {
     transition: 0.5s;
     background-color: var(--dark-blue);
     outline: none;
+    cursor: pointer;
+}
+
+#projects-sidebar-btn:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
 #projects-sidebar-btn p {
@@ -193,8 +201,8 @@ input[type=url] {
 
 .project-item {
     height: 50px;
-    border-style: none none solid none;
-    border-bottom-color: black;
+    /*border-style: none none solid none;*/
+    /*border-bottom-color: black;*/
 }
 
 .project-item:hover {
@@ -209,4 +217,44 @@ input[type=url] {
 
 .active-project {
     background-color: var(--active-project-background);
+}
+
+.new-project-button {
+    background-color: var(--active-project-background);
+    border: var(--sidebar-background);
+    position: absolute;
+    margin: 5px 0;
+    right: 22px;
+}
+
+.new-project-form-area {
+    padding: 14px 0 14px 14px;
+    position: absolute;
+    width: 400px;
+}
+
+/* Avoid color change for the new project form */
+.new-project-form-area:hover{
+    background-color: var(--sidebar-background);
+    cursor: default;
+}
+
+.new-project-form-area input[type="text"] {
+    background-color: transparent;
+    color: white;
+    padding: 10px;
+    font-family: "Product Sans", sans-serif;
+    font-size: 18px;
+    font-weight: bolder;
+    border-style: none none solid none;
+    border-bottom-color: gray;
+    border-width: 1px;
+    outline: none;
+}
+
+.create-project-button {
+    color: white;
+    width: auto;
+    font-weight: bold;
+    right: 42px;
 }

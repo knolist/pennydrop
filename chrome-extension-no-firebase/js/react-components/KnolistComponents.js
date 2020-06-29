@@ -312,17 +312,70 @@ class KnolistComponents extends React.Component {
 class ProjectsSidebar extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            showNewProjectForm: false
+        };
+
+        this.switchShowNewProjectForm = this.switchShowNewProjectForm.bind(this);
+    }
+
+    switchShowNewProjectForm() {
+        this.setState({showNewProjectForm: !this.state.showNewProjectForm});
     }
 
     render() {
         return (
             <div id="projects-sidebar" className="sidebar">
-                <h1 id="sidebar-title">Your Projects</h1>
+                <div id="sidebar-header">
+                    <h1 id="sidebar-title">Your Projects</h1>
+                    <button className="button new-project-button" onClick={this.switchShowNewProjectForm}>
+                        <img src="../../images/new-icon.png" alt="New" style={{width: "100%"}}/>
+                    </button>
+                </div>
                 <div id="sidebar-content">
                     {Object.keys(this.props.graph).map(project => <ProjectItem key={project} graph={this.props.graph}
                                                                                project={project}
                                                                                refresh={this.props.refresh}/>)}
+                    <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
+                                    switchForm={this.switchShowNewProjectForm}/>
                 </div>
+            </div>
+        );
+    }
+}
+
+// Form to create a new project
+class NewProjectForm extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event) {
+        // Prevent page from reloading
+        event.preventDefault();
+
+        // TODO Data validation
+        createNewProjectInGraph(event.target.newProjectTitle.value).then(() => this.props.refresh());
+
+        // Reset entry and close form
+        event.target.reset();
+        this.props.switchForm();
+    }
+
+    render() {
+        let style = {display: "none"};
+        if (this.props.showNewProjectForm) {
+            style = {display: "block"};
+        }
+        return (
+            <div style={style} className="project-item new-project-form-area">
+                <form id="new-project-form" onSubmit={this.handleSubmit}>
+                    <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project"/>
+                    <button className="button new-project-button create-project-button">Create</button>
+                </form>
             </div>
         );
     }
@@ -399,7 +452,9 @@ class NewNodeForm extends React.Component {
         return (
             <div className="modal" style={style}>
                 <div className="modal-content">
-                    <button className="close-modal button" onClick={this.closeForm}>&times;</button>
+                    <button className="close-modal button" onClick={this.closeForm}>
+                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                    </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
                         <label htmlFor="url">Page URL</label><br/>
@@ -463,7 +518,9 @@ class PageView extends React.Component {
                         Notes
                     </button>
                     <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.resetSelectedNode}>&times;</button>
+                            onClick={this.props.resetSelectedNode}>
+                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                    </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
@@ -502,7 +559,9 @@ class ExportView extends React.Component {
             <div id="page-view" className="modal">
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.resetDisplayExport}>&times;</button>
+                            onClick={this.props.resetDisplayExport}>
+                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                    </button>
                     <h1>Export for Bibliography</h1>
                     <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
                 </div>
@@ -643,7 +702,7 @@ class ProjectsSidebarButton extends React.Component {
     render() {
         if (this.props.showSidebar) {
             return <button id="projects-sidebar-btn" onClick={this.closeProjectsTab}>
-                <img src="../../images/close-icon.png" alt="Close" id="close-sidebar-btn"/>
+                <img src="../../images/close-icon-white.png" alt="Close" id="close-sidebar-btn"/>
             </button>
         }
         return (
