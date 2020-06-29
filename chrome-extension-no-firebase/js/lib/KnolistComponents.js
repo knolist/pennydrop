@@ -352,7 +352,7 @@ var KnolistComponents = function (_React$Component) {
             return React.createElement(
                 'div',
                 null,
-                React.createElement(Header, { projectName: titleCase(curProject), refresh: this.getDataFromServer,
+                React.createElement(Header, { projectName: curProject, refresh: this.getDataFromServer,
                     showProjectsSidebar: this.state.showProjectsSidebar,
                     switchShowProjectsSidebar: this.switchShowProjectsSidebar }),
                 React.createElement(
@@ -404,6 +404,7 @@ var ProjectsSidebar = function (_React$Component2) {
     _createClass(ProjectsSidebar, [{
         key: 'switchShowNewProjectForm',
         value: function switchShowNewProjectForm() {
+            document.getElementById("new-project-form").reset();
             this.setState({ showNewProjectForm: !this.state.showNewProjectForm });
         }
     }, {
@@ -422,11 +423,8 @@ var ProjectsSidebar = function (_React$Component2) {
                         { id: 'sidebar-title' },
                         'Your Projects'
                     ),
-                    React.createElement(
-                        'button',
-                        { className: 'button new-project-button', onClick: this.switchShowNewProjectForm },
-                        React.createElement('img', { src: '../../images/new-icon.png', alt: 'New', style: { width: "100%" } })
-                    )
+                    React.createElement(NewProjectButton, { showForm: this.state.showNewProjectForm,
+                        switchShowForm: this.switchShowNewProjectForm })
                 ),
                 React.createElement(
                     'div',
@@ -437,7 +435,8 @@ var ProjectsSidebar = function (_React$Component2) {
                             refresh: _this7.props.refresh });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
-                        switchForm: this.switchShowNewProjectForm })
+                        switchForm: this.switchShowNewProjectForm,
+                        projects: Object.keys(this.props.graph) })
                 )
             );
         }
@@ -446,8 +445,26 @@ var ProjectsSidebar = function (_React$Component2) {
     return ProjectsSidebar;
 }(React.Component);
 
-// Form to create a new project
+function NewProjectButton(props) {
+    if (props.showForm) {
+        return React.createElement(
+            'button',
+            { className: 'button new-project-button cancel-new-project', onClick: props.switchShowForm },
+            React.createElement(
+                'p',
+                null,
+                'Cancel'
+            )
+        );
+    }
+    return React.createElement(
+        'button',
+        { className: 'button new-project-button', onClick: props.switchShowForm },
+        React.createElement('img', { src: '../../images/new-icon.png', alt: 'New', style: { width: "100%" } })
+    );
+}
 
+// Form to create a new project
 
 var NewProjectForm = function (_React$Component3) {
     _inherits(NewProjectForm, _React$Component3);
@@ -469,14 +486,24 @@ var NewProjectForm = function (_React$Component3) {
             // Prevent page from reloading
             event.preventDefault();
 
-            // TODO Data validation
-            createNewProjectInGraph(event.target.newProjectTitle.value).then(function () {
-                return _this9.props.refresh();
-            });
+            // Data validation
+            var title = event.target.newProjectTitle.value;
+            if (title === "curProject" || title === "version") {
+                // Invalid options (reserved words for the graph structure)
+                alert(event.target.newProjectTitle.value + " is not a valid title.");
+            } else if (this.props.projects.includes(title)) {
+                // Don't allow repeated project names
+                alert("You already have a project called " + title + ".");
+            } else {
+                // Valid name
+                createNewProjectInGraph(title).then(function () {
+                    return _this9.props.refresh();
+                });
 
-            // Reset entry and close form
-            event.target.reset();
-            this.props.switchForm();
+                // Reset entry and close form
+                event.target.reset();
+                this.props.switchForm();
+            }
         }
     }, {
         key: 'render',
@@ -545,7 +572,7 @@ var ProjectItem = function (_React$Component4) {
                     React.createElement(
                         'h2',
                         null,
-                        titleCase(this.props.project)
+                        this.props.project
                     )
                 );
             }
@@ -556,7 +583,7 @@ var ProjectItem = function (_React$Component4) {
                 React.createElement(
                     'h2',
                     null,
-                    titleCase(this.props.project)
+                    this.props.project
                 )
             );
         }

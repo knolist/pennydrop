@@ -284,7 +284,7 @@ class KnolistComponents extends React.Component {
         const curProject = this.state.graph.curProject;
         return (
             <div>
-                <Header projectName={titleCase(curProject)} refresh={this.getDataFromServer}
+                <Header projectName={curProject} refresh={this.getDataFromServer}
                         showProjectsSidebar={this.state.showProjectsSidebar}
                         switchShowProjectsSidebar={this.switchShowProjectsSidebar}/>
                 <div className="main-body">
@@ -321,6 +321,7 @@ class ProjectsSidebar extends React.Component {
     }
 
     switchShowNewProjectForm() {
+        document.getElementById("new-project-form").reset();
         this.setState({showNewProjectForm: !this.state.showNewProjectForm});
     }
 
@@ -329,20 +330,35 @@ class ProjectsSidebar extends React.Component {
             <div id="projects-sidebar" className="sidebar">
                 <div id="sidebar-header">
                     <h1 id="sidebar-title">Your Projects</h1>
-                    <button className="button new-project-button" onClick={this.switchShowNewProjectForm}>
-                        <img src="../../images/new-icon.png" alt="New" style={{width: "100%"}}/>
-                    </button>
+                    <NewProjectButton showForm={this.state.showNewProjectForm}
+                                      switchShowForm={this.switchShowNewProjectForm}/>
                 </div>
                 <div id="sidebar-content">
                     {Object.keys(this.props.graph).map(project => <ProjectItem key={project} graph={this.props.graph}
                                                                                project={project}
                                                                                refresh={this.props.refresh}/>)}
                     <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
-                                    switchForm={this.switchShowNewProjectForm}/>
+                                    switchForm={this.switchShowNewProjectForm}
+                                    projects={Object.keys(this.props.graph)}/>
                 </div>
             </div>
         );
     }
+}
+
+function NewProjectButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button new-project-button cancel-new-project" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button new-project-button" onClick={props.switchShowForm}>
+            <img src="../../images/new-icon.png" alt="New" style={{width: "100%"}}/>
+        </button>
+    );
 }
 
 // Form to create a new project
@@ -357,12 +373,22 @@ class NewProjectForm extends React.Component {
         // Prevent page from reloading
         event.preventDefault();
 
-        // TODO Data validation
-        createNewProjectInGraph(event.target.newProjectTitle.value).then(() => this.props.refresh());
+        // Data validation
+        const title = event.target.newProjectTitle.value;
+        if (title === "curProject" || title === "version") {
+            // Invalid options (reserved words for the graph structure)
+            alert(event.target.newProjectTitle.value + " is not a valid title.");
+        } else if (this.props.projects.includes(title)) {
+            // Don't allow repeated project names
+            alert("You already have a project called " + title + ".");
+        } else {
+            // Valid name
+            createNewProjectInGraph(title).then(() => this.props.refresh());
 
-        // Reset entry and close form
-        event.target.reset();
-        this.props.switchForm();
+            // Reset entry and close form
+            event.target.reset();
+            this.props.switchForm();
+        }
     }
 
     render() {
@@ -403,14 +429,14 @@ class ProjectItem extends React.Component {
         if (project === this.props.graph.curProject) {
             return (
                 <div className="project-item active-project" onClick={this.switchProject}>
-                    <h2>{titleCase(this.props.project)}</h2>
+                    <h2>{this.props.project}</h2>
                 </div>
             );
         }
         // Display other projects
         return (
             <div className="project-item" onClick={this.switchProject}>
-                <h2>{titleCase(this.props.project)}</h2>
+                <h2>{this.props.project}</h2>
             </div>
         );
     }

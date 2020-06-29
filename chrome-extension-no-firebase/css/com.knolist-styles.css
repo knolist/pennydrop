@@ -258,3 +258,11 @@ input[type=url] {
     font-weight: bold;
     right: 42px;
 }
+
+.cancel-new-project {
+    width: auto;
+}
+
+.cancel-new-project p {
+    margin: 0;
+}
