@@ -201,6 +201,7 @@ input[type=url] {
 
 .project-item {
     height: 50px;
+    display: flex;
     /*border-style: none none solid none;*/
     /*border-bottom-color: black;*/
 }

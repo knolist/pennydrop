@@ -544,16 +544,30 @@ var ProjectItem = function (_React$Component4) {
         var _this10 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
         _this10.switchProject = _this10.switchProject.bind(_this10);
+        _this10.deleteProject = _this10.deleteProject.bind(_this10);
         return _this10;
     }
 
     _createClass(ProjectItem, [{
         key: 'switchProject',
-        value: function switchProject() {
+        value: function switchProject(data) {
             var _this11 = this;
 
-            setCurrentProjectInGraph(this.props.project).then(function () {
-                return _this11.props.refresh();
+            // Only switch if the click was on the item, not on the delete button
+            if (data.target.className === "project-item") {
+                setCurrentProjectInGraph(this.props.project).then(function () {
+                    return _this11.props.refresh();
+                });
+            }
+        }
+    }, {
+        key: 'deleteProject',
+        value: function deleteProject() {
+            var _this12 = this;
+
+            console.log(this.props.project);
+            deleteProjectFromGraph(this.props.project).then(function () {
+                return _this12.props.refresh();
             });
         }
     }, {
@@ -584,6 +598,11 @@ var ProjectItem = function (_React$Component4) {
                     'h2',
                     null,
                     this.props.project
+                ),
+                React.createElement(
+                    'button',
+                    { className: 'button new-project-button', onClick: this.deleteProject },
+                    React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
                 )
             );
         }
@@ -601,26 +620,26 @@ var NewNodeForm = function (_React$Component5) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this12 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this13 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this12.handleSubmit = _this12.handleSubmit.bind(_this12);
-        _this12.closeForm = _this12.closeForm.bind(_this12);
-        return _this12;
+        _this13.handleSubmit = _this13.handleSubmit.bind(_this13);
+        _this13.closeForm = _this13.closeForm.bind(_this13);
+        return _this13;
     }
 
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this13 = this;
+            var _this14 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this13.props.nodeData.x, _this13.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this14.props.nodeData.x, _this14.props.nodeData.y);
                 }).then(function () {
-                    return _this13.props.refresh();
+                    return _this14.props.refresh();
                 });
             });
 
@@ -690,24 +709,24 @@ var PageView = function (_React$Component6) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this14 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this15 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this14.deleteNode = _this14.deleteNode.bind(_this14);
-        _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
-        _this14.closeForm = _this14.closeForm.bind(_this14);
-        return _this14;
+        _this15.deleteNode = _this15.deleteNode.bind(_this15);
+        _this15.handleSubmit = _this15.handleSubmit.bind(_this15);
+        _this15.closeForm = _this15.closeForm.bind(_this15);
+        return _this15;
     }
 
     _createClass(PageView, [{
         key: 'deleteNode',
         value: function deleteNode() {
-            var _this15 = this;
+            var _this16 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this15.props.resetSelectedNode();
-                _this15.props.refresh();
+                _this16.props.resetSelectedNode();
+                _this16.props.refresh();
             });
         }
     }, {
@@ -796,7 +815,7 @@ var PageView = function (_React$Component6) {
                         React.createElement(
                             'button',
                             { className: 'button', onClick: this.deleteNode },
-                            React.createElement('img', { src: '../../images/delete-icon.png', alt: 'Delete node', style: { width: "100%" } })
+                            React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'Delete node', style: { width: "100%" } })
                         )
                     )
                 )
@@ -878,7 +897,7 @@ var ListURL = function (_React$Component8) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this18 = this;
+            var _this19 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -898,9 +917,9 @@ var ListURL = function (_React$Component8) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this18.props.graph[url].source,
+                                    { href: _this19.props.graph[url].source,
                                         target: '_blank' },
-                                    _this18.props.graph[url].title
+                                    _this19.props.graph[url].title
                                 )
                             );
                         })
@@ -924,9 +943,9 @@ var ListURL = function (_React$Component8) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this18.props.graph[url].source,
+                                    { href: _this19.props.graph[url].source,
                                         target: '_blank' },
-                                    _this18.props.graph[url].title
+                                    _this19.props.graph[url].title
                                 )
                             );
                         })
@@ -1093,11 +1112,11 @@ var ProjectsSidebarButton = function (_React$Component12) {
     function ProjectsSidebarButton(props) {
         _classCallCheck(this, ProjectsSidebarButton);
 
-        var _this22 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
+        var _this23 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
 
-        _this22.openProjectsTab = _this22.openProjectsTab.bind(_this22);
-        _this22.closeProjectsTab = _this22.closeProjectsTab.bind(_this22);
-        return _this22;
+        _this23.openProjectsTab = _this23.openProjectsTab.bind(_this23);
+        _this23.closeProjectsTab = _this23.closeProjectsTab.bind(_this23);
+        return _this23;
     }
 
     _createClass(ProjectsSidebarButton, [{

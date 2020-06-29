@@ -413,10 +413,18 @@ class ProjectItem extends React.Component {
         super(props);
 
         this.switchProject = this.switchProject.bind(this);
+        this.deleteProject = this.deleteProject.bind(this);
     }
 
-    switchProject() {
-        setCurrentProjectInGraph(this.props.project).then(() => this.props.refresh());
+    switchProject(data) {
+        // Only switch if the click was on the item, not on the delete button
+        if(data.target.className === "project-item") {
+            setCurrentProjectInGraph(this.props.project).then(() => this.props.refresh());
+        }
+    }
+
+    deleteProject() {
+        deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
     }
 
     render() {
@@ -437,6 +445,9 @@ class ProjectItem extends React.Component {
         return (
             <div className="project-item" onClick={this.switchProject}>
                 <h2>{this.props.project}</h2>
+                <button className="button new-project-button" onClick={this.deleteProject}>
+                    <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
+                </button>
             </div>
         );
     }
@@ -562,7 +573,7 @@ class PageView extends React.Component {
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon.png" alt="Delete node" style={{width: "100%"}}/>
+                            <img src="../../images/delete-icon-black.png" alt="Delete node" style={{width: "100%"}}/>
                         </button>
                     </div>
                 </div>

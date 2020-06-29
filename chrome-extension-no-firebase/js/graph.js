@@ -236,6 +236,22 @@ addNotesToItemInGraph = (item, notes, graph) => {
 deleteProjectFromGraph = async (projectName) => {
     let graph = await getGraphFromDisk();
     delete graph[projectName];
+    // Change curProject if it was deleted
+    if (graph["curProject"] === projectName) {
+        // Find first available project to set as current
+        const keys = Object.keys(graph);
+        for (let index in keys) {
+            // Ensure valid key (not one of the reserved options
+            if (keys[index] !== "version" && keys[index !== "curProject"]) {
+                graph["curProject"] = keys[index];
+                break;
+            }
+        }
+    }
+    // If there are no more available options, create a new project called default and set it to curProject
+    if (graph["curProject"] === projectName) {
+        await createNewProjectInGraph("default");
+    }
 
     // Save to disk
     saveGraphToDisk(graph);
@@ -245,7 +261,6 @@ deleteProjectFromGraph = async (projectName) => {
  * Creates new project and sets current project to this new project.
  * @param projectName
  */
-// TODO make sure that you can't create projects named curProject or overwrite an existing project
 createNewProjectInGraph = async (projectName) => {
     let graph = await getGraphFromDisk();
     graph[projectName] = {};
