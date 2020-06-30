@@ -117,11 +117,10 @@ addEdgeToGraph = async (fromURL, toURL) => {
  * @param item the idem to be added/updated
  * @param previousURL the URL of this node's parent in the graph
  */
-updateItemInGraph = async (item, previousURL) => {
+addItemToGraph = async (item, previousURL) => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
-    console.log(graph);
     // Create item if it doesn't exist
     if (graph[item["source"]] === undefined) {
         graph[item["source"]] = item;
@@ -132,11 +131,12 @@ updateItemInGraph = async (item, previousURL) => {
         // Initialize with null positions (will be updated on render of the network
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
-    }
-    // Add edge to graph
-    if (previousURL !== "" && graph[previousURL] !== undefined) {
-        graph[item["source"]]["prevURLs"].push(previousURL);
-        graph[previousURL]["nextURLs"].push(item["source"]);
+
+        // Add edge to graph
+        if (previousURL !== "" && graph[previousURL] !== undefined) {
+            graph[item["source"]]["prevURLs"].push(previousURL);
+            graph[previousURL]["nextURLs"].push(item["source"]);
+        }
     }
 
     // Save to disk

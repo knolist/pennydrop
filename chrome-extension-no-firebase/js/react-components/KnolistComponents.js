@@ -526,7 +526,7 @@ class NewNodeForm extends React.Component {
         // Call from server
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
-            updateItemInGraph(item, "").then(() => {
+            addItemToGraph(item, "").then(() => {
                 return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
             }).then(() => this.props.refresh());
         });

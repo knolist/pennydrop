@@ -730,7 +730,7 @@ var NewNodeForm = function (_React$Component6) {
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
-                updateItemInGraph(item, "").then(function () {
+                addItemToGraph(item, "").then(function () {
                     return updatePositionOfNode(item.source, _this15.props.nodeData.x, _this15.props.nodeData.y);
                 }).then(function () {
                     return _this15.props.refresh();

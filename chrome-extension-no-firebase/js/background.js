@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener(function (message, _sender, _sendResponse) 
     if (message.url !== undefined && trackBrowsing) {
         const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
         $.getJSON(contextExtractionURL, (item) => {
-            updateItemInGraph(item, message.prevURL);
+            addItemToGraph(item, message.prevURL);
         });
     } else if (message.command === "reset") {
         resetCurProjectInGraph();
