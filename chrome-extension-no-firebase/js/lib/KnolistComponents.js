@@ -647,7 +647,7 @@ var ProjectItem = function (_React$Component5) {
             var _this13 = this;
 
             // Only switch if the click was on the item, not on the delete button
-            if (data.target.className === "project-item") {
+            if (data.target.className === "project-item" || data.target.tagName === "H2") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
                     return _this13.props.refresh();
                 });

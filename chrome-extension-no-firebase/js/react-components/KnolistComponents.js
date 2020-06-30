@@ -473,14 +473,13 @@ class ProjectItem extends React.Component {
 
     switchProject(data) {
         // Only switch if the click was on the item, not on the delete button
-        if (data.target.className === "project-item") {
+        if (data.target.className === "project-item" || data.target.tagName === "H2") {
             setCurrentProjectInGraph(this.props.project).then(() => this.props.refresh());
         }
     }
 
     deleteProject() {
         this.props.setForDeletion(this.props.project);
-        // deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
     }
 
     render() {
