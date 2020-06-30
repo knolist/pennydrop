@@ -325,11 +325,14 @@ var KnolistComponents = function (_React$Component) {
 
             // Update positions after dragging node
             network.on("dragEnd", function () {
-                var url = network.getSelectedNodes()[0];
-                var position = network.getPosition(url);
-                var x = position.x;
-                var y = position.y;
-                updatePositionOfNode(url, x, y);
+                // Only update positions if there is a selected node
+                if (network.getSelectedNodes().length !== 0) {
+                    var url = network.getSelectedNodes()[0];
+                    var position = network.getPosition(url);
+                    var x = position.x;
+                    var y = position.y;
+                    updatePositionOfNode(url, x, y);
+                }
                 // this.setState({autoRefresh: true});
             });
 
@@ -657,7 +660,6 @@ var ProjectItem = function (_React$Component5) {
         key: 'deleteProject',
         value: function deleteProject() {
             this.props.setForDeletion(this.props.project);
-            // deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
         }
     }, {
         key: 'render',

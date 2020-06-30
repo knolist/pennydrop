@@ -260,11 +260,14 @@ class KnolistComponents extends React.Component {
 
         // Update positions after dragging node
         network.on("dragEnd", () => {
-            const url = network.getSelectedNodes()[0];
-            const position = network.getPosition(url);
-            const x = position.x;
-            const y = position.y;
-            updatePositionOfNode(url, x, y);
+            // Only update positions if there is a selected node
+            if (network.getSelectedNodes().length !== 0) {
+                const url = network.getSelectedNodes()[0];
+                const position = network.getPosition(url);
+                const x = position.x;
+                const y = position.y;
+                updatePositionOfNode(url, x, y);
+            }
             // this.setState({autoRefresh: true});
         });
 
