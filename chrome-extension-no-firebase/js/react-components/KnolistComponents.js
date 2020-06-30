@@ -400,7 +400,7 @@ class NewProjectForm extends React.Component {
             <div style={style} className="project-item new-project-form-area">
                 <form id="new-project-form" onSubmit={this.handleSubmit}>
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project"/>
-                    <button className="button new-project-button create-project-button">Create</button>
+                    <button className="button create-project-button">Create</button>
                 </form>
             </div>
         );
@@ -438,7 +438,7 @@ class ProjectItem extends React.Component {
             return (
                 <div className="project-item active-project" onClick={this.switchProject}>
                     <h2>{this.props.project}</h2>
-                    <button className="button new-project-button delete-project-button" onClick={this.deleteProject}>
+                    <button className="button delete-project-button" onClick={this.deleteProject}>
                         <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
                     </button>
                 </div>
@@ -448,7 +448,7 @@ class ProjectItem extends React.Component {
         return (
             <div className="project-item" onClick={this.switchProject}>
                 <h2>{this.props.project}</h2>
-                <button className="button new-project-button delete-project-button" onClick={this.deleteProject}>
+                <button className="button delete-project-button" onClick={this.deleteProject}>
                     <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
                 </button>
             </div>

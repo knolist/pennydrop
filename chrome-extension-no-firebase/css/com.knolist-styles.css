@@ -133,6 +133,7 @@ input[type=url] {
     background-color: var(--sidebar-background);
     overflow-x: hidden; /* Disable horizontal scroll */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidebar */
+    border-radius: 7px 0 0 7px;
 }
 
 .sidebar p, .sidebar h1, .project-item {
@@ -201,6 +202,8 @@ input[type=url] {
 
 .project-item {
     height: 50px;
+    width: 400px;
+    position: relative;
     display: flex;
     /*border-style: none none solid none;*/
     /*border-bottom-color: black;*/
@@ -216,22 +219,30 @@ input[type=url] {
     padding: 14px;
 }
 
+.delete-project-button {
+    border: 1px solid black;
+    background-color: var(--active-project-background);
+    margin: 5px 0;
+    position: absolute;
+    right: 23px;
+}
+
 .active-project {
     background-color: var(--active-project-background);
 }
 
 .new-project-button {
     background-color: var(--active-project-background);
-    border: var(--sidebar-background);
+    border: 1px solid var(--sidebar-background);
     position: absolute;
     margin: 5px 0;
     right: 22px;
 }
 
 .new-project-form-area {
-    padding: 14px 0 14px 14px;
+    padding: 0 0 0 14px;
     position: absolute;
-    width: 400px;
+    width: 386px;
 }
 
 /* Avoid color change for the new project form */
@@ -254,10 +265,14 @@ input[type=url] {
 }
 
 .create-project-button {
+    border: 1px solid black;
+    background-color: var(--active-project-background);
+    margin: 5px 0;
     color: white;
     width: auto;
     font-weight: bold;
-    right: 42px;
+    position: absolute;
+    right: 23px;
 }
 
 .cancel-new-project {
@@ -266,8 +281,4 @@ input[type=url] {
 
 .cancel-new-project p {
     margin: 0;
-}
-
-.delete-project-button {
-    border: 1px solid black;
 }

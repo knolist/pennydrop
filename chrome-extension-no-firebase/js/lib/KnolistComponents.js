@@ -521,7 +521,7 @@ var NewProjectForm = function (_React$Component3) {
                     React.createElement('input', { type: 'text', id: 'newProjectTitle', name: 'newProjectTitle', defaultValue: 'New Project' }),
                     React.createElement(
                         'button',
-                        { className: 'button new-project-button create-project-button' },
+                        { className: 'button create-project-button' },
                         'Create'
                     )
                 )
@@ -589,7 +589,7 @@ var ProjectItem = function (_React$Component4) {
                     ),
                     React.createElement(
                         'button',
-                        { className: 'button new-project-button delete-project-button', onClick: this.deleteProject },
+                        { className: 'button delete-project-button', onClick: this.deleteProject },
                         React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
                     )
                 );
@@ -605,7 +605,7 @@ var ProjectItem = function (_React$Component4) {
                 ),
                 React.createElement(
                     'button',
-                    { className: 'button new-project-button delete-project-button', onClick: this.deleteProject },
+                    { className: 'button delete-project-button', onClick: this.deleteProject },
                     React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
                 )
             );
