@@ -47,7 +47,7 @@ class KnolistComponents extends React.Component {
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
-            if (event.target === document.getElementById("page-view")) {
+            if (event.target.classList.contains("modal")) {
                 if (this.state.selectedNode !== null) {
                     this.resetSelectedNode();
                 }
@@ -314,10 +314,21 @@ class ProjectsSidebar extends React.Component {
         super(props);
 
         this.state = {
-            showNewProjectForm: false
+            showNewProjectForm: false,
+            projectForDeletion: null
         };
 
         this.switchShowNewProjectForm = this.switchShowNewProjectForm.bind(this);
+        this.setProjectForDeletion = this.setProjectForDeletion.bind(this);
+        this.resetProjectForDeletion = this.resetProjectForDeletion.bind(this);
+    }
+
+    setProjectForDeletion(project) {
+        this.setState({projectForDeletion: project});
+    }
+
+    resetProjectForDeletion() {
+        this.setState({projectForDeletion: null});
     }
 
     switchShowNewProjectForm() {
@@ -336,16 +347,60 @@ class ProjectsSidebar extends React.Component {
                 <div id="sidebar-content">
                     {Object.keys(this.props.graph).map(project => <ProjectItem key={project} graph={this.props.graph}
                                                                                project={project}
-                                                                               refresh={this.props.refresh}/>)}
+                                                                               refresh={this.props.refresh}
+                                                                               setForDeletion={this.setProjectForDeletion}/>)}
                     <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
                                     switchForm={this.switchShowNewProjectForm}
                                     projects={Object.keys(this.props.graph)}/>
+                    <ConfirmProjectDeletionWindow project={this.state.projectForDeletion}
+                                                  resetForDeletion={this.resetProjectForDeletion}
+                                                  refresh={this.props.refresh}/>
                 </div>
             </div>
         );
     }
 }
 
+// Confirmation window before a project is deleted
+class ConfirmProjectDeletionWindow extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.deleteProject = this.deleteProject.bind(this);
+    }
+
+    deleteProject() {
+        this.props.resetForDeletion();
+        deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
+    }
+
+    render() {
+        if (this.props.project === null) {
+            return null;
+        }
+        return (
+            <div className="modal">
+                <div id="delete-confirmation-modal" className="modal-content">
+                    <img src="../../images/alert-icon-black.png" alt="Alert icon"
+                         style={{width: "30%", display: "block", marginLeft: "auto", marginRight: "auto"}}/>
+                    <h1>Are you sure you want to delete "{this.props.project}"?</h1>
+                    <h3>This action cannot be undone.</h3>
+                    <div style={{display: "flex", justifyContent: "space-between"}}>
+                        <button className="button confirmation-button" onClick={this.deleteProject}>
+                            Yes, delete it!
+                        </button>
+                        <button className="button confirmation-button" onClick={this.props.resetForDeletion}>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+}
+
+
+// Button used to open the "create project" form
 function NewProjectButton(props) {
     if (props.showForm) {
         return (
@@ -418,13 +473,14 @@ class ProjectItem extends React.Component {
 
     switchProject(data) {
         // Only switch if the click was on the item, not on the delete button
-        if(data.target.className === "project-item") {
+        if (data.target.className === "project-item") {
             setCurrentProjectInGraph(this.props.project).then(() => this.props.refresh());
         }
     }
 
     deleteProject() {
-        deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
+        this.props.setForDeletion(this.props.project);
+        // deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
     }
 
     render() {
@@ -596,7 +652,7 @@ class ExportView extends React.Component {
             return null;
         }
         return (
-            <div id="page-view" className="modal">
+            <div className="modal">
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.resetDisplayExport}>

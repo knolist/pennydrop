@@ -63,7 +63,7 @@ var KnolistComponents = function (_React$Component) {
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
-            if (event.target === document.getElementById("page-view")) {
+            if (event.target.classList.contains("modal")) {
                 if (_this.state.selectedNode !== null) {
                     _this.resetSelectedNode();
                 }
@@ -394,14 +394,27 @@ var ProjectsSidebar = function (_React$Component2) {
         var _this6 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
 
         _this6.state = {
-            showNewProjectForm: false
+            showNewProjectForm: false,
+            projectForDeletion: null
         };
 
         _this6.switchShowNewProjectForm = _this6.switchShowNewProjectForm.bind(_this6);
+        _this6.setProjectForDeletion = _this6.setProjectForDeletion.bind(_this6);
+        _this6.resetProjectForDeletion = _this6.resetProjectForDeletion.bind(_this6);
         return _this6;
     }
 
     _createClass(ProjectsSidebar, [{
+        key: 'setProjectForDeletion',
+        value: function setProjectForDeletion(project) {
+            this.setState({ projectForDeletion: project });
+        }
+    }, {
+        key: 'resetProjectForDeletion',
+        value: function resetProjectForDeletion() {
+            this.setState({ projectForDeletion: null });
+        }
+    }, {
         key: 'switchShowNewProjectForm',
         value: function switchShowNewProjectForm() {
             document.getElementById("new-project-form").reset();
@@ -432,11 +445,15 @@ var ProjectsSidebar = function (_React$Component2) {
                     Object.keys(this.props.graph).map(function (project) {
                         return React.createElement(ProjectItem, { key: project, graph: _this7.props.graph,
                             project: project,
-                            refresh: _this7.props.refresh });
+                            refresh: _this7.props.refresh,
+                            setForDeletion: _this7.setProjectForDeletion });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
-                        projects: Object.keys(this.props.graph) })
+                        projects: Object.keys(this.props.graph) }),
+                    React.createElement(ConfirmProjectDeletionWindow, { project: this.state.projectForDeletion,
+                        resetForDeletion: this.resetProjectForDeletion,
+                        refresh: this.props.refresh })
                 )
             );
         }
@@ -444,6 +461,82 @@ var ProjectsSidebar = function (_React$Component2) {
 
     return ProjectsSidebar;
 }(React.Component);
+
+// Confirmation window before a project is deleted
+
+
+var ConfirmProjectDeletionWindow = function (_React$Component3) {
+    _inherits(ConfirmProjectDeletionWindow, _React$Component3);
+
+    function ConfirmProjectDeletionWindow(props) {
+        _classCallCheck(this, ConfirmProjectDeletionWindow);
+
+        var _this8 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
+
+        _this8.deleteProject = _this8.deleteProject.bind(_this8);
+        return _this8;
+    }
+
+    _createClass(ConfirmProjectDeletionWindow, [{
+        key: 'deleteProject',
+        value: function deleteProject() {
+            var _this9 = this;
+
+            this.props.resetForDeletion();
+            deleteProjectFromGraph(this.props.project).then(function () {
+                return _this9.props.refresh();
+            });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            if (this.props.project === null) {
+                return null;
+            }
+            return React.createElement(
+                'div',
+                { className: 'modal' },
+                React.createElement(
+                    'div',
+                    { id: 'delete-confirmation-modal', className: 'modal-content' },
+                    React.createElement('img', { src: '../../images/alert-icon-black.png', alt: 'Alert icon',
+                        style: { width: "30%", display: "block", marginLeft: "auto", marginRight: "auto" } }),
+                    React.createElement(
+                        'h1',
+                        null,
+                        'Are you sure you want to delete "',
+                        this.props.project,
+                        '"?'
+                    ),
+                    React.createElement(
+                        'h3',
+                        null,
+                        'This action cannot be undone.'
+                    ),
+                    React.createElement(
+                        'div',
+                        { style: { display: "flex", justifyContent: "space-between" } },
+                        React.createElement(
+                            'button',
+                            { className: 'button confirmation-button', onClick: this.deleteProject },
+                            'Yes, delete it!'
+                        ),
+                        React.createElement(
+                            'button',
+                            { className: 'button confirmation-button', onClick: this.props.resetForDeletion },
+                            'Cancel'
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return ConfirmProjectDeletionWindow;
+}(React.Component);
+
+// Button used to open the "create project" form
+
 
 function NewProjectButton(props) {
     if (props.showForm) {
@@ -466,22 +559,22 @@ function NewProjectButton(props) {
 
 // Form to create a new project
 
-var NewProjectForm = function (_React$Component3) {
-    _inherits(NewProjectForm, _React$Component3);
+var NewProjectForm = function (_React$Component4) {
+    _inherits(NewProjectForm, _React$Component4);
 
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this8 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this8.handleSubmit = _this8.handleSubmit.bind(_this8);
-        return _this8;
+        _this10.handleSubmit = _this10.handleSubmit.bind(_this10);
+        return _this10;
     }
 
     _createClass(NewProjectForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this9 = this;
+            var _this11 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -497,7 +590,7 @@ var NewProjectForm = function (_React$Component3) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this9.props.refresh();
+                    return _this11.props.refresh();
                 });
 
                 // Reset entry and close form
@@ -535,39 +628,36 @@ var NewProjectForm = function (_React$Component3) {
 // Visualization of a project in the sidebar, used to switch active projects
 
 
-var ProjectItem = function (_React$Component4) {
-    _inherits(ProjectItem, _React$Component4);
+var ProjectItem = function (_React$Component5) {
+    _inherits(ProjectItem, _React$Component5);
 
     function ProjectItem(props) {
         _classCallCheck(this, ProjectItem);
 
-        var _this10 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
-        _this10.switchProject = _this10.switchProject.bind(_this10);
-        _this10.deleteProject = _this10.deleteProject.bind(_this10);
-        return _this10;
+        _this12.switchProject = _this12.switchProject.bind(_this12);
+        _this12.deleteProject = _this12.deleteProject.bind(_this12);
+        return _this12;
     }
 
     _createClass(ProjectItem, [{
         key: 'switchProject',
         value: function switchProject(data) {
-            var _this11 = this;
+            var _this13 = this;
 
             // Only switch if the click was on the item, not on the delete button
             if (data.target.className === "project-item") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
-                    return _this11.props.refresh();
+                    return _this13.props.refresh();
                 });
             }
         }
     }, {
         key: 'deleteProject',
         value: function deleteProject() {
-            var _this12 = this;
-
-            deleteProjectFromGraph(this.props.project).then(function () {
-                return _this12.props.refresh();
-            });
+            this.props.setForDeletion(this.props.project);
+            // deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
         }
     }, {
         key: 'render',
@@ -618,32 +708,32 @@ var ProjectItem = function (_React$Component4) {
 // Form that allows the user to manually add nodes
 
 
-var NewNodeForm = function (_React$Component5) {
-    _inherits(NewNodeForm, _React$Component5);
+var NewNodeForm = function (_React$Component6) {
+    _inherits(NewNodeForm, _React$Component6);
 
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this13 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this13.handleSubmit = _this13.handleSubmit.bind(_this13);
-        _this13.closeForm = _this13.closeForm.bind(_this13);
-        return _this13;
+        _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
+        _this14.closeForm = _this14.closeForm.bind(_this14);
+        return _this14;
     }
 
     _createClass(NewNodeForm, [{
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            var _this14 = this;
+            var _this15 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
             var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 updateItemInGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this14.props.nodeData.x, _this14.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this15.props.nodeData.x, _this15.props.nodeData.y);
                 }).then(function () {
-                    return _this14.props.refresh();
+                    return _this15.props.refresh();
                 });
             });
 
@@ -707,30 +797,30 @@ var NewNodeForm = function (_React$Component5) {
 // Detailed view of a specific node
 
 
-var PageView = function (_React$Component6) {
-    _inherits(PageView, _React$Component6);
+var PageView = function (_React$Component7) {
+    _inherits(PageView, _React$Component7);
 
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this15 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this16 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this15.deleteNode = _this15.deleteNode.bind(_this15);
-        _this15.handleSubmit = _this15.handleSubmit.bind(_this15);
-        _this15.closeForm = _this15.closeForm.bind(_this15);
-        return _this15;
+        _this16.deleteNode = _this16.deleteNode.bind(_this16);
+        _this16.handleSubmit = _this16.handleSubmit.bind(_this16);
+        _this16.closeForm = _this16.closeForm.bind(_this16);
+        return _this16;
     }
 
     _createClass(PageView, [{
         key: 'deleteNode',
         value: function deleteNode() {
-            var _this16 = this;
+            var _this17 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this16.props.resetSelectedNode();
-                _this16.props.refresh();
+                _this17.props.resetSelectedNode();
+                _this17.props.refresh();
             });
         }
     }, {
@@ -833,8 +923,8 @@ var PageView = function (_React$Component6) {
 // Bibliography export
 
 
-var ExportView = function (_React$Component7) {
-    _inherits(ExportView, _React$Component7);
+var ExportView = function (_React$Component8) {
+    _inherits(ExportView, _React$Component8);
 
     function ExportView(props) {
         _classCallCheck(this, ExportView);
@@ -850,7 +940,7 @@ var ExportView = function (_React$Component7) {
             }
             return React.createElement(
                 'div',
-                { id: 'page-view', className: 'modal' },
+                { className: 'modal' },
                 React.createElement(
                     'div',
                     { className: 'modal-content' },
@@ -889,8 +979,8 @@ var ExportView = function (_React$Component7) {
 // List of URLs in the detailed page view
 
 
-var ListURL = function (_React$Component8) {
-    _inherits(ListURL, _React$Component8);
+var ListURL = function (_React$Component9) {
+    _inherits(ListURL, _React$Component9);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -901,7 +991,7 @@ var ListURL = function (_React$Component8) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this19 = this;
+            var _this20 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -921,9 +1011,9 @@ var ListURL = function (_React$Component8) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this19.props.graph[url].source,
+                                    { href: _this20.props.graph[url].source,
                                         target: '_blank' },
-                                    _this19.props.graph[url].title
+                                    _this20.props.graph[url].title
                                 )
                             );
                         })
@@ -947,9 +1037,9 @@ var ListURL = function (_React$Component8) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this19.props.graph[url].source,
+                                    { href: _this20.props.graph[url].source,
                                         target: '_blank' },
-                                    _this19.props.graph[url].title
+                                    _this20.props.graph[url].title
                                 )
                             );
                         })
@@ -965,8 +1055,8 @@ var ListURL = function (_React$Component8) {
 // List of highlights in the detailed page view
 
 
-var HighlightsList = function (_React$Component9) {
-    _inherits(HighlightsList, _React$Component9);
+var HighlightsList = function (_React$Component10) {
+    _inherits(HighlightsList, _React$Component10);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -1010,8 +1100,8 @@ var HighlightsList = function (_React$Component9) {
     return HighlightsList;
 }(React.Component);
 
-var NotesList = function (_React$Component10) {
-    _inherits(NotesList, _React$Component10);
+var NotesList = function (_React$Component11) {
+    _inherits(NotesList, _React$Component11);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
@@ -1071,8 +1161,8 @@ function ExportGraphButton(props) {
     );
 }
 
-var Header = function (_React$Component11) {
-    _inherits(Header, _React$Component11);
+var Header = function (_React$Component12) {
+    _inherits(Header, _React$Component12);
 
     function Header(props) {
         _classCallCheck(this, Header);
@@ -1110,17 +1200,17 @@ var Header = function (_React$Component11) {
     return Header;
 }(React.Component);
 
-var ProjectsSidebarButton = function (_React$Component12) {
-    _inherits(ProjectsSidebarButton, _React$Component12);
+var ProjectsSidebarButton = function (_React$Component13) {
+    _inherits(ProjectsSidebarButton, _React$Component13);
 
     function ProjectsSidebarButton(props) {
         _classCallCheck(this, ProjectsSidebarButton);
 
-        var _this23 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
+        var _this24 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
 
-        _this23.openProjectsTab = _this23.openProjectsTab.bind(_this23);
-        _this23.closeProjectsTab = _this23.closeProjectsTab.bind(_this23);
-        return _this23;
+        _this24.openProjectsTab = _this24.openProjectsTab.bind(_this24);
+        _this24.closeProjectsTab = _this24.closeProjectsTab.bind(_this24);
+        return _this24;
     }
 
     _createClass(ProjectsSidebarButton, [{

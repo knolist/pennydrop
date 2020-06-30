@@ -66,6 +66,7 @@ body {
     border-radius: 4px;
     outline: none;
     padding: 6px;
+    font-family: "Product Sans", sans-serif;
 }
 
 .button:hover {
@@ -91,7 +92,7 @@ body {
 .modal-content {
     background-color: #fefefe;
     background-image: url("../images/background.jpg");
-    margin: 5% auto; /* 15% from the top and centered */
+    margin: 5% auto; /* 5% from the top and centered */
     padding: 20px;
     border: 2px solid var(--dark-blue);
     border-radius: 16px;
@@ -163,6 +164,7 @@ input[type=url] {
     border-bottom-color: black;
     height: 100%;
     margin-top: 50px;
+    box-shadow: -4px 0 10px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
 /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
@@ -270,7 +272,6 @@ input[type=url] {
     margin: 5px 0;
     color: white;
     width: auto;
-    font-weight: bold;
     position: absolute;
     right: 23px;
 }
@@ -281,4 +282,17 @@ input[type=url] {
 
 .cancel-new-project p {
     margin: 0;
+}
+
+#delete-confirmation-modal {
+    width: 400px;
+}
+
+#delete-confirmation-modal h1, #delete-confirmation-modal h3 {
+    color: black;
+    text-align: center;
+}
+
+.confirmation-button {
+    width: 45%;
 }
