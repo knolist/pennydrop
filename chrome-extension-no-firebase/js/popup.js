@@ -31,9 +31,9 @@ window.onload = setTrackingState;
 
 switchTracking = () => {
     if (document.getElementById("switch-tracking").checked) {
-        chrome.runtime.sendMessage({command: "start", project: "default"});
+        chrome.runtime.sendMessage({command: "start-tracking"});
     } else {
-        chrome.runtime.sendMessage({command: "stop"});
+        chrome.runtime.sendMessage({command: "stop-tracking"});
     }
 };
 

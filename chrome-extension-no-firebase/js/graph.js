@@ -121,6 +121,7 @@ updateItemInGraph = async (item, previousURL) => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
+    console.log(graph);
     // Create item if it doesn't exist
     if (graph[item["source"]] === undefined) {
         graph[item["source"]] = item;
