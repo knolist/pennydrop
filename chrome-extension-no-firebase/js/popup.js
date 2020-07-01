@@ -64,7 +64,7 @@ findSomethingSimilarButtonClicked = () => {
 createListeners = () => {
     // Button Listeners
     $( "#reset-button" ).click(resetButtonClicked);
-    $( "#notes-botton" ).click(notesButtonClicked);
+    $( "#notes-button" ).click(notesButtonClicked);
     $( "#full-website-button" ).click(viewFullWebsiteButtonClicked);
     $( "#find-something-similar-button" ).click(findSomethingSimilarButtonClicked);
     $( "#switch-tracking" ).click(switchTracking)
