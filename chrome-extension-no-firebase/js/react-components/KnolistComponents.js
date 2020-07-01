@@ -744,6 +744,7 @@ class HighlightsList extends React.Component {
     }
 }
 
+// List of notes in the detailed page view
 class NotesList extends React.Component {
     constructor(props) {
         super(props);

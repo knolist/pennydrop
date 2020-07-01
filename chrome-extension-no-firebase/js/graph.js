@@ -313,17 +313,6 @@ getPrevURLsFromURL = async (url) => {
 };
 
 /**
- * Returns the list of highlights of a given node in the current project.
- * @param url the url of the node
- * @returns {*} array of the highlights
- */
-getHighlightsFromURL = async (url) => {
-    let graph = await getGraphFromDisk();
-    const project = graph["curProject"];
-    return graph[project][url]["highlights"];
-};
-
-/**
  * Returns a list of all titles of nodes in the current project.
  * @returns {[]|Array} the array of titles
  */
@@ -341,9 +330,26 @@ getTitlesFromGraph = async () => {
     return output;
 };
 
-getNotesFromURL = (graph, url) => {
-  project = graph["curProject"];
-  return graph[project][url]["notes"];
+/**
+ * Returns the list of highlights of a given node in the current project.
+ * @param url the url of the node
+ * @returns {*} array of the highlights
+ */
+getHighlightsFromURL = async (url) => {
+    let graph = await getGraphFromDisk();
+    const project = graph["curProject"];
+    return graph[project][url]["highlights"];
+};
+
+/**
+ * Returns a list of al notes associated with a certain url in the current project.
+ * @param url the url to extract notes from
+ * @returns {Promise<*>} a promise that resolves to the list of notes
+ */
+getNotesFromURL = async (url) => {
+    let graph = await getGraphFromDisk();
+    const project = graph["curProject"];
+    return graph[project][url]["notes"];
 };
 
 /**

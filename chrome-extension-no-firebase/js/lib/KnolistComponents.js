@@ -820,6 +820,7 @@ var PageView = function (_React$Component7) {
 
         _this16.deleteNode = _this16.deleteNode.bind(_this16);
         _this16.handleSubmit = _this16.handleSubmit.bind(_this16);
+        _this16.addNote = _this16.addNote.bind(_this16);
         _this16.closeForm = _this16.closeForm.bind(_this16);
         return _this16;
     }
@@ -839,19 +840,39 @@ var PageView = function (_React$Component7) {
     }, {
         key: 'handleSubmit',
         value: function handleSubmit(event) {
-            event.preventDefault();
-            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph);
-            // saveGraphToDisk(this.props.graph);
+            var _this18 = this;
 
-            this.props.switchForm();
-            setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+            event.preventDefault();
+            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
+                _this18.props.refresh();
+            });
+
             event.target.reset(); // Clear the form entries
+        }
+
+        // Change the content of the notes button based on if the notes form is showing ("Add Note" <-> "Close")
+
+    }, {
+        key: 'addNote',
+        value: function addNote() {
+            this.props.switchForm();
+
+            if (document.getElementById("add-note").innerHTML === "Add Note") {
+                document.getElementById("add-note").innerHTML = "Close";
+            } else {
+                document.getElementById("add-note").innerHTML = "Add Note";
+            }
         }
     }, {
         key: 'closeForm',
         value: function closeForm() {
             document.getElementById("new-notes-form").reset();
-            this.props.switchForm();
+            this.props.resetSelectedNode();
+
+            // Only call switchForm if the notes form is showing
+            if (this.props.showNewNotesForm) {
+                this.props.switchForm();
+            }
         }
     }, {
         key: 'render',
@@ -874,13 +895,8 @@ var PageView = function (_React$Component7) {
                     { className: 'modal-content' },
                     React.createElement(
                         'button',
-                        { className: 'button', id: 'add-notes', onClick: this.props.switchForm, style: { width: 100 } },
-                        'Add Notes'
-                    ),
-                    React.createElement(
-                        'button',
                         { className: 'close-modal button', id: 'close-page-view',
-                            onClick: this.props.resetSelectedNode },
+                            onClick: this.closeForm },
                         React.createElement('img', { src: '../../images/close-icon-black.png', alt: 'Close', style: { width: "100%" } })
                     ),
                     React.createElement(
@@ -906,9 +922,14 @@ var PageView = function (_React$Component7) {
                         React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
                         React.createElement(
                             'button',
-                            { className: 'button', style: { width: 100 } },
-                            '+'
+                            { className: 'button' },
+                            'Add'
                         )
+                    ),
+                    React.createElement(
+                        'button',
+                        { className: 'button', id: 'add-note', onClick: this.addNote, style: { width: 100 } },
+                        'Add Note'
                     ),
                     React.createElement(
                         'div',
@@ -1004,7 +1025,7 @@ var ListURL = function (_React$Component9) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this20 = this;
+            var _this21 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -1024,9 +1045,9 @@ var ListURL = function (_React$Component9) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this20.props.graph[url].source,
+                                    { href: _this21.props.graph[url].source,
                                         target: '_blank' },
-                                    _this20.props.graph[url].title
+                                    _this21.props.graph[url].title
                                 )
                             );
                         })
@@ -1050,9 +1071,9 @@ var ListURL = function (_React$Component9) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this20.props.graph[url].source,
+                                    { href: _this21.props.graph[url].source,
                                         target: '_blank' },
-                                    _this20.props.graph[url].title
+                                    _this21.props.graph[url].title
                                 )
                             );
                         })
