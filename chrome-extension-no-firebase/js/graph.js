@@ -216,18 +216,25 @@ resetCurProjectInGraph = async () => {
     saveGraphToDisk(graph);
 };
 
-addNotesToItemInGraph = (item, notes, graph) => {
-  // project = graph["curProject"];
-  // graph = graph[project];
-  // Create item if it doesn't exist
-  if (graph[item["source"]] === undefined) {
-    graph[item["source"]] = item;
-    graph[item["source"]]["prevURLs"] = [];
-    graph[item["source"]]["nextURLs"] = [];
-    graph[item["source"]]["highlights"] = [];
-    graph[item["source"]]["notes"] = [];
-  }
-  graph[item["source"]]["notes"].push(notes);
+addNotesToItemInGraph = async (item, notes) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+    // Create item if it doesn't exist
+    if (graph[item["source"]] === undefined) {
+        graph[item["source"]] = item;
+        graph[item["source"]]["prevURLs"] = [];
+        graph[item["source"]]["nextURLs"] = [];
+        graph[item["source"]]["highlights"] = [];
+        graph[item["source"]]["notes"] = [];
+        // Initialize with null positions (will be updated on render of the network
+        graph[item["source"]]["x"] = null;
+        graph[item["source"]]["y"] = null;
+    }
+    graph[item["source"]]["notes"].push(notes);
+
+    // Save to disk
+    saveGraphToDisk(graphData);
 };
 
 /**
