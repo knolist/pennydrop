@@ -227,6 +227,9 @@ addNotesToItemInGraph = (item, notes, graph) => {
     graph[item["source"]]["notes"] = [];
   }
   graph[item["source"]]["notes"].push(notes);
+
+  // Save to disk
+  saveGraphToDisk(graphData);
 };
 
 /**
