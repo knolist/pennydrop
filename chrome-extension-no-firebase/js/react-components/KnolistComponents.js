@@ -43,7 +43,8 @@ class KnolistComponents extends React.Component {
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
-        this.switchShowProjectsSidebar = this.switchShowProjectsSidebar.bind(this);
+        this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
+        this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -140,8 +141,16 @@ class KnolistComponents extends React.Component {
         this.setState({showNewNotesForm: !this.state.showNewNotesForm});
     }
 
-    switchShowProjectsSidebar() {
-        this.setState({showProjectsSidebar: !this.state.showProjectsSidebar});
+    openProjectsSidebar() {
+        this.setState({showProjectsSidebar: true});
+        document.getElementById("projects-sidebar").style.width = "400px";
+        document.getElementById("projects-sidebar-btn").style.right = "400px";
+    }
+
+    closeProjectsSidebar() {
+        this.setState({showProjectsSidebar: false});
+        document.getElementById("projects-sidebar").style.width = "0";
+        document.getElementById("projects-sidebar-btn").style.right = "0";
     }
 
     /* Helper function to generate position for nodes
@@ -289,7 +298,8 @@ class KnolistComponents extends React.Component {
             <div>
                 <Header projectName={curProject} refresh={this.getDataFromServer}
                         showProjectsSidebar={this.state.showProjectsSidebar}
-                        switchShowProjectsSidebar={this.switchShowProjectsSidebar}/>
+                        openProjectsSidebar={this.openProjectsSidebar}
+                        closeProjectsSidebar={this.closeProjectsSidebar}/>
                 <div className="main-body">
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
@@ -770,7 +780,8 @@ class Header extends React.Component {
                 </div>
                 <div>
                     <ProjectsSidebarButton showSidebar={this.props.showProjectsSidebar}
-                                           switchShowSidebar={this.props.switchShowProjectsSidebar}/>
+                                           openProjectsSidebar={this.props.openProjectsSidebar}
+                                           closeProjectsSidebar={this.props.closeProjectsSidebar}/>
                 </div>
             </div>
         );
@@ -780,31 +791,16 @@ class Header extends React.Component {
 class ProjectsSidebarButton extends React.Component {
     constructor(props) {
         super(props);
-
-        this.openProjectsTab = this.openProjectsTab.bind(this);
-        this.closeProjectsTab = this.closeProjectsTab.bind(this);
-    }
-
-    openProjectsTab() {
-        this.props.switchShowSidebar();
-        document.getElementById("projects-sidebar").style.width = "400px";
-        document.getElementById("projects-sidebar-btn").style.right = "400px";
-    }
-
-    closeProjectsTab() {
-        this.props.switchShowSidebar();
-        document.getElementById("projects-sidebar").style.width = "0";
-        document.getElementById("projects-sidebar-btn").style.right = "0";
     }
 
     render() {
         if (this.props.showSidebar) {
-            return <button id="projects-sidebar-btn" onClick={this.closeProjectsTab}>
+            return <button id="projects-sidebar-btn" onClick={this.props.closeProjectsSidebar}>
                 <img src="../../images/close-icon-white.png" alt="Close" id="close-sidebar-btn"/>
             </button>
         }
         return (
-            <button id="projects-sidebar-btn" onClick={this.openProjectsTab}>
+            <button id="projects-sidebar-btn" onClick={this.props.openProjectsSidebar}>
                 <p>Your projects</p>
             </button>
         );

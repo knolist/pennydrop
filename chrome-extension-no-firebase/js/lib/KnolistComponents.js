@@ -59,7 +59,10 @@ var KnolistComponents = function (_React$Component) {
         _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
         _this.resetSelectedNode = _this.resetSelectedNode.bind(_this);
         _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
-        _this.switchShowProjectsSidebar = _this.switchShowProjectsSidebar.bind(_this);
+        _this.openProjectsSidebar = _this.openProjectsSidebar.bind(_this);
+        _this.closeProjectsSidebar = _this.closeProjectsSidebar.bind(_this);
+
+        // TODO set up listener to close projects sidebar when clicking outside
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
@@ -184,9 +187,18 @@ var KnolistComponents = function (_React$Component) {
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
         }
     }, {
-        key: 'switchShowProjectsSidebar',
-        value: function switchShowProjectsSidebar() {
-            this.setState({ showProjectsSidebar: !this.state.showProjectsSidebar });
+        key: 'openProjectsSidebar',
+        value: function openProjectsSidebar() {
+            this.setState({ showProjectsSidebar: true });
+            document.getElementById("projects-sidebar").style.width = "400px";
+            document.getElementById("projects-sidebar-btn").style.right = "400px";
+        }
+    }, {
+        key: 'closeProjectsSidebar',
+        value: function closeProjectsSidebar() {
+            this.setState({ showProjectsSidebar: false });
+            document.getElementById("projects-sidebar").style.width = "0";
+            document.getElementById("projects-sidebar-btn").style.right = "0";
         }
 
         /* Helper function to generate position for nodes
@@ -357,7 +369,8 @@ var KnolistComponents = function (_React$Component) {
                 null,
                 React.createElement(Header, { projectName: curProject, refresh: this.getDataFromServer,
                     showProjectsSidebar: this.state.showProjectsSidebar,
-                    switchShowProjectsSidebar: this.switchShowProjectsSidebar }),
+                    openProjectsSidebar: this.openProjectsSidebar,
+                    closeProjectsSidebar: this.closeProjectsSidebar }),
                 React.createElement(
                     'div',
                     { className: 'main-body' },
@@ -1193,7 +1206,8 @@ var Header = function (_React$Component12) {
                     'div',
                     null,
                     React.createElement(ProjectsSidebarButton, { showSidebar: this.props.showProjectsSidebar,
-                        switchShowSidebar: this.props.switchShowProjectsSidebar })
+                        openProjectsSidebar: this.props.openProjectsSidebar,
+                        closeProjectsSidebar: this.props.closeProjectsSidebar })
                 )
             );
         }
@@ -1208,40 +1222,22 @@ var ProjectsSidebarButton = function (_React$Component13) {
     function ProjectsSidebarButton(props) {
         _classCallCheck(this, ProjectsSidebarButton);
 
-        var _this24 = _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
-
-        _this24.openProjectsTab = _this24.openProjectsTab.bind(_this24);
-        _this24.closeProjectsTab = _this24.closeProjectsTab.bind(_this24);
-        return _this24;
+        return _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
     }
 
     _createClass(ProjectsSidebarButton, [{
-        key: 'openProjectsTab',
-        value: function openProjectsTab() {
-            this.props.switchShowSidebar();
-            document.getElementById("projects-sidebar").style.width = "400px";
-            document.getElementById("projects-sidebar-btn").style.right = "400px";
-        }
-    }, {
-        key: 'closeProjectsTab',
-        value: function closeProjectsTab() {
-            this.props.switchShowSidebar();
-            document.getElementById("projects-sidebar").style.width = "0";
-            document.getElementById("projects-sidebar-btn").style.right = "0";
-        }
-    }, {
         key: 'render',
         value: function render() {
             if (this.props.showSidebar) {
                 return React.createElement(
                     'button',
-                    { id: 'projects-sidebar-btn', onClick: this.closeProjectsTab },
+                    { id: 'projects-sidebar-btn', onClick: this.props.closeProjectsSidebar },
                     React.createElement('img', { src: '../../images/close-icon-white.png', alt: 'Close', id: 'close-sidebar-btn' })
                 );
             }
             return React.createElement(
                 'button',
-                { id: 'projects-sidebar-btn', onClick: this.openProjectsTab },
+                { id: 'projects-sidebar-btn', onClick: this.props.openProjectsSidebar },
                 React.createElement(
                     'p',
                     null,
