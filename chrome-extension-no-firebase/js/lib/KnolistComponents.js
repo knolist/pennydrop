@@ -1202,7 +1202,7 @@ var Header = function (_React$Component12) {
                 ),
                 React.createElement(
                     'div',
-                    null,
+                    { style: { width: "70px" } },
                     React.createElement(ProjectsSidebarButton, { showSidebar: this.props.showProjectsSidebar,
                         openProjectsSidebar: this.props.openProjectsSidebar,
                         closeProjectsSidebar: this.props.closeProjectsSidebar })

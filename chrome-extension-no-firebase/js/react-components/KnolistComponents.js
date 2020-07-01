@@ -778,7 +778,7 @@ class Header extends React.Component {
                 <div>
                     <h5 id="project-name">Current Project: {this.props.projectName}</h5>
                 </div>
-                <div>
+                <div style={{width: "70px"}}>
                     <ProjectsSidebarButton showSidebar={this.props.showProjectsSidebar}
                                            openProjectsSidebar={this.props.openProjectsSidebar}
                                            closeProjectsSidebar={this.props.closeProjectsSidebar}/>

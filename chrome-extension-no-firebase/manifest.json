@@ -12,7 +12,7 @@
   ],
   "browser_action": {
     "default_title": "Knolist",
-    "default_popup": "html/popup.html"
+    "default_popup": "html/popup-old.html"
   },
   "background": {
     "page": "html/background.html"
