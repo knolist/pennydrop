@@ -93,6 +93,12 @@ removeEdgeFromGraph = async (fromURL, toURL) => {
     saveGraphToDisk(graphData);
 };
 
+/**
+ * Creates an edge in the current project
+ * @param fromURL the url of the start point of the edge
+ * @param toURL the url of the end point of the edge
+ * @returns {Promise<void>} empty promise, ignored
+ */
 addEdgeToGraph = async (fromURL, toURL) => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
@@ -160,6 +166,11 @@ updatePositionOfNode = async (url, x, y) => {
     saveGraphToDisk(graphData);
 };
 
+/**
+ * Used to update all positions at once
+ * @param positions a list of all the positions of each node in the project
+ * @returns {Promise<void>} empty promise, ignored
+ */
 updateAllPositionsInGraph = async (positions) => {
     // Get graph from storage
     let graphData = await getGraphFromDisk();
@@ -216,6 +227,12 @@ resetCurProjectInGraph = async () => {
     saveGraphToDisk(graph);
 };
 
+/**
+ * Add notes to a certain item in the current project
+ * @param item the item to receive the notes
+ * @param notes the notes to be added
+ * @returns {Promise<void>} empty promise, ignored
+ */
 addNotesToItemInGraph = async (item, notes) => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
