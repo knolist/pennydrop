@@ -40,14 +40,8 @@ var PopupComponents = function (_React$Component) {
 function Header() {
     return React.createElement(
         "div",
-        { className: "header" },
-        React.createElement(
-            "h2",
-            { title: "Knolist Header" },
-            "Knolist"
-        ),
-        React.createElement("img", { src: "../../images/icon_main.PNG", alt: "Simply Easy Learning", width: "35px",
-            height: "35px" })
+        { className: "header", style: { height: "35px" } },
+        React.createElement("img", { src: "../../images/horizontal_main.PNG", alt: "Knolist", style: { height: "100%" } })
     );
 }
 

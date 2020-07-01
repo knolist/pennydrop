@@ -22,10 +22,8 @@ class PopupComponents extends React.Component {
 
 function Header() {
     return (
-        <div className="header">
-            <h2 title="Knolist Header">Knolist</h2>
-            <img src="../../images/icon_main.PNG" alt="Simply Easy Learning" width="35px"
-                 height="35px"/>
+        <div className="header" style={{height: "35px"}}>
+            <img src="../../images/horizontal_main.PNG" alt="Knolist" style={{height: "100%"}}/>
         </div>
     );
 }
