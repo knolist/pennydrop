@@ -369,6 +369,7 @@ class PageView extends React.Component {
         super(props);
         this.deleteNode = this.deleteNode.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.addNote = this.addNote.bind(this);
         this.closeForm = this.closeForm.bind(this);
     }
 
@@ -383,17 +384,35 @@ class PageView extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
-        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph)
-        // saveGraphToDisk(this.props.graph);
+        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
+            this.props.refresh();
+        });
 
-        this.props.switchForm();
-        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
+        // Does this do anything?
+        // this.props.refresh();
+        // setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
         event.target.reset(); // Clear the form entries
+    }
+
+    // Change the content of the notes button based on if the notes form is showing ("Add Note" <-> "Close")
+    addNote() {
+        this.props.switchForm();
+
+        if(document.getElementById("add-note").innerHTML == "Add Note") {
+            document.getElementById("add-note").innerHTML = "Close";
+        } else {
+            document.getElementById("add-note").innerHTML = "Add Note";
+        }
     }
 
     closeForm() {
         document.getElementById("new-notes-form").reset();
-        this.props.switchForm();
+        this.props.resetSelectedNode();
+
+        // Only call switchForm if the notes form is showing
+        if(this.props.showNewNotesForm) {
+            this.props.switchForm();
+        }
     }
 
     render() {
@@ -408,9 +427,8 @@ class PageView extends React.Component {
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="button" id="add-notes" onClick={this.props.switchForm} style={{width: 100}}>Add Notes</button>
                     <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.resetSelectedNode}>&times;</button>
+                            onClick={this.closeForm}>&times;</button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
@@ -418,8 +436,9 @@ class PageView extends React.Component {
                     <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
                         <label htmlFor="notes">Notes:</label><br/>
                         <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
-                        <button className="button" style={{width: 100}}>+</button>
+                        <button className="button">Add</button>
                     </form>
+                    <button className="button" id="add-note" onClick={this.addNote} style={{width: 100}}>Add Note</button>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
