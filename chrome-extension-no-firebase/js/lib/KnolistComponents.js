@@ -62,8 +62,6 @@ var KnolistComponents = function (_React$Component) {
         _this.openProjectsSidebar = _this.openProjectsSidebar.bind(_this);
         _this.closeProjectsSidebar = _this.closeProjectsSidebar.bind(_this);
 
-        // TODO set up listener to close projects sidebar when clicking outside
-
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
             if (event.target.classList.contains("modal")) {
