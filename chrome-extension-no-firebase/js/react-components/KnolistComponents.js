@@ -118,7 +118,6 @@ class KnolistComponents extends React.Component {
             this.switchShowNewNotesForm();
         }
 
-        document.getElementById("new-notes-form").reset();
         this.resetSelectedNode();
     }
 
@@ -170,6 +169,7 @@ class KnolistComponents extends React.Component {
     }
 
     switchShowNewNotesForm() {
+        document.getElementById("new-notes-form").reset();
         this.setState({showNewNotesForm: !this.state.showNewNotesForm});
     }
 

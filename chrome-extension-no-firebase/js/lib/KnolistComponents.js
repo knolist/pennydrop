@@ -152,7 +152,6 @@ var KnolistComponents = function (_React$Component) {
                 this.switchShowNewNotesForm();
             }
 
-            document.getElementById("new-notes-form").reset();
             this.resetSelectedNode();
         }
 
@@ -217,6 +216,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: 'switchShowNewNotesForm',
         value: function switchShowNewNotesForm() {
+            document.getElementById("new-notes-form").reset();
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
         }
     }, {
