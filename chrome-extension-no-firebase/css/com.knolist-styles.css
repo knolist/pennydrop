@@ -276,6 +276,12 @@ input[type=url] {
     right: 23px;
 }
 
+.add-note-button {
+    margin: 10px;
+    height: 30px;
+    width: 30px;
+}
+
 .cancel-new-project {
     width: auto;
 }

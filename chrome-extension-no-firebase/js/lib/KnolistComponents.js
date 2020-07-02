@@ -61,12 +61,13 @@ var KnolistComponents = function (_React$Component) {
         _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
         _this.openProjectsSidebar = _this.openProjectsSidebar.bind(_this);
         _this.closeProjectsSidebar = _this.closeProjectsSidebar.bind(_this);
+        _this.closePageView = _this.closePageView.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
             if (event.target.classList.contains("modal")) {
                 if (_this.state.selectedNode !== null) {
-                    _this.resetSelectedNode();
+                    _this.closePageView();
                 }
                 if (_this.state.displayExport) {
                     _this.resetDisplayExport();
@@ -118,6 +119,17 @@ var KnolistComponents = function (_React$Component) {
         key: 'resetSelectedNode',
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
+        }
+    }, {
+        key: 'closePageView',
+        value: function closePageView() {
+            // Only call switchForm if the notes form is showing
+            if (this.state.showNewNotesForm) {
+                this.switchShowNewNotesForm();
+            }
+
+            document.getElementById("new-notes-form").reset();
+            this.resetSelectedNode();
         }
 
         // Set selected node for the detailed view
@@ -385,7 +397,8 @@ var KnolistComponents = function (_React$Component) {
                         switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
                         resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer,
-                        showNewNotesForm: this.state.showNewNotesForm, switchForm: this.switchShowNewNotesForm }),
+                        closePageView: this.closePageView, showNewNotesForm: this.state.showNewNotesForm,
+                        switchShowNewNotesForm: this.switchShowNewNotesForm }),
                     React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
                         resetDisplayExport: this.resetDisplayExport })
                 )
@@ -567,7 +580,7 @@ function NewProjectButton(props) {
     return React.createElement(
         'button',
         { className: 'button new-project-button', onClick: props.switchShowForm },
-        React.createElement('img', { src: '../../images/new-icon.png', alt: 'New', style: { width: "100%" } })
+        React.createElement('img', { src: '../../images/add-icon-white.png', alt: 'New', style: { width: "100%" } })
     );
 }
 
@@ -819,9 +832,6 @@ var PageView = function (_React$Component7) {
         var _this16 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
         _this16.deleteNode = _this16.deleteNode.bind(_this16);
-        _this16.handleSubmit = _this16.handleSubmit.bind(_this16);
-        _this16.addNote = _this16.addNote.bind(_this16);
-        _this16.closeForm = _this16.closeForm.bind(_this16);
         return _this16;
     }
 
@@ -838,53 +848,10 @@ var PageView = function (_React$Component7) {
             });
         }
     }, {
-        key: 'handleSubmit',
-        value: function handleSubmit(event) {
-            var _this18 = this;
-
-            event.preventDefault();
-            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this18.props.refresh();
-            });
-
-            event.target.reset(); // Clear the form entries
-        }
-
-        // Change the content of the notes button based on if the notes form is showing ("Add Note" <-> "Close")
-
-    }, {
-        key: 'addNote',
-        value: function addNote() {
-            this.props.switchForm();
-
-            if (document.getElementById("add-note").innerHTML === "Add Note") {
-                document.getElementById("add-note").innerHTML = "Close";
-            } else {
-                document.getElementById("add-note").innerHTML = "Add Note";
-            }
-        }
-    }, {
-        key: 'closeForm',
-        value: function closeForm() {
-            document.getElementById("new-notes-form").reset();
-            this.props.resetSelectedNode();
-
-            // Only call switchForm if the notes form is showing
-            if (this.props.showNewNotesForm) {
-                this.props.switchForm();
-            }
-        }
-    }, {
         key: 'render',
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
-            }
-
-            // Hidden form for adding notes
-            var style = { display: "none" };
-            if (this.props.showNewNotesForm) {
-                style = { display: "block" };
             }
 
             return React.createElement(
@@ -896,7 +863,7 @@ var PageView = function (_React$Component7) {
                     React.createElement(
                         'button',
                         { className: 'close-modal button', id: 'close-page-view',
-                            onClick: this.closeForm },
+                            onClick: this.props.closePageView },
                         React.createElement('img', { src: '../../images/close-icon-black.png', alt: 'Close', style: { width: "100%" } })
                     ),
                     React.createElement(
@@ -909,28 +876,8 @@ var PageView = function (_React$Component7) {
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
-                    React.createElement(NotesList, { notes: this.props.selectedNode.notes }),
-                    React.createElement(
-                        'form',
-                        { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
-                        React.createElement(
-                            'label',
-                            { htmlFor: 'notes' },
-                            'Notes:'
-                        ),
-                        React.createElement('br', null),
-                        React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
-                        React.createElement(
-                            'button',
-                            { className: 'button' },
-                            'Add'
-                        )
-                    ),
-                    React.createElement(
-                        'button',
-                        { className: 'button', id: 'add-note', onClick: this.addNote, style: { width: 100 } },
-                        'Add Note'
-                    ),
+                    React.createElement(NotesList, { notes: this.props.selectedNode.notes, showNewNotesForm: this.props.showNewNotesForm,
+                        switchShowNewNotesForm: this.props.switchShowNewNotesForm }),
                     React.createElement(
                         'div',
                         { style: { display: "flex" } },
@@ -1025,7 +972,7 @@ var ListURL = function (_React$Component9) {
     _createClass(ListURL, [{
         key: 'render',
         value: function render() {
-            var _this21 = this;
+            var _this20 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -1045,9 +992,9 @@ var ListURL = function (_React$Component9) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this21.props.graph[url].source,
+                                    { href: _this20.props.graph[url].source,
                                         target: '_blank' },
-                                    _this21.props.graph[url].title
+                                    _this20.props.graph[url].title
                                 )
                             );
                         })
@@ -1071,9 +1018,9 @@ var ListURL = function (_React$Component9) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this21.props.graph[url].source,
+                                    { href: _this20.props.graph[url].source,
                                         target: '_blank' },
-                                    _this21.props.graph[url].title
+                                    _this20.props.graph[url].title
                                 )
                             );
                         })
@@ -1134,26 +1081,56 @@ var HighlightsList = function (_React$Component10) {
     return HighlightsList;
 }(React.Component);
 
+// List of notes in the detailed page view
+
+
 var NotesList = function (_React$Component11) {
     _inherits(NotesList, _React$Component11);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        return _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this22 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+
+        _this22.handleSubmit = _this22.handleSubmit.bind(_this22);
+        return _this22;
     }
 
     _createClass(NotesList, [{
+        key: 'handleSubmit',
+        value: function handleSubmit(event) {
+            var _this23 = this;
+
+            event.preventDefault();
+            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
+                _this23.props.refresh();
+            });
+
+            event.target.reset(); // Clear the form entries
+        }
+    }, {
         key: 'render',
         value: function render() {
+            // Hidden form for adding notes
+            var style = { display: "none" };
+            if (this.props.showNewNotesForm) {
+                style = { display: "block" };
+            }
+
             if (this.props.notes.length !== 0) {
                 return React.createElement(
                     'div',
                     null,
                     React.createElement(
-                        'h2',
-                        null,
-                        'My Notes'
+                        'div',
+                        { style: { display: "flex" } },
+                        React.createElement(
+                            'h2',
+                            null,
+                            'My Notes'
+                        ),
+                        React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
+                            switchShowForm: this.props.switchShowNewNotesForm })
                     ),
                     React.createElement(
                         'ul',
@@ -1165,19 +1142,71 @@ var NotesList = function (_React$Component11) {
                                 notes
                             );
                         })
+                    ),
+                    React.createElement(
+                        'form',
+                        { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
+                        React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
+                        React.createElement(
+                            'button',
+                            { className: 'button' },
+                            'Add'
+                        )
                     )
                 );
             }
             return React.createElement(
-                'h2',
+                'div',
                 null,
-                'You haven\'t added any notes yet.'
+                React.createElement(
+                    'div',
+                    { style: { display: "flex" } },
+                    React.createElement(
+                        'h2',
+                        null,
+                        'You haven\'t added any notes yet.'
+                    ),
+                    React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
+                        switchShowForm: this.props.switchShowNewNotesForm })
+                ),
+                React.createElement(
+                    'form',
+                    { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
+                    React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
+                    React.createElement(
+                        'button',
+                        { className: 'button' },
+                        'Add'
+                    )
+                )
             );
         }
     }]);
 
     return NotesList;
 }(React.Component);
+
+// Button used to open the "create project" form
+
+
+function NewNoteButton(props) {
+    if (props.showForm) {
+        return React.createElement(
+            'button',
+            { className: 'button add-note-button cancel-new-project', onClick: props.switchShowForm },
+            React.createElement(
+                'p',
+                null,
+                'Cancel'
+            )
+        );
+    }
+    return React.createElement(
+        'button',
+        { className: 'button add-note-button', onClick: props.switchShowForm },
+        React.createElement('img', { src: '../../images/add-icon-black.png', alt: 'New', style: { width: "100%" } })
+    );
+}
 
 function RefreshGraphButton(props) {
     return React.createElement(

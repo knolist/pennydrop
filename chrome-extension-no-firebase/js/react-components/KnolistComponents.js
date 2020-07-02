@@ -45,12 +45,13 @@ class KnolistComponents extends React.Component {
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
         this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
         this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
+        this.closePageView = this.closePageView.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
             if (event.target.classList.contains("modal")) {
                 if (this.state.selectedNode !== null) {
-                    this.resetSelectedNode();
+                    this.closePageView();
                 }
                 if (this.state.displayExport) {
                     this.resetDisplayExport();
@@ -87,6 +88,16 @@ class KnolistComponents extends React.Component {
 
     resetSelectedNode() {
         this.setState({selectedNode: null});
+    }
+
+    closePageView() {
+        // Only call switchForm if the notes form is showing
+        if (this.state.showNewNotesForm) {
+            this.switchShowNewNotesForm();
+        }
+
+        document.getElementById("new-notes-form").reset();
+        this.resetSelectedNode();
     }
 
     // Set selected node for the detailed view
@@ -312,7 +323,8 @@ class KnolistComponents extends React.Component {
                                  switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
-                              showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
+                              closePageView={this.closePageView} showNewNotesForm={this.state.showNewNotesForm}
+                              switchShowNewNotesForm={this.switchShowNewNotesForm}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
@@ -424,7 +436,7 @@ function NewProjectButton(props) {
     }
     return (
         <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/new-icon.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
         </button>
     );
 }
@@ -580,9 +592,6 @@ class PageView extends React.Component {
     constructor(props) {
         super(props);
         this.deleteNode = this.deleteNode.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.addNote = this.addNote.bind(this);
-        this.closeForm = this.closeForm.bind(this);
     }
 
     deleteNode() {
@@ -594,64 +603,23 @@ class PageView extends React.Component {
         });
     }
 
-    handleSubmit(event) {
-        event.preventDefault();
-        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
-            this.props.refresh();
-        });
-
-        event.target.reset(); // Clear the form entries
-    }
-
-    // Change the content of the notes button based on if the notes form is showing ("Add Note" <-> "Close")
-    addNote() {
-        this.props.switchForm();
-
-        if(document.getElementById("add-note").innerHTML === "Add Note") {
-            document.getElementById("add-note").innerHTML = "Close";
-        } else {
-            document.getElementById("add-note").innerHTML = "Add Note";
-        }
-    }
-
-    closeForm() {
-        document.getElementById("new-notes-form").reset();
-        this.props.resetSelectedNode();
-
-        // Only call switchForm if the notes form is showing
-        if(this.props.showNewNotesForm) {
-            this.props.switchForm();
-        }
-    }
-
     render() {
         if (this.props.selectedNode === null) {
             return null;
-        }
-
-        // Hidden form for adding notes
-        let style = {display: "none"};
-        if (this.props.showNewNotesForm) {
-            style = {display: "block"}
         }
 
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
-                            onClick={this.closeForm}>
+                            onClick={this.props.closePageView}>
                         <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
-                    <NotesList notes={this.props.selectedNode.notes}/>
-                    <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
-                        <label htmlFor="notes">Notes:</label><br/>
-                        <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
-                        <button className="button">Add</button>
-                    </form>
-                    <button className="button" id="add-note" onClick={this.addNote} style={{width: 100}}>Add Note</button>
+                    <NotesList notes={this.props.selectedNode.notes} showNewNotesForm={this.props.showNewNotesForm}
+                               switchShowNewNotesForm={this.props.switchShowNewNotesForm}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
@@ -748,21 +716,72 @@ class HighlightsList extends React.Component {
 class NotesList extends React.Component {
     constructor(props) {
         super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event) {
+        event.preventDefault();
+        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
+            this.props.refresh();
+        });
+
+        event.target.reset(); // Clear the form entries
     }
 
     render() {
+        // Hidden form for adding notes
+        let style = {display: "none"};
+        if (this.props.showNewNotesForm) {
+            style = {display: "block"}
+        }
+
         if (this.props.notes.length !== 0) {
             return (
                 <div>
-                    <h2>My Notes</h2>
+                    <div style={{display: "flex"}}>
+                        <h2>My Notes</h2>
+                        <NewNoteButton showForm={this.props.showNewNotesForm}
+                                       switchShowForm={this.props.switchShowNewNotesForm}/>
+                    </div>
                     <ul>{this.props.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
+                    <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
+                        <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
+                        <button className="button">Add</button>
+                    </form>
                 </div>
             );
         }
         return (
-            <h2>You haven't added any notes yet.</h2>
+            <div>
+                <div style={{display: "flex"}}>
+                    <h2>You haven't added any notes yet.</h2>
+                    <NewNoteButton showForm={this.props.showNewNotesForm}
+                                   switchShowForm={this.props.switchShowNewNotesForm}/>
+                </div>
+                <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
+                    <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
+                    <button className="button">Add</button>
+                </form>
+            </div>
         );
     }
+}
+
+// Button used to open the "create project" form
+function NewNoteButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button add-note-button cancel-new-project" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button add-note-button" onClick={props.switchShowForm}>
+            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+        </button>
+    );
 }
 
 function RefreshGraphButton(props) {
