@@ -62,6 +62,7 @@ var KnolistComponents = function (_React$Component) {
         _this.openProjectsSidebar = _this.openProjectsSidebar.bind(_this);
         _this.closeProjectsSidebar = _this.closeProjectsSidebar.bind(_this);
         _this.closePageView = _this.closePageView.bind(_this);
+        _this.closeNewNodeForm = _this.closeNewNodeForm.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
@@ -71,6 +72,9 @@ var KnolistComponents = function (_React$Component) {
                 }
                 if (_this.state.displayExport) {
                     _this.resetDisplayExport();
+                }
+                if (_this.state.showNewNodeForm) {
+                    _this.closeNewNodeForm();
                 }
             }
         };
@@ -209,6 +213,12 @@ var KnolistComponents = function (_React$Component) {
             this.setState({ showProjectsSidebar: false });
             document.getElementById("projects-sidebar").style.width = "0";
             document.getElementById("projects-sidebar-btn").style.right = "0";
+        }
+    }, {
+        key: 'closeNewNodeForm',
+        value: function closeNewNodeForm() {
+            document.getElementById("new-node-form").reset();
+            this.switchShowNewNodeForm();
         }
 
         /* Helper function to generate position for nodes
@@ -394,7 +404,7 @@ var KnolistComponents = function (_React$Component) {
                     React.createElement(ProjectsSidebar, { graph: this.state.graph, refresh: this.getDataFromServer }),
                     React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                         graph: this.state.graph,
-                        switchForm: this.switchShowNewNodeForm, refresh: this.getDataFromServer }),
+                        closeForm: this.closeNewNodeForm, refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
                         resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer,
                         closePageView: this.closePageView, showNewNotesForm: this.state.showNewNotesForm,
@@ -743,7 +753,6 @@ var NewNodeForm = function (_React$Component6) {
         var _this14 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
         _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
-        _this14.closeForm = _this14.closeForm.bind(_this14);
         return _this14;
     }
 
@@ -763,14 +772,8 @@ var NewNodeForm = function (_React$Component6) {
                 });
             });
 
-            this.props.switchForm();
+            this.props.closeForm();
             event.target.reset(); // Clear the form entries
-        }
-    }, {
-        key: 'closeForm',
-        value: function closeForm() {
-            document.getElementById("new-node-form").reset();
-            this.props.switchForm();
         }
     }, {
         key: 'render',
@@ -787,7 +790,7 @@ var NewNodeForm = function (_React$Component6) {
                     { className: 'modal-content' },
                     React.createElement(
                         'button',
-                        { className: 'close-modal button', onClick: this.closeForm },
+                        { className: 'close-modal button', onClick: this.props.closeForm },
                         React.createElement('img', { src: '../../images/close-icon-black.png', alt: 'Close', style: { width: "100%" } })
                     ),
                     React.createElement(
@@ -798,12 +801,6 @@ var NewNodeForm = function (_React$Component6) {
                     React.createElement(
                         'form',
                         { id: 'new-node-form', onSubmit: this.handleSubmit },
-                        React.createElement(
-                            'label',
-                            { htmlFor: 'url' },
-                            'Page URL'
-                        ),
-                        React.createElement('br', null),
                         React.createElement('input', { id: 'url', name: 'url', type: 'url', placeholder: 'Insert URL', required: true }),
                         React.createElement('br', null),
                         React.createElement(

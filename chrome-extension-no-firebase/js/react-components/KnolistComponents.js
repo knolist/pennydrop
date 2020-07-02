@@ -46,6 +46,7 @@ class KnolistComponents extends React.Component {
         this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
         this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
         this.closePageView = this.closePageView.bind(this);
+        this.closeNewNodeForm = this.closeNewNodeForm.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -55,6 +56,9 @@ class KnolistComponents extends React.Component {
                 }
                 if (this.state.displayExport) {
                     this.resetDisplayExport();
+                }
+                if (this.state.showNewNodeForm) {
+                    this.closeNewNodeForm();
                 }
             }
         }
@@ -162,6 +166,11 @@ class KnolistComponents extends React.Component {
         this.setState({showProjectsSidebar: false});
         document.getElementById("projects-sidebar").style.width = "0";
         document.getElementById("projects-sidebar-btn").style.right = "0";
+    }
+
+    closeNewNodeForm() {
+        document.getElementById("new-node-form").reset();
+        this.switchShowNewNodeForm();
     }
 
     /* Helper function to generate position for nodes
@@ -320,7 +329,7 @@ class KnolistComponents extends React.Component {
                     <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                                  graph={this.state.graph}
-                                 switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                                 closeForm={this.closeNewNodeForm} refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
                               closePageView={this.closePageView} showNewNotesForm={this.state.showNewNotesForm}
@@ -542,7 +551,6 @@ class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.closeForm = this.closeForm.bind(this);
     }
 
     handleSubmit(event) {
@@ -555,13 +563,8 @@ class NewNodeForm extends React.Component {
             }).then(() => this.props.refresh());
         });
 
-        this.props.switchForm();
+        this.props.closeForm();
         event.target.reset(); // Clear the form entries
-    }
-
-    closeForm() {
-        document.getElementById("new-node-form").reset();
-        this.props.switchForm();
     }
 
     render() {
@@ -572,12 +575,11 @@ class NewNodeForm extends React.Component {
         return (
             <div className="modal" style={style}>
                 <div className="modal-content">
-                    <button className="close-modal button" onClick={this.closeForm}>
+                    <button className="close-modal button" onClick={this.props.closeForm}>
                         <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
                     </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
-                        <label htmlFor="url">Page URL</label><br/>
                         <input id="url" name="url" type="url" placeholder="Insert URL" required/><br/>
                         <button className="button" style={{width: 100}}>Add node</button>
                     </form>
