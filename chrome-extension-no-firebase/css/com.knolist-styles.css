@@ -131,6 +131,15 @@ input[type=url] {
     outline: none;
 }
 
+input[type="text"] {
+    background-color: transparent;
+    font-family: "Product Sans", sans-serif;
+    border-style: none none solid none;
+    border-bottom-color: gray;
+    border-width: 1px;
+    outline: none;
+}
+
 /* Sidebar selectors. Adapted from https://www.w3schools.com/howto/howto_js_collapse_sidebar.asp" */
 .sidebar {
     height: 100%; /* 100% Full-height */
@@ -262,16 +271,10 @@ input[type=url] {
 }
 
 .new-project-form-area input[type="text"] {
-    background-color: transparent;
     color: white;
-    padding: 10px;
-    font-family: "Product Sans", sans-serif;
     font-size: 18px;
     font-weight: bolder;
-    border-style: none none solid none;
-    border-bottom-color: gray;
-    border-width: 1px;
-    outline: none;
+    padding: 10px;
 }
 
 .create-project-button {

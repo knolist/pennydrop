@@ -873,8 +873,9 @@ var PageView = function (_React$Component7) {
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
-                    React.createElement(NotesList, { notes: this.props.selectedNode.notes, showNewNotesForm: this.props.showNewNotesForm,
-                        switchShowNewNotesForm: this.props.switchShowNewNotesForm }),
+                    React.createElement(NotesList, { key: this.props.selectedNode.notes, showNewNotesForm: this.props.showNewNotesForm,
+                        switchShowNewNotesForm: this.props.switchShowNewNotesForm,
+                        selectedNode: this.props.selectedNode, refresh: this.props.refresh }),
                     React.createElement(
                         'div',
                         { style: { display: "flex" } },
@@ -1102,19 +1103,13 @@ var NotesList = function (_React$Component11) {
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
                 _this23.props.refresh();
             });
-
+            this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
         }
     }, {
         key: 'render',
         value: function render() {
-            // Hidden form for adding notes
-            var style = { display: "none" };
-            if (this.props.showNewNotesForm) {
-                style = { display: "block" };
-            }
-
-            if (this.props.notes.length !== 0) {
+            if (this.props.selectedNode.notes.length !== 0) {
                 return React.createElement(
                     'div',
                     null,
@@ -1132,7 +1127,7 @@ var NotesList = function (_React$Component11) {
                     React.createElement(
                         'ul',
                         null,
-                        this.props.notes.map(function (notes, index) {
+                        this.props.selectedNode.notes.map(function (notes, index) {
                             return React.createElement(
                                 'li',
                                 { key: index },
@@ -1140,16 +1135,7 @@ var NotesList = function (_React$Component11) {
                             );
                         })
                     ),
-                    React.createElement(
-                        'form',
-                        { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
-                        React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
-                        React.createElement(
-                            'button',
-                            { className: 'button' },
-                            'Add'
-                        )
-                    )
+                    React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
                 );
             }
             return React.createElement(
@@ -1166,16 +1152,7 @@ var NotesList = function (_React$Component11) {
                     React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
                         switchShowForm: this.props.switchShowNewNotesForm })
                 ),
-                React.createElement(
-                    'form',
-                    { id: 'new-notes-form', onSubmit: this.handleSubmit, style: style },
-                    React.createElement('input', { id: 'notes', name: 'notes', type: 'notes', placeholder: 'Insert Notes', required: true }),
-                    React.createElement(
-                        'button',
-                        { className: 'button' },
-                        'Add'
-                    )
-                )
+                React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
             );
         }
     }]);
@@ -1183,9 +1160,26 @@ var NotesList = function (_React$Component11) {
     return NotesList;
 }(React.Component);
 
+function NewNotesForm(props) {
+    // Hidden form for adding notes
+    var style = { display: "none" };
+    if (props.showNewNotesForm) {
+        style = { display: "block" };
+    }
+
+    return React.createElement(
+        'form',
+        { id: 'new-notes-form', onSubmit: props.handleSubmit, style: style },
+        React.createElement('input', { id: 'notes', name: 'notes', type: 'text', placeholder: 'Insert Notes', required: true }),
+        React.createElement(
+            'button',
+            { className: 'button add-note-button cancel-new-project', style: { marginTop: 0, marginBottom: 0 } },
+            'Add'
+        )
+    );
+}
+
 // Button used to open the "create project" form
-
-
 function NewNoteButton(props) {
     if (props.showForm) {
         return React.createElement(

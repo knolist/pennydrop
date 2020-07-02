@@ -216,18 +216,6 @@ addHighlightsToItemInGraph = async (item, highlights) => {
 };
 
 /**
- * Deletes all items in the current project.
- */
-resetCurProjectInGraph = async () => {
-    let graph = await getGraphFromDisk();
-    const project = graph["curProject"];
-    graph[project] = {};
-
-    // Save to disk
-    saveGraphToDisk(graph);
-};
-
-/**
  * Add notes to a certain item in the current project
  * @param item the item to receive the notes
  * @param notes the notes to be added
@@ -252,6 +240,18 @@ addNotesToItemInGraph = async (item, notes) => {
 
     // Save to disk
     saveGraphToDisk(graphData);
+};
+
+/**
+ * Deletes all items in the current project.
+ */
+resetCurProjectInGraph = async () => {
+    let graph = await getGraphFromDisk();
+    const project = graph["curProject"];
+    graph[project] = {};
+
+    // Save to disk
+    saveGraphToDisk(graph);
 };
 
 /**

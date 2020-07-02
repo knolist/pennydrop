@@ -620,8 +620,9 @@ class PageView extends React.Component {
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
-                    <NotesList notes={this.props.selectedNode.notes} showNewNotesForm={this.props.showNewNotesForm}
-                               switchShowNewNotesForm={this.props.switchShowNewNotesForm}/>
+                    <NotesList showNewNotesForm={this.props.showNewNotesForm}
+                               switchShowNewNotesForm={this.props.switchShowNewNotesForm}
+                               selectedNode={this.props.selectedNode} refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
@@ -727,18 +728,12 @@ class NotesList extends React.Component {
         addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
             this.props.refresh();
         });
-
+        this.props.switchShowNewNotesForm();
         event.target.reset(); // Clear the form entries
     }
 
     render() {
-        // Hidden form for adding notes
-        let style = {display: "none"};
-        if (this.props.showNewNotesForm) {
-            style = {display: "block"}
-        }
-
-        if (this.props.notes.length !== 0) {
+        if (this.props.selectedNode.notes.length !== 0) {
             return (
                 <div>
                     <div style={{display: "flex"}}>
@@ -746,11 +741,8 @@ class NotesList extends React.Component {
                         <NewNoteButton showForm={this.props.showNewNotesForm}
                                        switchShowForm={this.props.switchShowNewNotesForm}/>
                     </div>
-                    <ul>{this.props.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
-                    <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
-                        <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
-                        <button className="button">Add</button>
-                    </form>
+                    <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
+                    <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
                 </div>
             );
         }
@@ -761,13 +753,25 @@ class NotesList extends React.Component {
                     <NewNoteButton showForm={this.props.showNewNotesForm}
                                    switchShowForm={this.props.switchShowNewNotesForm}/>
                 </div>
-                <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
-                    <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
-                    <button className="button">Add</button>
-                </form>
+                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
             </div>
         );
     }
+}
+
+function NewNotesForm(props) {
+    // Hidden form for adding notes
+    let style = {display: "none"};
+    if (props.showNewNotesForm) {
+        style = {display: "block"}
+    }
+
+    return (
+        <form id="new-notes-form" onSubmit={props.handleSubmit} style={style}>
+            <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
+            <button className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Add</button>
+        </form>
+    );
 }
 
 // Button used to open the "create project" form
