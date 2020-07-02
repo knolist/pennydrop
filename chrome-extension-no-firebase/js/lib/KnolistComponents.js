@@ -63,6 +63,7 @@ var KnolistComponents = function (_React$Component) {
         _this.closeProjectsSidebar = _this.closeProjectsSidebar.bind(_this);
         _this.closePageView = _this.closePageView.bind(_this);
         _this.closeNewNodeForm = _this.closeNewNodeForm.bind(_this);
+        _this.setSelectedNode = _this.setSelectedNode.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
@@ -138,6 +139,12 @@ var KnolistComponents = function (_React$Component) {
             this.setState({ selectedNode: null });
         }
     }, {
+        key: 'setSelectedNode',
+        value: function setSelectedNode(url) {
+            var curProject = this.state.graph.curProject;
+            this.setState({ selectedNode: this.state.graph[curProject][url] });
+        }
+    }, {
         key: 'closePageView',
         value: function closePageView() {
             // Only call switchForm if the notes form is showing
@@ -157,8 +164,7 @@ var KnolistComponents = function (_React$Component) {
             var visCloseButton = document.getElementsByClassName("vis-close")[0];
             // Only open modal outside of edit mode
             if (getComputedStyle(visCloseButton).display === "none") {
-                var curProject = this.state.graph.curProject;
-                this.setState({ selectedNode: this.state.graph[curProject][id] });
+                this.setSelectedNode(id);
             }
         }
     }, {
@@ -419,8 +425,9 @@ var KnolistComponents = function (_React$Component) {
                         graph: this.state.graph,
                         closeForm: this.closeNewNodeForm, refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
-                        resetSelectedNode: this.resetSelectedNode, refresh: this.getDataFromServer,
-                        closePageView: this.closePageView, showNewNotesForm: this.state.showNewNotesForm,
+                        resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
+                        refresh: this.getDataFromServer, closePageView: this.closePageView,
+                        showNewNotesForm: this.state.showNewNotesForm,
                         switchShowNewNotesForm: this.switchShowNewNotesForm }),
                     React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
                         resetDisplayExport: this.resetDisplayExport })
@@ -892,8 +899,10 @@ var PageView = function (_React$Component7) {
                     React.createElement(
                         'div',
                         { style: { display: "flex" } },
-                        React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode }),
-                        React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode })
+                        React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode,
+                            setSelectedNode: this.props.setSelectedNode }),
+                        React.createElement(ListURL, { type: "next", graph: this.props.graph, selectedNode: this.props.selectedNode,
+                            setSelectedNode: this.props.setSelectedNode })
                     ),
                     React.createElement(
                         'div',
@@ -1003,8 +1012,10 @@ var ListURL = function (_React$Component9) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this21.props.graph[url].source,
-                                        target: '_blank' },
+                                    { href: '#',
+                                        onClick: function onClick() {
+                                            return _this21.props.setSelectedNode(url);
+                                        } },
                                     _this21.props.graph[url].title
                                 )
                             );
@@ -1029,8 +1040,10 @@ var ListURL = function (_React$Component9) {
                                 { key: index },
                                 React.createElement(
                                     'a',
-                                    { href: _this21.props.graph[url].source,
-                                        target: '_blank' },
+                                    { href: '#',
+                                        onClick: function onClick() {
+                                            return _this21.props.setSelectedNode(url);
+                                        } },
                                     _this21.props.graph[url].title
                                 )
                             );

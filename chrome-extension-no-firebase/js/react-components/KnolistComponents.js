@@ -47,6 +47,7 @@ class KnolistComponents extends React.Component {
         this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
         this.closePageView = this.closePageView.bind(this);
         this.closeNewNodeForm = this.closeNewNodeForm.bind(this);
+        this.setSelectedNode = this.setSelectedNode.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -106,6 +107,11 @@ class KnolistComponents extends React.Component {
         this.setState({selectedNode: null});
     }
 
+    setSelectedNode(url) {
+        const curProject = this.state.graph.curProject;
+        this.setState({selectedNode: this.state.graph[curProject][url]});
+    }
+
     closePageView() {
         // Only call switchForm if the notes form is showing
         if (this.state.showNewNotesForm) {
@@ -121,8 +127,7 @@ class KnolistComponents extends React.Component {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
         if (getComputedStyle(visCloseButton).display === "none") {
-            const curProject = this.state.graph.curProject;
-            this.setState({selectedNode: this.state.graph[curProject][id]});
+            this.setSelectedNode(id);
         }
     }
 
@@ -343,8 +348,9 @@ class KnolistComponents extends React.Component {
                                  graph={this.state.graph}
                                  closeForm={this.closeNewNodeForm} refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
-                              resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
-                              closePageView={this.closePageView} showNewNotesForm={this.state.showNewNotesForm}
+                              resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
+                              refresh={this.getDataFromServer} closePageView={this.closePageView}
+                              showNewNotesForm={this.state.showNewNotesForm}
                               switchShowNewNotesForm={this.switchShowNewNotesForm}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
@@ -636,8 +642,10 @@ class PageView extends React.Component {
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
                                selectedNode={this.props.selectedNode} refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
-                        <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
-                        <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
+                        <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
+                                 setSelectedNode={this.props.setSelectedNode}/>
+                        <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
+                                 setSelectedNode={this.props.setSelectedNode}/>
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
@@ -687,8 +695,9 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Previous Connections</h2>
                     <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source}
-                                           target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href="#"
+                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
+                        </li>)}
                     </ul>
                 </div>
             );
@@ -697,8 +706,9 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Next Connections</h2>
                     <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source}
-                                           target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href="#"
+                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
+                        </li>)}
                     </ul>
                 </div>
             );
@@ -781,7 +791,8 @@ function NewNotesForm(props) {
     return (
         <form id="new-notes-form" onSubmit={props.handleSubmit} style={style}>
             <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
-            <button className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Add</button>
+            <button className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Add
+            </button>
         </form>
     );
 }
