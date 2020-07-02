@@ -409,22 +409,22 @@ getGraphFromDisk = () => {
     })
 };
 
-/**
- * This method updates the passed in graph variable in place but works with React.
- * @param graph the graph to be updated
- * @param reactComponent the React component that gas a "graph" state variable to be updated
- */
-getGraphFromDiskToReact = (graph, reactComponent) => {
-    chrome.storage.local.get('itemGraph', function (result) {
-        result = result.itemGraph;
-        if (result.version === CUR_VERSION_NUM) {
-            Object.keys(graph).forEach(k => delete graph[k]);
-            Object.keys(result).forEach(k => graph[k] = result[k]);
-            console.log(graph);
-            reactComponent.setState({graph: graph});
-            reactComponent.setupVisGraph();
-        } else {
-            console.log("Either the graph doesnt exist in storage or it's not version " + CUR_VERSION_NUM)
-        }
-    });
-};
+// /**
+//  * This method updates the passed in graph variable in place but works with React.
+//  * @param graph the graph to be updated
+//  * @param reactComponent the React component that gas a "graph" state variable to be updated
+//  */
+// getGraphFromDiskToReact = (graph, reactComponent) => {
+//     chrome.storage.local.get('itemGraph', function (result) {
+//         result = result.itemGraph;
+//         if (result.version === CUR_VERSION_NUM) {
+//             Object.keys(graph).forEach(k => delete graph[k]);
+//             Object.keys(result).forEach(k => graph[k] = result[k]);
+//             console.log(graph);
+//             reactComponent.setState({graph: graph});
+//             reactComponent.setupVisGraph();
+//         } else {
+//             console.log("Either the graph doesnt exist in storage or it's not version " + CUR_VERSION_NUM)
+//         }
+//     });
+// };

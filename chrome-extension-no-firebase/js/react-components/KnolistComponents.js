@@ -67,7 +67,19 @@ class KnolistComponents extends React.Component {
     // Calls graph.js function to pull the graph from the Chrome storage
     getDataFromServer() {
         // All the websites as a graph
-        getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
+        getGraphFromDisk().then((graph) => {
+            this.setState({graph: graph});
+            this.setupVisGraph();
+
+            // Manually update selectedNode if it's not null (for notes update)
+            if (this.state.selectedNode !== null) {
+                const url = this.state.selectedNode.source;
+                const curProject = graph.curProject;
+                const updatedSelectedNode = graph[curProject][url];
+                this.setState({selectedNode: updatedSelectedNode});
+            }
+        });
+
 
         // window.setTimeout(() => {
         //     if (this.state.autoRefresh) this.getDataFromServer();
