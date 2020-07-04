@@ -15,6 +15,10 @@ body {
     justify-content: space-between;
 }
 
+#popup-body {
+    padding: 10px;
+}
+
 /* The switch - the box around the slider */
 .switch {
     position: relative;
@@ -89,4 +93,48 @@ input:checked + .switch-slider:before {
 
 #home-button:hover {
     background-color: #a6e3e3;
+}
+
+#projects-list h4 {
+    margin: 0;
+    font-size: 20px;
+}
+
+#current-project-area {
+    display: flex;
+    justify-content: space-between;
+    height: 24px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 5px;
+    border-style: solid;
+    border-color: var(--dark-blue);
+    margin: 2px;
+}
+
+#current-project-area p {
+    margin: 2px;
+    font-size: 18px;
+}
+
+.dropdown-button {
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-style: none none none solid;
+    border-color: var(--dark-blue);
+    outline: none;
+    border-radius: 0 5px 5px 0;
+    border-width: 1px;
+}
+
+.dropdown-button img {
+    height: 100%;
+}
+.dropdown-button:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
 }

@@ -32,20 +32,39 @@ var PopupComponents = function (_React$Component) {
 
     _createClass(PopupComponents, [{
         key: "getDataFromServer",
-        value: function getDataFromServer() {}
+        value: function getDataFromServer() {
+            var _this2 = this;
+
+            getGraphFromDisk().then(function (graph) {
+                _this2.setState({ graph: graph });
+            });
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.getDataFromServer();
+        }
     }, {
         key: "render",
         value: function render() {
             return React.createElement(
                 "div",
                 { id: "popup" },
-                React.createElement(Header, null)
+                React.createElement(Header, null),
+                React.createElement(
+                    "div",
+                    { id: "popup-body" },
+                    React.createElement(ProjectList, { graph: this.state.graph, refresh: this.getDataFromServer })
+                )
             );
         }
     }]);
 
     return PopupComponents;
 }(React.Component);
+
+// Header of the popup. Contains logo and home button
+
 
 var Header = function (_React$Component2) {
     _inherits(Header, _React$Component2);
@@ -72,7 +91,7 @@ var Header = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this3 = this;
+            var _this4 = this;
 
             return React.createElement(
                 "div",
@@ -81,7 +100,7 @@ var Header = function (_React$Component2) {
                 React.createElement(
                     "a",
                     { onClick: function onClick() {
-                            return _this3.openHomePage();
+                            return _this4.openHomePage();
                         }, id: "home-button" },
                     React.createElement("img", { src: "../../images/home-icon-black.png", alt: "Home", style: { height: "100%", margin: "1px" } })
                 )
@@ -92,8 +111,128 @@ var Header = function (_React$Component2) {
     return Header;
 }(React.Component);
 
-// class ProjectList extends React.Component {
-//
-// }
+// Dropdown list of all the projects, allows user to switch between them.
+
+
+var ProjectList = function (_React$Component3) {
+    _inherits(ProjectList, _React$Component3);
+
+    function ProjectList(props) {
+        _classCallCheck(this, ProjectList);
+
+        var _this5 = _possibleConstructorReturn(this, (ProjectList.__proto__ || Object.getPrototypeOf(ProjectList)).call(this, props));
+
+        _this5.state = {
+            dropdownOpen: false
+        };
+
+        _this5.switchDropdown = _this5.switchDropdown.bind(_this5);
+        return _this5;
+    }
+
+    _createClass(ProjectList, [{
+        key: "switchDropdown",
+        value: function switchDropdown() {
+            this.setState({ dropdownOpen: !this.state.dropdownOpen });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this6 = this;
+
+            if (this.props.graph === null) return null;
+
+            // Define arrow icon to use based on whether dropdown is active
+            var arrowIconURL = "../../images/down-chevron-icon-black.png";
+            if (this.state.dropdownOpen) arrowIconURL = "../../images/up-chevron-icon-black.png";
+
+            return React.createElement(
+                "div",
+                { id: "projects-list" },
+                React.createElement(
+                    "h4",
+                    null,
+                    "Current Project:"
+                ),
+                React.createElement(
+                    "div",
+                    { className: "dropdown" },
+                    React.createElement(
+                        "div",
+                        { id: "current-project-area" },
+                        React.createElement(
+                            "p",
+                            null,
+                            this.props.graph.curProject
+                        ),
+                        React.createElement(
+                            "button",
+                            { onClick: this.switchDropdown, className: "dropdown-button" },
+                            React.createElement("img", { src: arrowIconURL, alt: "Dropdown" })
+                        )
+                    ),
+                    React.createElement(
+                        "div",
+                        { id: "myDropdown", className: "dropdown-content" },
+                        Object.keys(this.props.graph).map(function (project) {
+                            return React.createElement(DropdownItem, { key: project,
+                                projectName: project,
+                                curProject: _this6.props.graph.curProject,
+                                refresh: _this6.props.refresh,
+                                switchDropdown: _this6.switchDropdown });
+                        })
+                    )
+                )
+            );
+        }
+    }]);
+
+    return ProjectList;
+}(React.Component);
+
+// Each item in the project dropdown
+
+
+var DropdownItem = function (_React$Component4) {
+    _inherits(DropdownItem, _React$Component4);
+
+    function DropdownItem(props) {
+        _classCallCheck(this, DropdownItem);
+
+        var _this7 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
+
+        _this7.activateProject = _this7.activateProject.bind(_this7);
+        return _this7;
+    }
+
+    _createClass(DropdownItem, [{
+        key: "activateProject",
+        value: function activateProject() {
+            var _this8 = this;
+
+            this.props.switchDropdown();
+            setCurrentProjectInGraph(this.props.projectName).then(function () {
+                return _this8.props.refresh();
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            // Ignore properties that are not titles
+            if (this.props.projectName === "curProject" || this.props.projectName === "version") return null;
+
+            // Ignore current project
+            if (this.props.projectName === this.props.curProject) return null;
+
+            return React.createElement(
+                "a",
+                { href: "#", onClick: this.activateProject },
+                this.props.projectName
+            );
+        }
+    }]);
+
+    return DropdownItem;
+}(React.Component);
 
 ReactDOM.render(React.createElement(PopupComponents, null), document.querySelector("#popup-wrapper"));
