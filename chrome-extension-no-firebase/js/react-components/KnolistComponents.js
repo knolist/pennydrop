@@ -45,15 +45,21 @@ class KnolistComponents extends React.Component {
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
         this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
         this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
+        this.closePageView = this.closePageView.bind(this);
+        this.closeNewNodeForm = this.closeNewNodeForm.bind(this);
+        this.setSelectedNode = this.setSelectedNode.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
             if (event.target.classList.contains("modal")) {
                 if (this.state.selectedNode !== null) {
-                    this.resetSelectedNode();
+                    this.closePageView();
                 }
                 if (this.state.displayExport) {
                     this.resetDisplayExport();
+                }
+                if (this.state.showNewNodeForm) {
+                    this.closeNewNodeForm();
                 }
             }
         }
@@ -62,7 +68,19 @@ class KnolistComponents extends React.Component {
     // Calls graph.js function to pull the graph from the Chrome storage
     getDataFromServer() {
         // All the websites as a graph
-        getGraphFromDiskToReact(this.state.graph, this); // This method updates the passed in graph variable in place
+        getGraphFromDisk().then((graph) => {
+            this.setState({graph: graph});
+            this.setupVisGraph();
+
+            // Manually update selectedNode if it's not null (for notes update)
+            if (this.state.selectedNode !== null) {
+                const url = this.state.selectedNode.source;
+                const curProject = graph.curProject;
+                const updatedSelectedNode = graph[curProject][url];
+                this.setState({selectedNode: updatedSelectedNode});
+            }
+        });
+
 
         // window.setTimeout(() => {
         //     if (this.state.autoRefresh) this.getDataFromServer();
@@ -89,13 +107,26 @@ class KnolistComponents extends React.Component {
         this.setState({selectedNode: null});
     }
 
+    setSelectedNode(url) {
+        const curProject = this.state.graph.curProject;
+        this.setState({selectedNode: this.state.graph[curProject][url]});
+    }
+
+    closePageView() {
+        // Only call switchForm if the notes form is showing
+        if (this.state.showNewNotesForm) {
+            this.switchShowNewNotesForm();
+        }
+
+        this.resetSelectedNode();
+    }
+
     // Set selected node for the detailed view
     handleClickedNode(id) {
         const visCloseButton = document.getElementsByClassName("vis-close")[0];
         // Only open modal outside of edit mode
         if (getComputedStyle(visCloseButton).display === "none") {
-            const curProject = this.state.graph.curProject;
-            this.setState({selectedNode: this.state.graph[curProject][id]});
+            this.setSelectedNode(id);
         }
     }
 
@@ -138,6 +169,7 @@ class KnolistComponents extends React.Component {
     }
 
     switchShowNewNotesForm() {
+        document.getElementById("new-notes-form").reset();
         this.setState({showNewNotesForm: !this.state.showNewNotesForm});
     }
 
@@ -151,6 +183,11 @@ class KnolistComponents extends React.Component {
         this.setState({showProjectsSidebar: false});
         document.getElementById("projects-sidebar").style.width = "0";
         document.getElementById("projects-sidebar-btn").style.right = "0";
+    }
+
+    closeNewNodeForm() {
+        document.getElementById("new-node-form").reset();
+        this.switchShowNewNodeForm();
     }
 
     /* Helper function to generate position for nodes
@@ -309,10 +346,12 @@ class KnolistComponents extends React.Component {
                     <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                                  graph={this.state.graph}
-                                 switchForm={this.switchShowNewNodeForm} refresh={this.getDataFromServer}/>
+                                 closeForm={this.closeNewNodeForm} refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
-                              resetSelectedNode={this.resetSelectedNode} refresh={this.getDataFromServer}
-                              showNewNotesForm={this.state.showNewNotesForm} switchForm={this.switchShowNewNotesForm}/>
+                              resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
+                              refresh={this.getDataFromServer} closePageView={this.closePageView}
+                              showNewNotesForm={this.state.showNewNotesForm}
+                              switchShowNewNotesForm={this.switchShowNewNotesForm}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
@@ -424,7 +463,7 @@ function NewProjectButton(props) {
     }
     return (
         <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/new-icon.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
         </button>
     );
 }
@@ -530,7 +569,6 @@ class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.closeForm = this.closeForm.bind(this);
     }
 
     handleSubmit(event) {
@@ -543,13 +581,8 @@ class NewNodeForm extends React.Component {
             }).then(() => this.props.refresh());
         });
 
-        this.props.switchForm();
+        this.props.closeForm();
         event.target.reset(); // Clear the form entries
-    }
-
-    closeForm() {
-        document.getElementById("new-node-form").reset();
-        this.props.switchForm();
     }
 
     render() {
@@ -560,12 +593,11 @@ class NewNodeForm extends React.Component {
         return (
             <div className="modal" style={style}>
                 <div className="modal-content">
-                    <button className="close-modal button" onClick={this.closeForm}>
+                    <button className="close-modal button" onClick={this.props.closeForm}>
                         <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
                     </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
-                        <label htmlFor="url">Page URL</label><br/>
                         <input id="url" name="url" type="url" placeholder="Insert URL" required/><br/>
                         <button className="button" style={{width: 100}}>Add node</button>
                     </form>
@@ -580,8 +612,6 @@ class PageView extends React.Component {
     constructor(props) {
         super(props);
         this.deleteNode = this.deleteNode.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.closeForm = this.closeForm.bind(this);
     }
 
     deleteNode() {
@@ -593,54 +623,29 @@ class PageView extends React.Component {
         });
     }
 
-    handleSubmit(event) {
-        event.preventDefault();
-        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value, this.props.graph)
-        // saveGraphToDisk(this.props.graph);
-
-        this.props.switchForm();
-        setTimeout(this.props.refresh, 1000); // Timeout to allow graph to be updated //TODO remove after implementing coordinates and autorefresh
-        event.target.reset(); // Clear the form entries
-    }
-
-    closeForm() {
-        document.getElementById("new-notes-form").reset();
-        this.props.switchForm();
-    }
-
     render() {
         if (this.props.selectedNode === null) {
             return null;
         }
 
-        // Hidden form for adding notes
-        let style = {display: "none"};
-        if (this.props.showNewNotesForm) {
-            style = {display: "block"}
-        }
-
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="button" id="add-notes" onClick={this.props.switchForm} style={{width: 100}}>Add
-                        Notes
-                    </button>
                     <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.resetSelectedNode}>
+                            onClick={this.props.closePageView}>
                         <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
-                    <NotesList notes={this.props.selectedNode.notes}/>
-                    <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
-                        <label htmlFor="notes">Notes:</label><br/>
-                        <input id="notes" name="notes" type="notes" placeholder="Insert Notes" required/>
-                        <button className="button" style={{width: 100}}>+</button>
-                    </form>
+                    <NotesList showNewNotesForm={this.props.showNewNotesForm}
+                               switchShowNewNotesForm={this.props.switchShowNewNotesForm}
+                               selectedNode={this.props.selectedNode} refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
-                        <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
-                        <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}/>
+                        <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
+                                 setSelectedNode={this.props.setSelectedNode}/>
+                        <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
+                                 setSelectedNode={this.props.setSelectedNode}/>
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
@@ -690,8 +695,9 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Previous Connections</h2>
                     <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source}
-                                           target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href="#"
+                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
+                        </li>)}
                     </ul>
                 </div>
             );
@@ -700,8 +706,9 @@ class ListURL extends React.Component {
                 <div className="url-column">
                     <h2 style={{textAlign: "center"}}>Next Connections</h2>
                     <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href={this.props.graph[url].source}
-                                           target="_blank">{this.props.graph[url].title}</a></li>)}
+                        <li key={index}><a href="#"
+                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
+                        </li>)}
                     </ul>
                 </div>
             );
@@ -730,24 +737,80 @@ class HighlightsList extends React.Component {
     }
 }
 
+// List of notes in the detailed page view
 class NotesList extends React.Component {
     constructor(props) {
         super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event) {
+        event.preventDefault();
+        addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
+            this.props.refresh();
+        });
+        this.props.switchShowNewNotesForm();
+        event.target.reset(); // Clear the form entries
     }
 
     render() {
-        if (this.props.notes.length !== 0) {
+        if (this.props.selectedNode.notes.length !== 0) {
             return (
                 <div>
-                    <h2>My Notes</h2>
-                    <ul>{this.props.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
+                    <div style={{display: "flex"}}>
+                        <h2>My Notes</h2>
+                        <NewNoteButton showForm={this.props.showNewNotesForm}
+                                       switchShowForm={this.props.switchShowNewNotesForm}/>
+                    </div>
+                    <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
+                    <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
                 </div>
             );
         }
         return (
-            <h2>You haven't added any notes yet.</h2>
+            <div>
+                <div style={{display: "flex"}}>
+                    <h2>You haven't added any notes yet.</h2>
+                    <NewNoteButton showForm={this.props.showNewNotesForm}
+                                   switchShowForm={this.props.switchShowNewNotesForm}/>
+                </div>
+                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
+            </div>
         );
     }
+}
+
+function NewNotesForm(props) {
+    // Hidden form for adding notes
+    let style = {display: "none"};
+    if (props.showNewNotesForm) {
+        style = {display: "block"}
+    }
+
+    return (
+        <form id="new-notes-form" onSubmit={props.handleSubmit} style={style}>
+            <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
+            <button className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Add
+            </button>
+        </form>
+    );
+}
+
+// Button used to open the "create project" form
+function NewNoteButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button add-note-button cancel-new-project" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button add-note-button" onClick={props.switchShowForm}>
+            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+        </button>
+    );
 }
 
 function RefreshGraphButton(props) {
