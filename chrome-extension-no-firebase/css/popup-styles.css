@@ -11,6 +11,8 @@ body {
     padding: 5px;
     border-style: none none solid none;
     border-bottom-color: var(--dark-blue);
+    display: flex;
+    justify-content: space-between;
 }
 
 /* The switch - the box around the slider */
@@ -75,4 +77,16 @@ input:checked + .switch-slider:before {
 
 .switch-slider.round:before {
     border-radius: 50%;
+}
+
+#home-button {
+    cursor: pointer;
+    transition: 0.3s;
+    padding: 3px;
+    width: 31px;
+    border-radius: 5px;
+}
+
+#home-button:hover {
+    background-color: #a6e3e3;
 }

@@ -20,10 +20,20 @@ var PopupComponents = function (_React$Component) {
     function PopupComponents(props) {
         _classCallCheck(this, PopupComponents);
 
-        return _possibleConstructorReturn(this, (PopupComponents.__proto__ || Object.getPrototypeOf(PopupComponents)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (PopupComponents.__proto__ || Object.getPrototypeOf(PopupComponents)).call(this, props));
+
+        _this.state = {
+            graph: null
+        };
+
+        _this.getDataFromServer = _this.getDataFromServer.bind(_this);
+        return _this;
     }
 
     _createClass(PopupComponents, [{
+        key: "getDataFromServer",
+        value: function getDataFromServer() {}
+    }, {
         key: "render",
         value: function render() {
             return React.createElement(
@@ -37,12 +47,53 @@ var PopupComponents = function (_React$Component) {
     return PopupComponents;
 }(React.Component);
 
-function Header() {
-    return React.createElement(
-        "div",
-        { className: "header", style: { height: "35px" } },
-        React.createElement("img", { src: "../../images/horizontal_main.PNG", alt: "Knolist", style: { height: "100%" } })
-    );
-}
+var Header = function (_React$Component2) {
+    _inherits(Header, _React$Component2);
+
+    function Header() {
+        _classCallCheck(this, Header);
+
+        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).apply(this, arguments));
+    }
+
+    _createClass(Header, [{
+        key: "openHomePage",
+        value: function openHomePage() {
+            chrome.tabs.query({
+                active: true, currentWindow: true
+            }, function (tabs) {
+                var index = tabs[0].index;
+                chrome.tabs.create({
+                    url: "../../html/Knolist.com.html",
+                    index: index + 1
+                });
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this3 = this;
+
+            return React.createElement(
+                "div",
+                { className: "header", style: { height: "35px" } },
+                React.createElement("img", { src: "../../images/horizontal_main.PNG", alt: "Knolist", style: { height: "100%" } }),
+                React.createElement(
+                    "a",
+                    { onClick: function onClick() {
+                            return _this3.openHomePage();
+                        }, id: "home-button" },
+                    React.createElement("img", { src: "../../images/home-icon-black.png", alt: "Home", style: { height: "100%", margin: "1px" } })
+                )
+            );
+        }
+    }]);
+
+    return Header;
+}(React.Component);
+
+// class ProjectList extends React.Component {
+//
+// }
 
 ReactDOM.render(React.createElement(PopupComponents, null), document.querySelector("#popup-wrapper"));
