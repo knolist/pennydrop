@@ -506,7 +506,7 @@ class NewProjectForm extends React.Component {
         return (
             <div style={style} className="project-item new-project-form-area">
                 <form id="new-project-form" onSubmit={this.handleSubmit}>
-                    <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project"/>
+                    <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
                     <button className="button create-project-button">Create</button>
                 </form>
             </div>

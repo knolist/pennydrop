@@ -123,10 +123,12 @@ var ProjectList = function (_React$Component3) {
         var _this5 = _possibleConstructorReturn(this, (ProjectList.__proto__ || Object.getPrototypeOf(ProjectList)).call(this, props));
 
         _this5.state = {
-            dropdownOpen: false
+            dropdownOpen: false,
+            showNewProjectForm: false
         };
 
         _this5.switchDropdown = _this5.switchDropdown.bind(_this5);
+        _this5.switchShowNewProjectForm = _this5.switchShowNewProjectForm.bind(_this5);
         return _this5;
     }
 
@@ -134,6 +136,12 @@ var ProjectList = function (_React$Component3) {
         key: "switchDropdown",
         value: function switchDropdown() {
             this.setState({ dropdownOpen: !this.state.dropdownOpen });
+        }
+    }, {
+        key: "switchShowNewProjectForm",
+        value: function switchShowNewProjectForm() {
+            document.getElementById("new-project-form").reset();
+            this.setState({ showNewProjectForm: !this.state.showNewProjectForm });
         }
     }, {
         key: "render",
@@ -154,10 +162,19 @@ var ProjectList = function (_React$Component3) {
                 "div",
                 { id: "projects-list" },
                 React.createElement(
-                    "h4",
-                    null,
-                    "Current Project:"
+                    "div",
+                    { style: { display: "flex", justifyContent: "space-between" } },
+                    React.createElement(
+                        "h4",
+                        null,
+                        "Current Project:"
+                    ),
+                    React.createElement(NewProjectButton, { showForm: this.state.showNewProjectForm,
+                        switchShowForm: this.switchShowNewProjectForm })
                 ),
+                React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
+                    switchForm: this.switchShowNewProjectForm,
+                    projects: Object.keys(this.props.graph) }),
                 React.createElement(
                     "div",
                     { className: "dropdown" },
@@ -194,29 +211,119 @@ var ProjectList = function (_React$Component3) {
     return ProjectList;
 }(React.Component);
 
+// Button used to open the "create project" form
+
+
+function NewProjectButton(props) {
+    if (props.showForm) {
+        return React.createElement(
+            "button",
+            { className: "button new-project-button cancel-new-project", onClick: props.switchShowForm },
+            React.createElement(
+                "p",
+                null,
+                "Cancel"
+            )
+        );
+    }
+    return React.createElement(
+        "button",
+        { className: "button new-project-button", onClick: props.switchShowForm },
+        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New", style: { width: "100%" } })
+    );
+}
+
+// Form to create a new project
+
+var NewProjectForm = function (_React$Component4) {
+    _inherits(NewProjectForm, _React$Component4);
+
+    function NewProjectForm(props) {
+        _classCallCheck(this, NewProjectForm);
+
+        var _this7 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+
+        _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
+        return _this7;
+    }
+
+    _createClass(NewProjectForm, [{
+        key: "handleSubmit",
+        value: function handleSubmit(event) {
+            var _this8 = this;
+
+            // Prevent page from reloading
+            event.preventDefault();
+
+            // Data validation
+            var title = event.target.newProjectTitle.value;
+            if (title === "curProject" || title === "version") {
+                // Invalid options (reserved words for the graph structure)
+                alert(event.target.newProjectTitle.value + " is not a valid title.");
+            } else if (this.props.projects.includes(title)) {
+                // Don't allow repeated project names
+                alert("You already have a project called " + title + ".");
+            } else {
+                // Valid name
+                createNewProjectInGraph(title).then(function () {
+                    return _this8.props.refresh();
+                });
+
+                // Reset entry and close form
+                event.target.reset();
+                this.props.switchForm();
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var style = { display: "none" };
+            if (this.props.showNewProjectForm) {
+                style = { display: "block" };
+            }
+            return React.createElement(
+                "div",
+                { style: style, id: "new-project-form-area" },
+                React.createElement(
+                    "form",
+                    { id: "new-project-form", onSubmit: this.handleSubmit },
+                    React.createElement("input", { type: "text", id: "newProjectTitle", name: "newProjectTitle", defaultValue: "New Project", required: true }),
+                    React.createElement(
+                        "button",
+                        { className: "button create-project-button" },
+                        "Create"
+                    )
+                )
+            );
+        }
+    }]);
+
+    return NewProjectForm;
+}(React.Component);
+
 // Each item in the project dropdown
 
 
-var DropdownItem = function (_React$Component4) {
-    _inherits(DropdownItem, _React$Component4);
+var DropdownItem = function (_React$Component5) {
+    _inherits(DropdownItem, _React$Component5);
 
     function DropdownItem(props) {
         _classCallCheck(this, DropdownItem);
 
-        var _this7 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
 
-        _this7.activateProject = _this7.activateProject.bind(_this7);
-        return _this7;
+        _this9.activateProject = _this9.activateProject.bind(_this9);
+        return _this9;
     }
 
     _createClass(DropdownItem, [{
         key: "activateProject",
         value: function activateProject() {
-            var _this8 = this;
+            var _this10 = this;
 
             this.props.switchDropdown();
             setCurrentProjectInGraph(this.props.projectName).then(function () {
-                return _this8.props.refresh();
+                return _this10.props.refresh();
             });
         }
     }, {

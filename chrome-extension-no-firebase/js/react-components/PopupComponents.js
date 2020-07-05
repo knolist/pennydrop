@@ -72,14 +72,21 @@ class ProjectList extends React.Component {
         super(props);
 
         this.state = {
-            dropdownOpen: false
+            dropdownOpen: false,
+            showNewProjectForm: false
         };
 
         this.switchDropdown = this.switchDropdown.bind(this);
+        this.switchShowNewProjectForm = this.switchShowNewProjectForm.bind(this);
     }
 
     switchDropdown() {
         this.setState({dropdownOpen: !this.state.dropdownOpen});
+    }
+
+    switchShowNewProjectForm() {
+        document.getElementById("new-project-form").reset();
+        this.setState({showNewProjectForm: !this.state.showNewProjectForm});
     }
 
     render() {
@@ -95,7 +102,14 @@ class ProjectList extends React.Component {
 
         return (
             <div id="projects-list">
-                <h4>Current Project:</h4>
+                <div style={{display: "flex", justifyContent: "space-between"}}>
+                    <h4>Current Project:</h4>
+                    <NewProjectButton showForm={this.state.showNewProjectForm}
+                                      switchShowForm={this.switchShowNewProjectForm}/>
+                </div>
+                <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
+                                switchForm={this.switchShowNewProjectForm}
+                                projects={Object.keys(this.props.graph)}/>
                 <div className="dropdown">
                     <div id="current-project-area">
                         <p>{this.props.graph.curProject}</p>
@@ -111,6 +125,68 @@ class ProjectList extends React.Component {
                                                                                       switchDropdown={this.switchDropdown}/>)}
                     </div>
                 </div>
+            </div>
+        );
+    }
+}
+
+// Button used to open the "create project" form
+function NewProjectButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button new-project-button cancel-new-project" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button new-project-button" onClick={props.switchShowForm}>
+            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+        </button>
+    );
+}
+
+// Form to create a new project
+class NewProjectForm extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event) {
+        // Prevent page from reloading
+        event.preventDefault();
+
+        // Data validation
+        const title = event.target.newProjectTitle.value;
+        if (title === "curProject" || title === "version") {
+            // Invalid options (reserved words for the graph structure)
+            alert(event.target.newProjectTitle.value + " is not a valid title.");
+        } else if (this.props.projects.includes(title)) {
+            // Don't allow repeated project names
+            alert("You already have a project called " + title + ".");
+        } else {
+            // Valid name
+            createNewProjectInGraph(title).then(() => this.props.refresh());
+
+            // Reset entry and close form
+            event.target.reset();
+            this.props.switchForm();
+        }
+    }
+
+    render() {
+        let style = {display: "none"};
+        if (this.props.showNewProjectForm) {
+            style = {display: "block"};
+        }
+        return (
+            <div style={style} id="new-project-form-area">
+                <form id="new-project-form" onSubmit={this.handleSubmit}>
+                    <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
+                    <button className="button create-project-button">Create</button>
+                </form>
             </div>
         );
     }

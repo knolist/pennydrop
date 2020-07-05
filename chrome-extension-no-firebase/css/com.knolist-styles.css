@@ -41,23 +41,6 @@ body {
     justify-content:space-between;
 }
 
-.button {
-    background-color: var(--bright-turquoise);
-    height: 40px;
-    width: 40px;
-    border: 2px solid var(--java-color);
-    transition: 0.3s;
-    border-radius: 4px;
-    outline: none;
-    padding: 6px;
-    font-family: "Product Sans", sans-serif;
-}
-
-.button:hover {
-    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
-    cursor: pointer;
-}
-
 /* The Modal (background) */
 .modal {
     /*display: none; !* Hidden by default *!*/
@@ -98,30 +81,6 @@ li {
 
 .url-column {
     flex: 50%;
-}
-
-/* Style inputs */
-input[type=url] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    box-sizing: border-box;
-    background-color: transparent;
-    font-family: "Product Sans", sans-serif;
-    border-style: none none solid none;
-    border-bottom-color: gray;
-    border-width: 1px;
-    outline: none;
-}
-
-input[type="text"] {
-    background-color: transparent;
-    font-family: "Product Sans", sans-serif;
-    border-style: none none solid none;
-    border-bottom-color: gray;
-    border-width: 1px;
-    outline: none;
 }
 
 /* Sidebar selectors. Adapted from https://www.w3schools.com/howto/howto_js_collapse_sidebar.asp" */

@@ -668,7 +668,7 @@ var NewProjectForm = function (_React$Component4) {
                 React.createElement(
                     'form',
                     { id: 'new-project-form', onSubmit: this.handleSubmit },
-                    React.createElement('input', { type: 'text', id: 'newProjectTitle', name: 'newProjectTitle', defaultValue: 'New Project' }),
+                    React.createElement('input', { type: 'text', id: 'newProjectTitle', name: 'newProjectTitle', defaultValue: 'New Project', required: true }),
                     React.createElement(
                         'button',
                         { className: 'button create-project-button' },
