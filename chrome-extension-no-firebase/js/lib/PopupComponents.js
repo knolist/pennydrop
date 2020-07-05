@@ -243,11 +243,28 @@ var NewProjectForm = function (_React$Component4) {
 
         var _this7 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
+        _this7.state = {
+            alertMessage: null, // null for no issue, "invalid-title", or "repeated-title"
+            invalidTitle: null
+        };
+
         _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
+        _this7.setAlertMessage = _this7.setAlertMessage.bind(_this7);
+        _this7.setInvalidTitle = _this7.setInvalidTitle.bind(_this7);
         return _this7;
     }
 
     _createClass(NewProjectForm, [{
+        key: "setAlertMessage",
+        value: function setAlertMessage(value) {
+            this.setState({ alertMessage: value });
+        }
+    }, {
+        key: "setInvalidTitle",
+        value: function setInvalidTitle(value) {
+            this.setState({ invalidTitle: value });
+        }
+    }, {
         key: "handleSubmit",
         value: function handleSubmit(event) {
             var _this8 = this;
@@ -259,10 +276,12 @@ var NewProjectForm = function (_React$Component4) {
             var title = event.target.newProjectTitle.value;
             if (title === "curProject" || title === "version") {
                 // Invalid options (reserved words for the graph structure)
-                alert(event.target.newProjectTitle.value + " is not a valid title.");
+                this.setInvalidTitle(title);
+                this.setAlertMessage("invalid-title");
             } else if (this.props.projects.includes(title)) {
                 // Don't allow repeated project names
-                alert("You already have a project called " + title + ".");
+                this.setInvalidTitle(title);
+                this.setAlertMessage("repeated-title");
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
@@ -271,7 +290,11 @@ var NewProjectForm = function (_React$Component4) {
 
                 // Reset entry and close form
                 event.target.reset();
+                // Close the form
                 this.props.switchForm();
+                // Hide alert message if there was one
+                this.setAlertMessage(null);
+                this.setInvalidTitle(null);
             }
         }
     }, {
@@ -293,7 +316,8 @@ var NewProjectForm = function (_React$Component4) {
                         { className: "button create-project-button" },
                         "Create"
                     )
-                )
+                ),
+                React.createElement(AlertMessage, { alertMessage: this.state.alertMessage, projectTitle: this.state.invalidTitle })
             );
         }
     }]);
@@ -301,8 +325,35 @@ var NewProjectForm = function (_React$Component4) {
     return NewProjectForm;
 }(React.Component);
 
-// Each item in the project dropdown
+/**
+ * @return {null}
+ */
 
+
+function AlertMessage(props) {
+    if (props.alertMessage === "invalid-title") {
+        return React.createElement(
+            "p",
+            null,
+            props.projectTitle,
+            " is not a valid title."
+        );
+    }
+
+    if (props.alertMessage === "repeated-title") {
+        return React.createElement(
+            "p",
+            null,
+            "You already have a project called ",
+            props.projectTitle,
+            "."
+        );
+    }
+
+    return null;
+}
+
+// Each item in the project dropdown
 
 var DropdownItem = function (_React$Component5) {
     _inherits(DropdownItem, _React$Component5);

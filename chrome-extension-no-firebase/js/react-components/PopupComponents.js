@@ -151,7 +151,22 @@ class NewProjectForm extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            alertMessage: null, // null for no issue, "invalid-title", or "repeated-title"
+            invalidTitle: null
+        };
+
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.setAlertMessage = this.setAlertMessage.bind(this);
+        this.setInvalidTitle = this.setInvalidTitle.bind(this);
+    }
+
+    setAlertMessage(value) {
+        this.setState({alertMessage: value});
+    }
+
+    setInvalidTitle(value) {
+        this.setState({invalidTitle: value});
     }
 
     handleSubmit(event) {
@@ -162,17 +177,23 @@ class NewProjectForm extends React.Component {
         const title = event.target.newProjectTitle.value;
         if (title === "curProject" || title === "version") {
             // Invalid options (reserved words for the graph structure)
-            alert(event.target.newProjectTitle.value + " is not a valid title.");
+            this.setInvalidTitle(title);
+            this.setAlertMessage("invalid-title");
         } else if (this.props.projects.includes(title)) {
             // Don't allow repeated project names
-            alert("You already have a project called " + title + ".");
+            this.setInvalidTitle(title);
+            this.setAlertMessage("repeated-title");
         } else {
             // Valid name
             createNewProjectInGraph(title).then(() => this.props.refresh());
 
             // Reset entry and close form
             event.target.reset();
+            // Close the form
             this.props.switchForm();
+            // Hide alert message if there was one
+            this.setAlertMessage(null);
+            this.setInvalidTitle(null);
         }
     }
 
@@ -187,9 +208,29 @@ class NewProjectForm extends React.Component {
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
                     <button className="button create-project-button">Create</button>
                 </form>
+                <AlertMessage alertMessage={this.state.alertMessage} projectTitle={this.state.invalidTitle}/>
             </div>
         );
     }
+}
+
+/**
+ * @return {null}
+ */
+function AlertMessage(props) {
+    if (props.alertMessage === "invalid-title") {
+        return (
+            <p>{props.projectTitle} is not a valid title.</p>
+        );
+    }
+
+    if (props.alertMessage === "repeated-title") {
+        return (
+            <p>You already have a project called {props.projectTitle}.</p>
+        );
+    }
+
+    return null;
 }
 
 // Each item in the project dropdown

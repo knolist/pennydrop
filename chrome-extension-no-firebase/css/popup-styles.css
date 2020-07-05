@@ -212,3 +212,8 @@ input:checked + .switch-slider:before {
 #new-project-form-area {
     margin-bottom: 5px;
 }
+
+#new-project-form-area p {
+    color: red;
+    font-size: 10px;
+}
