@@ -124,15 +124,29 @@ var ProjectList = function (_React$Component3) {
 
         _this5.state = {
             dropdownOpen: false,
-            showNewProjectForm: false
+            showNewProjectForm: false,
+            alertMessage: null, // null for no issue, "invalid-title", or "repeated-title"
+            invalidTitle: null
         };
 
         _this5.switchDropdown = _this5.switchDropdown.bind(_this5);
         _this5.switchShowNewProjectForm = _this5.switchShowNewProjectForm.bind(_this5);
+        _this5.setAlertMessage = _this5.setAlertMessage.bind(_this5);
+        _this5.setInvalidTitle = _this5.setInvalidTitle.bind(_this5);
         return _this5;
     }
 
     _createClass(ProjectList, [{
+        key: "setAlertMessage",
+        value: function setAlertMessage(value) {
+            this.setState({ alertMessage: value });
+        }
+    }, {
+        key: "setInvalidTitle",
+        value: function setInvalidTitle(value) {
+            this.setState({ invalidTitle: value });
+        }
+    }, {
         key: "switchDropdown",
         value: function switchDropdown() {
             this.setState({ dropdownOpen: !this.state.dropdownOpen });
@@ -141,7 +155,11 @@ var ProjectList = function (_React$Component3) {
         key: "switchShowNewProjectForm",
         value: function switchShowNewProjectForm() {
             document.getElementById("new-project-form").reset();
-            this.setState({ showNewProjectForm: !this.state.showNewProjectForm });
+            this.setState({
+                showNewProjectForm: !this.state.showNewProjectForm,
+                alertMessage: null,
+                invalidTitle: null
+            });
         }
     }, {
         key: "render",
@@ -174,6 +192,10 @@ var ProjectList = function (_React$Component3) {
                 ),
                 React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                     switchForm: this.switchShowNewProjectForm,
+                    setAlertMessage: this.setAlertMessage,
+                    setInvalidTitle: this.setInvalidTitle,
+                    alertMessage: this.state.alertMessage,
+                    invalidTitle: this.state.invalidTitle,
                     projects: Object.keys(this.props.graph) }),
                 React.createElement(
                     "div",
@@ -243,28 +265,11 @@ var NewProjectForm = function (_React$Component4) {
 
         var _this7 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this7.state = {
-            alertMessage: null, // null for no issue, "invalid-title", or "repeated-title"
-            invalidTitle: null
-        };
-
         _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
-        _this7.setAlertMessage = _this7.setAlertMessage.bind(_this7);
-        _this7.setInvalidTitle = _this7.setInvalidTitle.bind(_this7);
         return _this7;
     }
 
     _createClass(NewProjectForm, [{
-        key: "setAlertMessage",
-        value: function setAlertMessage(value) {
-            this.setState({ alertMessage: value });
-        }
-    }, {
-        key: "setInvalidTitle",
-        value: function setInvalidTitle(value) {
-            this.setState({ invalidTitle: value });
-        }
-    }, {
         key: "handleSubmit",
         value: function handleSubmit(event) {
             var _this8 = this;
@@ -276,12 +281,12 @@ var NewProjectForm = function (_React$Component4) {
             var title = event.target.newProjectTitle.value;
             if (title === "curProject" || title === "version") {
                 // Invalid options (reserved words for the graph structure)
-                this.setInvalidTitle(title);
-                this.setAlertMessage("invalid-title");
+                this.props.setInvalidTitle(title);
+                this.props.setAlertMessage("invalid-title");
             } else if (this.props.projects.includes(title)) {
                 // Don't allow repeated project names
-                this.setInvalidTitle(title);
-                this.setAlertMessage("repeated-title");
+                this.props.setInvalidTitle(title);
+                this.props.setAlertMessage("repeated-title");
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
@@ -293,8 +298,8 @@ var NewProjectForm = function (_React$Component4) {
                 // Close the form
                 this.props.switchForm();
                 // Hide alert message if there was one
-                this.setAlertMessage(null);
-                this.setInvalidTitle(null);
+                this.props.setAlertMessage(null);
+                this.props.setInvalidTitle(null);
             }
         }
     }, {
@@ -317,7 +322,7 @@ var NewProjectForm = function (_React$Component4) {
                         "Create"
                     )
                 ),
-                React.createElement(AlertMessage, { alertMessage: this.state.alertMessage, projectTitle: this.state.invalidTitle })
+                React.createElement(AlertMessage, { alertMessage: this.props.alertMessage, projectTitle: this.props.invalidTitle })
             );
         }
     }]);
