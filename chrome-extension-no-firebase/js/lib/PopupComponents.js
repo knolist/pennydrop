@@ -146,6 +146,10 @@ var ProjectList = function (_React$Component3) {
             var arrowIconURL = "../../images/down-chevron-icon-black.png";
             if (this.state.dropdownOpen) arrowIconURL = "../../images/up-chevron-icon-black.png";
 
+            // Hide or display the dropdown content
+            var dropdownStyle = { display: "none" };
+            if (this.state.dropdownOpen) dropdownStyle = { display: "block" };
+
             return React.createElement(
                 "div",
                 { id: "projects-list" },
@@ -173,7 +177,7 @@ var ProjectList = function (_React$Component3) {
                     ),
                     React.createElement(
                         "div",
-                        { id: "myDropdown", className: "dropdown-content" },
+                        { id: "myDropdown", className: "dropdown-content", style: dropdownStyle },
                         Object.keys(this.props.graph).map(function (project) {
                             return React.createElement(DropdownItem, { key: project,
                                 projectName: project,
@@ -226,7 +230,7 @@ var DropdownItem = function (_React$Component4) {
 
             return React.createElement(
                 "a",
-                { href: "#", onClick: this.activateProject },
+                { onClick: this.activateProject },
                 this.props.projectName
             );
         }

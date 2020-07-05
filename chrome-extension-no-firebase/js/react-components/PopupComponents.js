@@ -89,6 +89,10 @@ class ProjectList extends React.Component {
         let arrowIconURL = "../../images/down-chevron-icon-black.png";
         if (this.state.dropdownOpen) arrowIconURL = "../../images/up-chevron-icon-black.png";
 
+        // Hide or display the dropdown content
+        let dropdownStyle = {display: "none"};
+        if (this.state.dropdownOpen) dropdownStyle = {display: "block"};
+
         return (
             <div id="projects-list">
                 <h4>Current Project:</h4>
@@ -99,7 +103,7 @@ class ProjectList extends React.Component {
                             <img src={arrowIconURL} alt="Dropdown"/>
                         </button>
                     </div>
-                    <div id="myDropdown" className="dropdown-content">
+                    <div id="myDropdown" className="dropdown-content" style={dropdownStyle}>
                         {Object.keys(this.props.graph).map((project) => <DropdownItem key={project}
                                                                                       projectName={project}
                                                                                       curProject={this.props.graph.curProject}
@@ -133,7 +137,7 @@ class DropdownItem extends React.Component {
         if (this.props.projectName === this.props.curProject) return null;
 
         return (
-            <a href="#" onClick={this.activateProject}>{this.props.projectName}</a>
+            <a onClick={this.activateProject}>{this.props.projectName}</a>
         );
     }
 }
