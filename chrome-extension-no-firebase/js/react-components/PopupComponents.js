@@ -11,10 +11,17 @@ class PopupComponents extends React.Component {
         super(props);
 
         this.state = {
-            graph: null
+            graph: null,
+            showNewNotesForm: false
         };
 
         this.getDataFromServer = this.getDataFromServer.bind(this);
+        this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
+    }
+
+    switchShowNewNotesForm() {
+        document.getElementById("new-notes-form").reset();
+        this.setState({showNewNotesForm: !this.state.showNewNotesForm});
     }
 
     getDataFromServer() {
@@ -33,6 +40,7 @@ class PopupComponents extends React.Component {
                 <Header/>
                 <div id="popup-body">
                     <ProjectList graph={this.state.graph} refresh={this.getDataFromServer}/>
+                    <NewNotesArea showForm={this.state.showNewNotesForm} switchShowForm={this.switchShowNewNotesForm}/>
                 </div>
             </div>
         );
@@ -58,10 +66,12 @@ class Header extends React.Component {
         return (
             <div className="header" style={{height: "35px"}}>
                 <img src="../../images/horizontal_main.PNG" alt="Knolist" style={{height: "100%"}}/>
-                <ActivateProjectSwitch/>
-                <a onClick={() => this.openHomePage()} id="home-button">
-                    <img src="../../images/home-icon-black.png" alt="Home" style={{height: "100%", margin: "1px"}}/>
-                </a>
+                <div style={{display: "flex"}}>
+                    <ActivateProjectSwitch/>
+                    <a onClick={() => this.openHomePage()} id="home-button">
+                        <img src="../../images/home-icon-black.png" alt="Home" style={{height: "100%", margin: "1px"}}/>
+                    </a>
+                </div>
             </div>
         );
     }
@@ -193,6 +203,10 @@ class NewProjectForm extends React.Component {
             // Valid name
             createNewProjectInGraph(title).then(() => this.props.refresh());
 
+            // Activate tracking
+            document.getElementById("switch-tracking").checked = true;
+            chrome.runtime.sendMessage({command: "start-tracking"});
+
             // Reset entry and close form
             event.target.reset();
             // Close the form
@@ -280,8 +294,8 @@ class ActivateProjectSwitch extends React.Component {
         }
     };
 
-    setTrackingState()  {
-        chrome.runtime.sendMessage({command: "get_tracking"}, function(response) {
+    setTrackingState() {
+        chrome.runtime.sendMessage({command: "get_tracking"}, function (response) {
             document.getElementById("switch-tracking").checked = response.trackBrowsing;
         });
     };
@@ -298,6 +312,78 @@ class ActivateProjectSwitch extends React.Component {
             </label>
         );
     }
+}
+
+function NewNotesArea(props) {
+    return (
+        <div style={{marginTop: "10px"}}>
+            <NewNotesButton showForm={props.showForm} switchShowForm={props.switchShowForm}/>
+            <NewNotesForm showForm={props.showForm} switchShowForm={props.switchShowForm}/>
+        </div>
+    )
+}
+
+class NewNotesForm extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event) {
+        event.preventDefault();
+
+        const notes = event.target.notes.value;
+
+        this.props.switchShowForm(); // Hide the form
+        event.target.reset(); // Clear the form entries
+
+        // Get current page
+        chrome.tabs.query({
+                active: true, currentWindow: true
+            }, tabs => {
+                let currentURL = tabs[0].url;
+                const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(currentURL);
+                // Create item based on the current page
+                $.getJSON(contextExtractionURL, (item) => {
+                    addNotesToItemInGraph(item, notes);
+                });
+            }
+        );
+    }
+
+    render() {
+        // Hidden form for adding notes
+        let style = {display: "none"};
+        if (this.props.showForm) {
+            style = {display: "flex"}
+        }
+
+        return (
+            <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
+                <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
+                <button className="button add-note-button" style={{marginTop: 0, marginBottom: 0}}>
+                    Add
+                </button>
+            </form>
+        );
+    }
+}
+
+// Button used to open the "create project" form
+function NewNotesButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button add-note-button" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button add-note-button" onClick={props.switchShowForm}>
+            <p>Add notes to this page</p>
+        </button>
+    );
 }
 
 ReactDOM.render(<PopupComponents/>, document.querySelector("#popup-wrapper"));

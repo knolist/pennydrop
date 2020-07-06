@@ -23,14 +23,22 @@ var PopupComponents = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (PopupComponents.__proto__ || Object.getPrototypeOf(PopupComponents)).call(this, props));
 
         _this.state = {
-            graph: null
+            graph: null,
+            showNewNotesForm: false
         };
 
         _this.getDataFromServer = _this.getDataFromServer.bind(_this);
+        _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
         return _this;
     }
 
     _createClass(PopupComponents, [{
+        key: "switchShowNewNotesForm",
+        value: function switchShowNewNotesForm() {
+            document.getElementById("new-notes-form").reset();
+            this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
+        }
+    }, {
         key: "getDataFromServer",
         value: function getDataFromServer() {
             var _this2 = this;
@@ -54,7 +62,8 @@ var PopupComponents = function (_React$Component) {
                 React.createElement(
                     "div",
                     { id: "popup-body" },
-                    React.createElement(ProjectList, { graph: this.state.graph, refresh: this.getDataFromServer })
+                    React.createElement(ProjectList, { graph: this.state.graph, refresh: this.getDataFromServer }),
+                    React.createElement(NewNotesArea, { showForm: this.state.showNewNotesForm, switchShowForm: this.switchShowNewNotesForm })
                 )
             );
         }
@@ -97,13 +106,17 @@ var Header = function (_React$Component2) {
                 "div",
                 { className: "header", style: { height: "35px" } },
                 React.createElement("img", { src: "../../images/horizontal_main.PNG", alt: "Knolist", style: { height: "100%" } }),
-                React.createElement(ActivateProjectSwitch, null),
                 React.createElement(
-                    "a",
-                    { onClick: function onClick() {
-                            return _this4.openHomePage();
-                        }, id: "home-button" },
-                    React.createElement("img", { src: "../../images/home-icon-black.png", alt: "Home", style: { height: "100%", margin: "1px" } })
+                    "div",
+                    { style: { display: "flex" } },
+                    React.createElement(ActivateProjectSwitch, null),
+                    React.createElement(
+                        "a",
+                        { onClick: function onClick() {
+                                return _this4.openHomePage();
+                            }, id: "home-button" },
+                        React.createElement("img", { src: "../../images/home-icon-black.png", alt: "Home", style: { height: "100%", margin: "1px" } })
+                    )
                 )
             );
         }
@@ -294,6 +307,10 @@ var NewProjectForm = function (_React$Component4) {
                     return _this8.props.refresh();
                 });
 
+                // Activate tracking
+                document.getElementById("switch-tracking").checked = true;
+                chrome.runtime.sendMessage({ command: "start-tracking" });
+
                 // Reset entry and close form
                 event.target.reset();
                 // Close the form
@@ -450,5 +467,99 @@ var ActivateProjectSwitch = function (_React$Component6) {
 
     return ActivateProjectSwitch;
 }(React.Component);
+
+function NewNotesArea(props) {
+    return React.createElement(
+        "div",
+        { style: { marginTop: "10px" } },
+        React.createElement(NewNotesButton, { showForm: props.showForm, switchShowForm: props.switchShowForm }),
+        React.createElement(NewNotesForm, { showForm: props.showForm, switchShowForm: props.switchShowForm })
+    );
+}
+
+var NewNotesForm = function (_React$Component7) {
+    _inherits(NewNotesForm, _React$Component7);
+
+    function NewNotesForm(props) {
+        _classCallCheck(this, NewNotesForm);
+
+        var _this12 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
+
+        _this12.handleSubmit = _this12.handleSubmit.bind(_this12);
+        return _this12;
+    }
+
+    _createClass(NewNotesForm, [{
+        key: "handleSubmit",
+        value: function handleSubmit(event) {
+            event.preventDefault();
+
+            var notes = event.target.notes.value;
+
+            this.props.switchShowForm(); // Hide the form
+            event.target.reset(); // Clear the form entries
+
+            // Get current page
+            chrome.tabs.query({
+                active: true, currentWindow: true
+            }, function (tabs) {
+                var currentURL = tabs[0].url;
+                var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(currentURL);
+                // Create item based on the current page
+                $.getJSON(contextExtractionURL, function (item) {
+                    addNotesToItemInGraph(item, notes);
+                });
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            // Hidden form for adding notes
+            var style = { display: "none" };
+            if (this.props.showForm) {
+                style = { display: "flex" };
+            }
+
+            return React.createElement(
+                "form",
+                { id: "new-notes-form", onSubmit: this.handleSubmit, style: style },
+                React.createElement("input", { id: "notes", name: "notes", type: "text", placeholder: "Insert Notes", required: true }),
+                React.createElement(
+                    "button",
+                    { className: "button add-note-button", style: { marginTop: 0, marginBottom: 0 } },
+                    "Add"
+                )
+            );
+        }
+    }]);
+
+    return NewNotesForm;
+}(React.Component);
+
+// Button used to open the "create project" form
+
+
+function NewNotesButton(props) {
+    if (props.showForm) {
+        return React.createElement(
+            "button",
+            { className: "button add-note-button", onClick: props.switchShowForm },
+            React.createElement(
+                "p",
+                null,
+                "Cancel"
+            )
+        );
+    }
+    return React.createElement(
+        "button",
+        { className: "button add-note-button", onClick: props.switchShowForm },
+        React.createElement(
+            "p",
+            null,
+            "Add notes to this page"
+        )
+    );
+}
 
 ReactDOM.render(React.createElement(PopupComponents, null), document.querySelector("#popup-wrapper"));

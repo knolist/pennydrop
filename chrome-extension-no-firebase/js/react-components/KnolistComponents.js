@@ -760,8 +760,8 @@ class NotesList extends React.Component {
                 <div>
                     <div style={{display: "flex"}}>
                         <h2>My Notes</h2>
-                        <NewNoteButton showForm={this.props.showNewNotesForm}
-                                       switchShowForm={this.props.switchShowNewNotesForm}/>
+                        <NewNotesButton showForm={this.props.showNewNotesForm}
+                                        switchShowForm={this.props.switchShowNewNotesForm}/>
                     </div>
                     <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
                     <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
@@ -772,8 +772,8 @@ class NotesList extends React.Component {
             <div>
                 <div style={{display: "flex"}}>
                     <h2>You haven't added any notes yet.</h2>
-                    <NewNoteButton showForm={this.props.showNewNotesForm}
-                                   switchShowForm={this.props.switchShowNewNotesForm}/>
+                    <NewNotesButton showForm={this.props.showNewNotesForm}
+                                    switchShowForm={this.props.switchShowNewNotesForm}/>
                 </div>
                 <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
             </div>
@@ -798,7 +798,7 @@ function NewNotesForm(props) {
 }
 
 // Button used to open the "create project" form
-function NewNoteButton(props) {
+function NewNotesButton(props) {
     if (props.showForm) {
         return (
             <button className="button add-note-button cancel-new-project" onClick={props.switchShowForm}>

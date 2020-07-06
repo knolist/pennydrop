@@ -89,6 +89,7 @@ input:checked + .switch-slider:before {
     padding: 3px;
     width: 31px;
     border-radius: 5px;
+    margin-left: 4px;
 }
 
 #home-button:hover {
@@ -216,4 +217,21 @@ input:checked + .switch-slider:before {
 #new-project-form-area p {
     color: red;
     font-size: 10px;
+}
+
+.add-note-button {
+    width: auto;
+    height: 30px;
+}
+
+.add-note-button p {
+    margin: 0;
+}
+
+#new-notes-form {
+    justify-content: space-between;
+}
+
+#new-notes-form input[type="text"] {
+    width: 80%;
 }

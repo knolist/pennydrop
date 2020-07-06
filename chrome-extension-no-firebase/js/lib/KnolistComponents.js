@@ -1147,7 +1147,7 @@ var NotesList = function (_React$Component11) {
                             null,
                             'My Notes'
                         ),
-                        React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
+                        React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
                             switchShowForm: this.props.switchShowNewNotesForm })
                     ),
                     React.createElement(
@@ -1175,7 +1175,7 @@ var NotesList = function (_React$Component11) {
                         null,
                         'You haven\'t added any notes yet.'
                     ),
-                    React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
+                    React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
                         switchShowForm: this.props.switchShowNewNotesForm })
                 ),
                 React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
@@ -1206,7 +1206,7 @@ function NewNotesForm(props) {
 }
 
 // Button used to open the "create project" form
-function NewNoteButton(props) {
+function NewNotesButton(props) {
     if (props.showForm) {
         return React.createElement(
             'button',
