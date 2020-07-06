@@ -203,7 +203,7 @@ var ProjectList = function (_React$Component3) {
                     { className: "dropdown" },
                     React.createElement(
                         "div",
-                        { id: "current-project-area" },
+                        { onClick: this.switchDropdown, id: "current-project-area" },
                         React.createElement(
                             "p",
                             null,
@@ -211,7 +211,7 @@ var ProjectList = function (_React$Component3) {
                         ),
                         React.createElement(
                             "button",
-                            { onClick: this.switchDropdown, className: "dropdown-button" },
+                            { className: "dropdown-button" },
                             React.createElement("img", { src: arrowIconURL, alt: "Dropdown" })
                         )
                     ),

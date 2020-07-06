@@ -132,9 +132,9 @@ class ProjectList extends React.Component {
                                 invalidTitle={this.state.invalidTitle}
                                 projects={Object.keys(this.props.graph)}/>
                 <div className="dropdown">
-                    <div id="current-project-area">
+                    <div onClick={this.switchDropdown} id="current-project-area">
                         <p>{this.props.graph.curProject}</p>
-                        <button onClick={this.switchDropdown} className="dropdown-button">
+                        <button className="dropdown-button">
                             <img src={arrowIconURL} alt="Dropdown"/>
                         </button>
                     </div>

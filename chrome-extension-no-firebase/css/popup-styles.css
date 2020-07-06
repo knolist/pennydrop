@@ -105,11 +105,12 @@ input:checked + .switch-slider:before {
     justify-content: space-between;
     height: 24px;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: white;
     border-radius: 5px;
     border-style: solid;
     border-color: var(--dark-blue);
     margin: 2px 0 0 0;
+    cursor: pointer;
 }
 
 #current-project-area p {
