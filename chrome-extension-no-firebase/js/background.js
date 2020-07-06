@@ -12,14 +12,10 @@ const contextMenuItem = {
 chrome.contextMenus.create(contextMenuItem);
 chrome.contextMenus.onClicked.addListener(function (clickData) {
     if (clickData.menuItemId === "highlight" && clickData.selectionText) {
-        if (trackBrowsing) {
-            const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(clickData.pageUrl);
-            $.getJSON(contextExtractionURL, (item) => {
-                addHighlightsToItemInGraph(item, clickData.selectionText);
-            });
-        } else {
-            alert("Please activate browser tracking to add highlights.")
-        }
+        const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(clickData.pageUrl);
+        $.getJSON(contextExtractionURL, (item) => {
+            addHighlightsToItemInGraph(item, clickData.selectionText);
+        });
     }
 });
 
