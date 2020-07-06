@@ -2,7 +2,7 @@ body {
     background-image: url("../images/background.jpg");
     font-family: "Product Sans", sans-serif;
     height: 300px;
-    width: 250px;
+    width: 300px;
     margin: 0;
 }
 
@@ -69,9 +69,9 @@ input:focus + .switch-slider {
 }
 
 input:checked + .switch-slider:before {
-    -webkit-transform: translateX(22px);
-    -ms-transform: translateX(22px);
-    transform: translateX(22px);
+    -webkit-transform: translateX(25px);
+    -ms-transform: translateX(25px);
+    transform: translateX(25px);
 }
 
 /* Rounded sliders */
@@ -154,7 +154,6 @@ input:checked + .switch-slider:before {
 .dropdown-content a {
     display: block;
     width: 100%;
-    /*background-color: rgba(255, 255, 255, 0.8);*/
     background-color: white;
     transition: 0.3s;
     font-size: 16px;

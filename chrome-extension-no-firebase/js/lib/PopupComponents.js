@@ -97,6 +97,7 @@ var Header = function (_React$Component2) {
                 "div",
                 { className: "header", style: { height: "35px" } },
                 React.createElement("img", { src: "../../images/horizontal_main.PNG", alt: "Knolist", style: { height: "100%" } }),
+                React.createElement(ActivateProjectSwitch, null),
                 React.createElement(
                     "a",
                     { onClick: function onClick() {
@@ -400,6 +401,54 @@ var DropdownItem = function (_React$Component5) {
     }]);
 
     return DropdownItem;
+}(React.Component);
+
+var ActivateProjectSwitch = function (_React$Component6) {
+    _inherits(ActivateProjectSwitch, _React$Component6);
+
+    function ActivateProjectSwitch(props) {
+        _classCallCheck(this, ActivateProjectSwitch);
+
+        var _this11 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
+
+        _this11.switchTracking = _this11.switchTracking.bind(_this11);
+        return _this11;
+    }
+
+    _createClass(ActivateProjectSwitch, [{
+        key: "switchTracking",
+        value: function switchTracking() {
+            if (document.getElementById("switch-tracking").checked) {
+                chrome.runtime.sendMessage({ command: "start-tracking" });
+            } else {
+                chrome.runtime.sendMessage({ command: "stop-tracking" });
+            }
+        }
+    }, {
+        key: "setTrackingState",
+        value: function setTrackingState() {
+            chrome.runtime.sendMessage({ command: "get_tracking" }, function (response) {
+                document.getElementById("switch-tracking").checked = response.trackBrowsing;
+            });
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            this.setTrackingState();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "label",
+                { className: "switch" },
+                React.createElement("input", { type: "checkbox", id: "switch-tracking", onClick: this.switchTracking }),
+                React.createElement("span", { className: "switch-slider round" })
+            );
+        }
+    }]);
+
+    return ActivateProjectSwitch;
 }(React.Component);
 
 ReactDOM.render(React.createElement(PopupComponents, null), document.querySelector("#popup-wrapper"));

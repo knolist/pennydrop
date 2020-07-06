@@ -58,6 +58,7 @@ class Header extends React.Component {
         return (
             <div className="header" style={{height: "35px"}}>
                 <img src="../../images/horizontal_main.PNG" alt="Knolist" style={{height: "100%"}}/>
+                <ActivateProjectSwitch/>
                 <a onClick={() => this.openHomePage()} id="home-button">
                     <img src="../../images/home-icon-black.png" alt="Home" style={{height: "100%", margin: "1px"}}/>
                 </a>
@@ -260,6 +261,41 @@ class DropdownItem extends React.Component {
 
         return (
             <a onClick={this.activateProject}>{this.props.projectName}</a>
+        );
+    }
+}
+
+class ActivateProjectSwitch extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.switchTracking = this.switchTracking.bind(this);
+    }
+
+    switchTracking() {
+        if (document.getElementById("switch-tracking").checked) {
+            chrome.runtime.sendMessage({command: "start-tracking"});
+        } else {
+            chrome.runtime.sendMessage({command: "stop-tracking"});
+        }
+    };
+
+    setTrackingState()  {
+        chrome.runtime.sendMessage({command: "get_tracking"}, function(response) {
+            document.getElementById("switch-tracking").checked = response.trackBrowsing;
+        });
+    };
+
+    componentDidMount() {
+        this.setTrackingState();
+    }
+
+    render() {
+        return (
+            <label className="switch">
+                <input type="checkbox" id="switch-tracking" onClick={this.switchTracking}/>
+                <span className="switch-slider round"/>
+            </label>
         );
     }
 }
