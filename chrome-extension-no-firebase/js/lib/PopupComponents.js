@@ -471,7 +471,7 @@ var ActivateProjectSwitch = function (_React$Component6) {
 function NewNotesArea(props) {
     return React.createElement(
         "div",
-        { style: { marginTop: "10px" } },
+        { style: { marginTop: "15px" } },
         React.createElement(NewNotesButton, { showForm: props.showForm, switchShowForm: props.switchShowForm }),
         React.createElement(NewNotesForm, { showForm: props.showForm, switchShowForm: props.switchShowForm })
     );

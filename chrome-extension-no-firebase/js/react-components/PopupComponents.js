@@ -316,7 +316,7 @@ class ActivateProjectSwitch extends React.Component {
 
 function NewNotesArea(props) {
     return (
-        <div style={{marginTop: "10px"}}>
+        <div style={{marginTop: "15px"}}>
             <NewNotesButton showForm={props.showForm} switchShowForm={props.switchShowForm}/>
             <NewNotesForm showForm={props.showForm} switchShowForm={props.switchShowForm}/>
         </div>
