@@ -726,7 +726,12 @@ class HighlightsList extends React.Component {
         if (this.props.highlights.length !== 0) {
             return (
                 <div>
-                    <h2>My Highlights</h2>
+                    <div style={{display: "flex"}}>
+                        <h2>My Highlights</h2>
+                        <button className="button delete-note-button" onClick={this.deleteNode}>
+                            <img src="../../images/delete-icon-black.png" alt="Delete note" style={{width: "100%"}}/>
+                        </button>
+                    </div>
                     <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
                 </div>
             );
@@ -762,6 +767,9 @@ class NotesList extends React.Component {
                         <h2>My Notes</h2>
                         <NewNoteButton showForm={this.props.showNewNotesForm}
                                        switchShowForm={this.props.switchShowNewNotesForm}/>
+                        <button className="button delete-note-button" onClick={this.deleteNode}>
+                            <img src="../../images/delete-icon-black.png" alt="Delete note" style={{width: "100%"}}/>
+                        </button>
                     </div>
                     <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
                     <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>

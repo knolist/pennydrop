@@ -1077,9 +1077,18 @@ var HighlightsList = function (_React$Component10) {
                     'div',
                     null,
                     React.createElement(
-                        'h2',
-                        null,
-                        'My Highlights'
+                        'div',
+                        { style: { display: "flex" } },
+                        React.createElement(
+                            'h2',
+                            null,
+                            'My Highlights'
+                        ),
+                        React.createElement(
+                            'button',
+                            { className: 'button delete-note-button', onClick: this.deleteNode },
+                            React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'Delete note', style: { width: "100%" } })
+                        )
                     ),
                     React.createElement(
                         'ul',
@@ -1148,7 +1157,12 @@ var NotesList = function (_React$Component11) {
                             'My Notes'
                         ),
                         React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
-                            switchShowForm: this.props.switchShowNewNotesForm })
+                            switchShowForm: this.props.switchShowNewNotesForm }),
+                        React.createElement(
+                            'button',
+                            { className: 'button delete-note-button', onClick: this.deleteNode },
+                            React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'Delete note', style: { width: "100%" } })
+                        )
                     ),
                     React.createElement(
                         'ul',
