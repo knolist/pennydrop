@@ -28,7 +28,8 @@ class KnolistComponents extends React.Component {
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
             bibliographyData: null, // The data to be exported as bibliography
-            showProjectsSidebar: false
+            showProjectsSidebar: false,
+            localServer: false // Set to true if the server is being run locally
         };
 
         // Bind functions that need to be passed as parameters
@@ -63,6 +64,11 @@ class KnolistComponents extends React.Component {
                 }
             }
         }
+    }
+
+    // Verifies if the local server is being run
+    checkIfLocalServer() {
+
     }
 
     // Calls graph.js function to pull the graph from the Chrome storage
@@ -574,7 +580,7 @@ class NewNodeForm extends React.Component {
     handleSubmit(event) {
         event.preventDefault(); // Stop page from reloading
         // Call from server
-        const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
+        const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(event.target.url.value);
         $.getJSON(contextExtractionURL, (item) => {
             addItemToGraph(item, "").then(() => {
                 return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);

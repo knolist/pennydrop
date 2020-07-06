@@ -504,7 +504,7 @@ var NewNotesForm = function (_React$Component7) {
                 active: true, currentWindow: true
             }, function (tabs) {
                 var currentURL = tabs[0].url;
-                var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(currentURL);
+                var contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(currentURL);
                 // Create item based on the current page
                 $.getJSON(contextExtractionURL, function (item) {
                     addNotesToItemInGraph(item, notes);

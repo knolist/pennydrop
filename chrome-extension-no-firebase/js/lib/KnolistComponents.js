@@ -783,7 +783,7 @@ var NewNodeForm = function (_React$Component6) {
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
-            var contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(event.target.url.value);
+            var contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contextExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
                     return updatePositionOfNode(item.source, _this16.props.nodeData.x, _this16.props.nodeData.y);

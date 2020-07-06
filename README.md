@@ -12,13 +12,16 @@ There are two directories inside `js`: `react-components` and `lib`. You should 
 using by adding the following line to your `~/.bashrc`: `alias babelc_kno='npx babel --presets react-app/prod chrome-extension-no-firebase/js/react-components --out-dir chrome-extension-no-firebase/js/lib/'`, then
 run the compiler by calling `babelc_kno` from your command line)  
 
-## Other npm commands to run
-1) `npm install uuid`
-
 ## Running the server
-If running locally, you must run the server that extracts website data.
+The server has been deployed to [knolist.herokuapp.com](knolist.herokuapp.com). The source for the deployed version of the server
+is in a separate repo in the Knolist organization, called `knolist-backend`. If you make any updates to `server.py`, remember to
+transfer that over to the other repo. Automatic deploy is active on Heroku, so all you need to do is push the updated code
+to master in `knolist-backend`.
+
+If running locally for debugging purposes, you must run the server that extracts website data.
 1) Open a terminal and run `cd server`
 2) Run `python3 server.py`
+3) If any of the necessary packages is not locally installed, follow the error messages to install them using `pip`
 
 ## Automatically Associating GitHub Activity in ClickUp 
 ClickUp will automatically pick up new activity and associate it with tasks. 

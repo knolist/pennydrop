@@ -12,7 +12,7 @@ const contextMenuItem = {
 chrome.contextMenus.create(contextMenuItem);
 chrome.contextMenus.onClicked.addListener(function (clickData) {
     if (clickData.menuItemId === "highlight" && clickData.selectionText) {
-        const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(clickData.pageUrl);
+        const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(clickData.pageUrl);
         $.getJSON(contextExtractionURL, (item) => {
             addHighlightsToItemInGraph(item, clickData.selectionText);
         });
@@ -21,7 +21,7 @@ chrome.contextMenus.onClicked.addListener(function (clickData) {
 
 chrome.runtime.onMessage.addListener(function (message, _sender, _sendResponse) {
     if (message.url !== undefined && trackBrowsing) {
-        const contextExtractionURL = "http://127.0.0.1:5000/extract?url=" + encodeURIComponent(message.url);
+        const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(message.url);
         $.getJSON(contextExtractionURL, (item) => {
             addItemToGraph(item, message.prevURL);
         });
@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener(function (message, _sender, _sendResponse) 
         const contents = getContentFromGraph(message.currentURL);
         console.log("Starting search to answer question: " + message.selectedText);
         contents.forEach(content => {
-            const similarity_API_URL = "http://127.0.0.1:5000/bertSimilarity?question=" + encodeURIComponent(message.selectedText) + "&text=" + encodeURIComponent(content);
+            const similarity_API_URL = "https://knolist.herokuapp.com/bertSimilarity?question=" + encodeURIComponent(message.selectedText) + "&text=" + encodeURIComponent(content);
             $.getJSON(similarity_API_URL, (result) => {
                 console.log(JSON.stringify(result))
             });
