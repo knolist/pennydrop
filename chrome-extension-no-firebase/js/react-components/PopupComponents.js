@@ -66,17 +66,29 @@ class PopupComponents extends React.Component {
 
 // Header of the popup. Contains logo and home button
 class Header extends React.Component {
+    // If the home page is already opened, it simply refreshes and goes to that page
+    // If it's not open, a new tab is opened next to the current active tab
     openHomePage() {
         chrome.tabs.query({
-                active: true, currentWindow: true
-            }, tabs => {
-                let index = tabs[0].index;
-                chrome.tabs.create({
-                    url: "../../html/Knolist.com.html",
-                    index: index + 1
+            title: "Knolist", currentWindow: true
+        }, tabs => {
+            // Check if a tab was found. If it was, it means the home page is already open
+            if (tabs.length > 0) {
+                const tabId = tabs[0].id;
+                chrome.tabs.reload(tabId);
+                chrome.tabs.update(tabId, {active: true});
+            } else { // Open a new tab for the home page
+                chrome.tabs.query({
+                    active: true, currentWindow: true
+                }, tabs => {
+                    let index = tabs[0].index;
+                    chrome.tabs.create({
+                        url: "../../html/Knolist.com.html",
+                        index: index + 1
+                    });
                 });
             }
-        );
+        });
     }
 
     render() {

@@ -108,15 +108,30 @@ var Header = function (_React$Component2) {
 
     _createClass(Header, [{
         key: "openHomePage",
+
+        // If the home page is already opened, it simply refreshes and goes to that page
+        // If it's not open, a new tab is opened next to the current active tab
         value: function openHomePage() {
             chrome.tabs.query({
-                active: true, currentWindow: true
+                title: "Knolist", currentWindow: true
             }, function (tabs) {
-                var index = tabs[0].index;
-                chrome.tabs.create({
-                    url: "../../html/Knolist.com.html",
-                    index: index + 1
-                });
+                // Check if a tab was found. If it was, it means the home page is already open
+                if (tabs.length > 0) {
+                    var tabId = tabs[0].id;
+                    chrome.tabs.reload(tabId);
+                    chrome.tabs.update(tabId, { active: true });
+                } else {
+                    // Open a new tab for the home page
+                    chrome.tabs.query({
+                        active: true, currentWindow: true
+                    }, function (tabs) {
+                        var index = tabs[0].index;
+                        chrome.tabs.create({
+                            url: "../../html/Knolist.com.html",
+                            index: index + 1
+                        });
+                    });
+                }
             });
         }
     }, {
