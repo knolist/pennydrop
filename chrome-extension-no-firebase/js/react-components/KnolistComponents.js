@@ -24,6 +24,8 @@ class KnolistComponents extends React.Component {
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
+            showDeleteNotesForm: false,
+            showDeleteHighlightsForm: false,
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
@@ -41,6 +43,8 @@ class KnolistComponents extends React.Component {
         this.addEdge = this.addEdge.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
+        this.switchShowDeleteNotesForm = this.switchShowDeleteNotesForm.bind(this);
+        this.switchShowDeleteHighlightsForm = this.switchShowDeleteHighlightsForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
         this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
@@ -113,9 +117,19 @@ class KnolistComponents extends React.Component {
     }
 
     closePageView() {
-        // Only call switchForm if the notes form is showing
+        // Only call switchForm if the new notes form is showing
         if (this.state.showNewNotesForm) {
             this.switchShowNewNotesForm();
+        }
+
+        // Only call switchForm if the delete notes form is showing
+        if (this.state.showDeleteNotesForm) {
+            this.switchShowDeleteNotesForm();
+        }
+
+        // Only call switchForm if the highlights notes form is showing
+        if (this.state.showDeleteHighlightsForm) {
+            this.switchShowDeleteHighlightsForm();
         }
 
         this.resetSelectedNode();
@@ -171,6 +185,16 @@ class KnolistComponents extends React.Component {
     switchShowNewNotesForm() {
         document.getElementById("new-notes-form").reset();
         this.setState({showNewNotesForm: !this.state.showNewNotesForm});
+    }
+
+    switchShowDeleteNotesForm() {
+        document.getElementById("delete-notes-form").reset();
+        this.setState({showDeleteNotesForm: !this.state.showDeleteNotesForm});
+    }
+
+    switchShowDeleteHighlightsForm() {
+        document.getElementById("delete-highlights-form").reset();
+        this.setState({showDeleteHighlightsForm: !this.state.showDeleteHighlightsForm});
     }
 
     openProjectsSidebar() {
@@ -351,7 +375,11 @@ class KnolistComponents extends React.Component {
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
                               showNewNotesForm={this.state.showNewNotesForm}
-                              switchShowNewNotesForm={this.switchShowNewNotesForm}/>
+                              switchShowNewNotesForm={this.switchShowNewNotesForm}
+                              showDeleteNotesForm={this.state.showDeleteNotesForm}
+                              switchShowDeleteNotesForm={this.switchShowDeleteNotesForm}
+                              showDeleteHighlightsForm={this.state.showDeleteHighlightsForm}
+                              switchShowDeleteHighlightsForm={this.switchShowDeleteHighlightsForm}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
@@ -637,9 +665,13 @@ class PageView extends React.Component {
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
-                    <HighlightsList highlights={this.props.selectedNode.highlights}/>
+                    <HighlightsList highlights={this.props.selectedNode.highlights}
+                               showDeleteHighlightsForm={this.props.showDeleteHighlightsForm}
+                               switchShowDeleteHighlightsForm={this.props.switchShowDeleteHighlightsForm}/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
+                               showDeleteNotesForm={this.props.showDeleteNotesForm}
+                               switchShowDeleteNotesForm={this.props.switchShowDeleteNotesForm}
                                selectedNode={this.props.selectedNode} refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
@@ -720,6 +752,18 @@ class ListURL extends React.Component {
 class HighlightsList extends React.Component {
     constructor(props) {
         super(props);
+
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    // Handles the submission of the Delete Highlight Form
+    handleSubmit(event) {
+        event.preventDefault();
+        
+        // Delete Highlight
+
+        this.props.switchShowDeleteHighlightsForm();
+        event.target.reset(); // Clear the form entries
     }
 
     render() {
@@ -728,11 +772,11 @@ class HighlightsList extends React.Component {
                 <div>
                     <div style={{display: "flex"}}>
                         <h2>My Highlights</h2>
-                        <button className="button delete-note-button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-black.png" alt="Delete note" style={{width: "100%"}}/>
-                        </button>
+                        <DeleteHighlightButton showForm={this.props.showDeleteHighlightsForm}
+                                       switchShowForm={this.props.switchShowDeleteHighlightsForm}/>
                     </div>
-                    <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
+                    <ol>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ol>
+                    <DeleteHighlightsForm handleSubmit={this.handleSubmit} showForm={this.props.showDeleteHighlightsForm}/>
                 </div>
             );
         }
@@ -747,15 +791,26 @@ class NotesList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleSubmitAddition = this.handleSubmitAddition.bind(this);
+        this.handleSubmitDeletion = this.handleSubmitDeletion.bind(this);
     }
 
-    handleSubmit(event) {
+    handleSubmitAddition(event) {
         event.preventDefault();
         addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
             this.props.refresh();
         });
         this.props.switchShowNewNotesForm();
+        event.target.reset(); // Clear the form entries
+    }
+
+    // Handles the submission of the Delete Highlight Form
+    handleSubmitDeletion(event) {
+        event.preventDefault();
+        
+        // Delete Note
+
+        this.props.switchShowDeleteNotesForm();
         event.target.reset(); // Clear the form entries
     }
 
@@ -767,12 +822,12 @@ class NotesList extends React.Component {
                         <h2>My Notes</h2>
                         <NewNoteButton showForm={this.props.showNewNotesForm}
                                        switchShowForm={this.props.switchShowNewNotesForm}/>
-                        <button className="button delete-note-button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-black.png" alt="Delete note" style={{width: "100%"}}/>
-                        </button>
+                        <DeleteNoteButton showForm={this.props.showDeleteNotesForm}
+                                       switchShowForm={this.props.switchShowDeleteNotesForm}/>
                     </div>
-                    <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
-                    <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
+                    <ol>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ol>
+                    <NewNotesForm handleSubmit={this.handleSubmitAddition} showForm={this.props.showNewNotesForm}/>
+                    <DeleteNotesForm handleSubmit={this.handleSubmitDeletion} showForm={this.props.showDeleteNotesForm}/>
                 </div>
             );
         }
@@ -783,16 +838,80 @@ class NotesList extends React.Component {
                     <NewNoteButton showForm={this.props.showNewNotesForm}
                                    switchShowForm={this.props.switchShowNewNotesForm}/>
                 </div>
-                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
+                <NewNotesForm handleSubmit={this.handleSubmit} showForm={this.props.showNewNotesForm}/>
             </div>
         );
     }
 }
 
-function NewNotesForm(props) {
-    // Hidden form for adding notes
+// Hidden form for deleting a highlight
+function DeleteHighlightsForm(props) {
     let style = {display: "none"};
-    if (props.showNewNotesForm) {
+    if (props.showForm) {
+        style = {display: "block"}
+    }
+
+    return (
+        <form id="delete-highlights-form" onSubmit={props.handleSubmit} style={style}>
+            <input id="highlights" name="highlights" type="text" placeholder="Delete Highlight #" required/>
+            <button className="button delete-highlight-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Delete
+            </button>
+        </form>
+    );
+}
+
+// Button used to access the "delete highlight" form
+function DeleteHighlightButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button delete-highlight-button cancel-new-project" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button delete-highlight-button" onClick={props.switchShowForm}>
+            <img src="../../images/delete-icon-black.png" alt="New" style={{width: "100%"}}/>
+        </button>
+    );
+}
+
+// Hidden form for deleting a highlight
+function DeleteNotesForm(props) {
+    let style = {display: "none"};
+    if (props.showForm) {
+        style = {display: "block"}
+    }
+
+    return (
+        <form id="delete-notes-form" onSubmit={props.handleSubmit} style={style}>
+            <input id="notes" name="notes" type="text" placeholder="Delete Note #" required/>
+            <button className="button delete-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Delete
+            </button>
+        </form>
+    );
+}
+
+// Button used to access the "delete highlight" form
+function DeleteNoteButton(props) {
+    if (props.showForm) {
+        return (
+            <button className="button delete-note-button cancel-new-project" onClick={props.switchShowForm}>
+                <p>Cancel</p>
+            </button>
+        );
+    }
+    return (
+        <button className="button delete-note-button" onClick={props.switchShowForm}>
+            <img src="../../images/delete-icon-black.png" alt="New" style={{width: "100%"}}/>
+        </button>
+    );
+}
+
+// Hidden form for adding notes
+function NewNotesForm(props) {
+    let style = {display: "none"};
+    if (props.showForm) {
         style = {display: "block"}
     }
 

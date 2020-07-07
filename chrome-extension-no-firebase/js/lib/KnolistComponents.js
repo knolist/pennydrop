@@ -40,6 +40,8 @@ var KnolistComponents = function (_React$Component) {
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
+            showDeleteNotesForm: false,
+            showDeleteHighlightsForm: false,
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
@@ -57,6 +59,8 @@ var KnolistComponents = function (_React$Component) {
         _this.addEdge = _this.addEdge.bind(_this);
         _this.switchShowNewNodeForm = _this.switchShowNewNodeForm.bind(_this);
         _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
+        _this.switchShowDeleteNotesForm = _this.switchShowDeleteNotesForm.bind(_this);
+        _this.switchShowDeleteHighlightsForm = _this.switchShowDeleteHighlightsForm.bind(_this);
         _this.resetSelectedNode = _this.resetSelectedNode.bind(_this);
         _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
         _this.openProjectsSidebar = _this.openProjectsSidebar.bind(_this);
@@ -147,9 +151,19 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: 'closePageView',
         value: function closePageView() {
-            // Only call switchForm if the notes form is showing
+            // Only call switchForm if the new notes form is showing
             if (this.state.showNewNotesForm) {
                 this.switchShowNewNotesForm();
+            }
+
+            // Only call switchForm if the delete notes form is showing
+            if (this.state.showDeleteNotesForm) {
+                this.switchShowDeleteNotesForm();
+            }
+
+            // Only call switchForm if the highlights notes form is showing
+            if (this.state.showDeleteHighlightsForm) {
+                this.switchShowDeleteHighlightsForm();
             }
 
             this.resetSelectedNode();
@@ -218,6 +232,18 @@ var KnolistComponents = function (_React$Component) {
         value: function switchShowNewNotesForm() {
             document.getElementById("new-notes-form").reset();
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
+        }
+    }, {
+        key: 'switchShowDeleteNotesForm',
+        value: function switchShowDeleteNotesForm() {
+            document.getElementById("delete-notes-form").reset();
+            this.setState({ showDeleteNotesForm: !this.state.showDeleteNotesForm });
+        }
+    }, {
+        key: 'switchShowDeleteHighlightsForm',
+        value: function switchShowDeleteHighlightsForm() {
+            document.getElementById("delete-highlights-form").reset();
+            this.setState({ showDeleteHighlightsForm: !this.state.showDeleteHighlightsForm });
         }
     }, {
         key: 'openProjectsSidebar',
@@ -428,7 +454,11 @@ var KnolistComponents = function (_React$Component) {
                         resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
                         refresh: this.getDataFromServer, closePageView: this.closePageView,
                         showNewNotesForm: this.state.showNewNotesForm,
-                        switchShowNewNotesForm: this.switchShowNewNotesForm }),
+                        switchShowNewNotesForm: this.switchShowNewNotesForm,
+                        showDeleteNotesForm: this.state.showDeleteNotesForm,
+                        switchShowDeleteNotesForm: this.switchShowDeleteNotesForm,
+                        showDeleteHighlightsForm: this.state.showDeleteHighlightsForm,
+                        switchShowDeleteHighlightsForm: this.switchShowDeleteHighlightsForm }),
                     React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
                         resetDisplayExport: this.resetDisplayExport })
                 )
@@ -892,9 +922,13 @@ var PageView = function (_React$Component7) {
                             this.props.selectedNode.title
                         )
                     ),
-                    React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
+                    React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights,
+                        showDeleteHighlightsForm: this.props.showDeleteHighlightsForm,
+                        switchShowDeleteHighlightsForm: this.props.switchShowDeleteHighlightsForm }),
                     React.createElement(NotesList, { showNewNotesForm: this.props.showNewNotesForm,
                         switchShowNewNotesForm: this.props.switchShowNewNotesForm,
+                        showDeleteNotesForm: this.props.showDeleteNotesForm,
+                        switchShowDeleteNotesForm: this.props.switchShowDeleteNotesForm,
                         selectedNode: this.props.selectedNode, refresh: this.props.refresh }),
                     React.createElement(
                         'div',
@@ -1066,10 +1100,26 @@ var HighlightsList = function (_React$Component10) {
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
 
-        return _possibleConstructorReturn(this, (HighlightsList.__proto__ || Object.getPrototypeOf(HighlightsList)).call(this, props));
+        var _this22 = _possibleConstructorReturn(this, (HighlightsList.__proto__ || Object.getPrototypeOf(HighlightsList)).call(this, props));
+
+        _this22.handleSubmit = _this22.handleSubmit.bind(_this22);
+        return _this22;
     }
 
+    // Handles the submission of the Delete Highlight Form
+
+
     _createClass(HighlightsList, [{
+        key: 'handleSubmit',
+        value: function handleSubmit(event) {
+            event.preventDefault();
+
+            // Delete Highlight
+
+            this.props.switchShowDeleteHighlightsForm();
+            event.target.reset(); // Clear the form entries
+        }
+    }, {
         key: 'render',
         value: function render() {
             if (this.props.highlights.length !== 0) {
@@ -1084,14 +1134,11 @@ var HighlightsList = function (_React$Component10) {
                             null,
                             'My Highlights'
                         ),
-                        React.createElement(
-                            'button',
-                            { className: 'button delete-note-button', onClick: this.deleteNode },
-                            React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'Delete note', style: { width: "100%" } })
-                        )
+                        React.createElement(DeleteHighlightButton, { showForm: this.props.showDeleteHighlightsForm,
+                            switchShowForm: this.props.switchShowDeleteHighlightsForm })
                     ),
                     React.createElement(
-                        'ul',
+                        'ol',
                         null,
                         this.props.highlights.map(function (highlight, index) {
                             return React.createElement(
@@ -1100,7 +1147,8 @@ var HighlightsList = function (_React$Component10) {
                                 highlight
                             );
                         })
-                    )
+                    ),
+                    React.createElement(DeleteHighlightsForm, { handleSubmit: this.handleSubmit, showForm: this.props.showDeleteHighlightsForm })
                 );
             }
             return React.createElement(
@@ -1125,13 +1173,14 @@ var NotesList = function (_React$Component11) {
 
         var _this23 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this23.handleSubmit = _this23.handleSubmit.bind(_this23);
+        _this23.handleSubmitAddition = _this23.handleSubmitAddition.bind(_this23);
+        _this23.handleSubmitDeletion = _this23.handleSubmitDeletion.bind(_this23);
         return _this23;
     }
 
     _createClass(NotesList, [{
-        key: 'handleSubmit',
-        value: function handleSubmit(event) {
+        key: 'handleSubmitAddition',
+        value: function handleSubmitAddition(event) {
             var _this24 = this;
 
             event.preventDefault();
@@ -1139,6 +1188,19 @@ var NotesList = function (_React$Component11) {
                 _this24.props.refresh();
             });
             this.props.switchShowNewNotesForm();
+            event.target.reset(); // Clear the form entries
+        }
+
+        // Handles the submission of the Delete Highlight Form
+
+    }, {
+        key: 'handleSubmitDeletion',
+        value: function handleSubmitDeletion(event) {
+            event.preventDefault();
+
+            // Delete Note
+
+            this.props.switchShowDeleteNotesForm();
             event.target.reset(); // Clear the form entries
         }
     }, {
@@ -1158,14 +1220,11 @@ var NotesList = function (_React$Component11) {
                         ),
                         React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
                             switchShowForm: this.props.switchShowNewNotesForm }),
-                        React.createElement(
-                            'button',
-                            { className: 'button delete-note-button', onClick: this.deleteNode },
-                            React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'Delete note', style: { width: "100%" } })
-                        )
+                        React.createElement(DeleteNoteButton, { showForm: this.props.showDeleteNotesForm,
+                            switchShowForm: this.props.switchShowDeleteNotesForm })
                     ),
                     React.createElement(
-                        'ul',
+                        'ol',
                         null,
                         this.props.selectedNode.notes.map(function (notes, index) {
                             return React.createElement(
@@ -1175,7 +1234,8 @@ var NotesList = function (_React$Component11) {
                             );
                         })
                     ),
-                    React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
+                    React.createElement(NewNotesForm, { handleSubmit: this.handleSubmitAddition, showForm: this.props.showNewNotesForm }),
+                    React.createElement(DeleteNotesForm, { handleSubmit: this.handleSubmitDeletion, showForm: this.props.showDeleteNotesForm })
                 );
             }
             return React.createElement(
@@ -1192,7 +1252,7 @@ var NotesList = function (_React$Component11) {
                     React.createElement(NewNoteButton, { showForm: this.props.showNewNotesForm,
                         switchShowForm: this.props.switchShowNewNotesForm })
                 ),
-                React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
+                React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showForm: this.props.showNewNotesForm })
             );
         }
     }]);
@@ -1200,10 +1260,90 @@ var NotesList = function (_React$Component11) {
     return NotesList;
 }(React.Component);
 
-function NewNotesForm(props) {
-    // Hidden form for adding notes
+// Hidden form for deleting a highlight
+
+
+function DeleteHighlightsForm(props) {
     var style = { display: "none" };
-    if (props.showNewNotesForm) {
+    if (props.showForm) {
+        style = { display: "block" };
+    }
+
+    return React.createElement(
+        'form',
+        { id: 'delete-highlights-form', onSubmit: props.handleSubmit, style: style },
+        React.createElement('input', { id: 'highlights', name: 'highlights', type: 'text', placeholder: 'Delete Highlight #', required: true }),
+        React.createElement(
+            'button',
+            { className: 'button delete-highlight-button cancel-new-project', style: { marginTop: 0, marginBottom: 0 } },
+            'Delete'
+        )
+    );
+}
+
+// Button used to access the "delete highlight" form
+function DeleteHighlightButton(props) {
+    if (props.showForm) {
+        return React.createElement(
+            'button',
+            { className: 'button delete-highlight-button cancel-new-project', onClick: props.switchShowForm },
+            React.createElement(
+                'p',
+                null,
+                'Cancel'
+            )
+        );
+    }
+    return React.createElement(
+        'button',
+        { className: 'button delete-highlight-button', onClick: props.switchShowForm },
+        React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'New', style: { width: "100%" } })
+    );
+}
+
+// Hidden form for deleting a highlight
+function DeleteNotesForm(props) {
+    var style = { display: "none" };
+    if (props.showForm) {
+        style = { display: "block" };
+    }
+
+    return React.createElement(
+        'form',
+        { id: 'delete-notes-form', onSubmit: props.handleSubmit, style: style },
+        React.createElement('input', { id: 'notes', name: 'notes', type: 'text', placeholder: 'Delete Note #', required: true }),
+        React.createElement(
+            'button',
+            { className: 'button delete-note-button cancel-new-project', style: { marginTop: 0, marginBottom: 0 } },
+            'Delete'
+        )
+    );
+}
+
+// Button used to access the "delete highlight" form
+function DeleteNoteButton(props) {
+    if (props.showForm) {
+        return React.createElement(
+            'button',
+            { className: 'button delete-note-button cancel-new-project', onClick: props.switchShowForm },
+            React.createElement(
+                'p',
+                null,
+                'Cancel'
+            )
+        );
+    }
+    return React.createElement(
+        'button',
+        { className: 'button delete-note-button', onClick: props.switchShowForm },
+        React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'New', style: { width: "100%" } })
+    );
+}
+
+// Hidden form for adding notes
+function NewNotesForm(props) {
+    var style = { display: "none" };
+    if (props.showForm) {
         style = { display: "block" };
     }
 
