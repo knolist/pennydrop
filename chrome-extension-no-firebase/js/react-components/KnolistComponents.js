@@ -87,15 +87,14 @@ class KnolistComponents extends React.Component {
             this.setState({graph: graph});
             this.setupVisGraph();
 
-            // Manually update selectedNode if it's not null (for notes update)
-            if (this.state.selectedNode !== null) {
+            // Manually update selectedNode if it's not null nor undefined (for notes update)
+            if (this.state.selectedNode !== null && this.state.selectedNode !== undefined) {
                 const url = this.state.selectedNode.source;
                 const curProject = graph.curProject;
                 const updatedSelectedNode = graph[curProject][url];
                 this.setState({selectedNode: updatedSelectedNode});
             }
         });
-
 
         // window.setTimeout(() => {
         //     if (this.state.autoRefresh) this.getDataFromServer();
@@ -339,6 +338,15 @@ class KnolistComponents extends React.Component {
     componentDidMount() {
         this.getDataFromServer();
         this.checkIfLocalServer();
+        // Add listener to refresh the page when the tab is clicked
+        chrome.tabs.onActivated.addListener(activeInfo => {
+            chrome.tabs.get(activeInfo.tabId, (tab) => {
+                if (tab.title === "Knolist") {
+                    // Update data
+                    this.getDataFromServer();
+                }
+            })
+        })
     }
 
     render() {
@@ -691,7 +699,13 @@ class PageView extends React.Component {
     }
 
     render() {
-        if (this.props.selectedNode === null) {
+        // Don't render if selectedNode is null or undefined
+        if (this.props.selectedNode === null || this.props.selectedNode === undefined) {
+            return null;
+        }
+
+        // Don't render if selectedNode doesn't belong to curProject (to allow for CU-96hk2k)
+        if (!this.props.graph.hasOwnProperty(this.props.selectedNode.source)) {
             return null;
         }
 

@@ -75,7 +75,6 @@ class Header extends React.Component {
             // Check if a tab was found. If it was, it means the home page is already open
             if (tabs.length > 0) {
                 const tabId = tabs[0].id;
-                chrome.tabs.reload(tabId);
                 chrome.tabs.update(tabId, {active: true});
             } else { // Open a new tab for the home page
                 chrome.tabs.query({
