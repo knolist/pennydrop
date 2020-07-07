@@ -86,6 +86,7 @@ class KnolistComponents extends React.Component {
         getGraphFromDisk().then((graph) => {
             this.setState({graph: graph});
             this.setupVisGraph();
+            this.getBibliographyData();
 
             // Manually update selectedNode if it's not null nor undefined (for notes update)
             if (this.state.selectedNode !== null && this.state.selectedNode !== undefined) {
@@ -349,11 +350,23 @@ class KnolistComponents extends React.Component {
         })
     }
 
+    // // Helper function to track why a component is being re-rendered
+    // componentDidUpdate(prevProps, prevState) {
+    //     Object.entries(this.props).forEach(([key, val]) =>
+    //         prevProps[key] !== val && console.log(`Prop '${key}' changed`)
+    //     );
+    //     if (this.state) {
+    //         Object.entries(this.state).forEach(([key, val]) =>
+    //             prevState[key] !== val && console.log(`State '${key}' changed`)
+    //         );
+    //     }
+    // }
+
     render() {
         if (this.state.graph === null) {
             return null;
         }
-        this.getBibliographyData();
+
         const curProject = this.state.graph.curProject;
         return (
             <div>

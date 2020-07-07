@@ -113,6 +113,7 @@ var KnolistComponents = function (_React$Component) {
             getGraphFromDisk().then(function (graph) {
                 _this3.setState({ graph: graph });
                 _this3.setupVisGraph();
+                _this3.getBibliographyData();
 
                 // Manually update selectedNode if it's not null nor undefined (for notes update)
                 if (_this3.state.selectedNode !== null && _this3.state.selectedNode !== undefined) {
@@ -426,13 +427,26 @@ var KnolistComponents = function (_React$Component) {
                 });
             });
         }
+
+        // // Helper function to track why a component is being re-rendered
+        // componentDidUpdate(prevProps, prevState) {
+        //     Object.entries(this.props).forEach(([key, val]) =>
+        //         prevProps[key] !== val && console.log(`Prop '${key}' changed`)
+        //     );
+        //     if (this.state) {
+        //         Object.entries(this.state).forEach(([key, val]) =>
+        //             prevState[key] !== val && console.log(`State '${key}' changed`)
+        //         );
+        //     }
+        // }
+
     }, {
         key: "render",
         value: function render() {
             if (this.state.graph === null) {
                 return null;
             }
-            this.getBibliographyData();
+
             var curProject = this.state.graph.curProject;
             return React.createElement(
                 "div",
