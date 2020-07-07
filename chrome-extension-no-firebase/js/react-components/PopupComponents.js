@@ -5,6 +5,10 @@
  * are in the README
  */
 
+// Global variables
+const localServerURL = "http://127.0.0.1:5000/";
+const deployedServerURL = "https://knolist.herokuapp.com/";
+
 // Wrapper for all components in the popup
 class PopupComponents extends React.Component {
     constructor(props) {
@@ -12,11 +16,22 @@ class PopupComponents extends React.Component {
 
         this.state = {
             graph: null,
-            showNewNotesForm: false
+            showNewNotesForm: false,
+            localServer: false
         };
 
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
+    }
+
+    // Verifies if the local server is being run
+    checkIfLocalServer() {
+        $.ajax(localServerURL, {
+            complete: (jqXHR, textStatus) => {
+                if (textStatus === "success") this.setState({localServer: true});
+                else this.setState({localServer: false});
+            }
+        });
     }
 
     switchShowNewNotesForm() {
@@ -32,6 +47,7 @@ class PopupComponents extends React.Component {
 
     componentDidMount() {
         this.getDataFromServer();
+        this.checkIfLocalServer();
     }
 
     render() {
@@ -40,7 +56,8 @@ class PopupComponents extends React.Component {
                 <Header/>
                 <div id="popup-body">
                     <ProjectList graph={this.state.graph} refresh={this.getDataFromServer}/>
-                    <NewNotesArea showForm={this.state.showNewNotesForm} switchShowForm={this.switchShowNewNotesForm}/>
+                    <NewNotesArea showForm={this.state.showNewNotesForm} switchShowForm={this.switchShowNewNotesForm}
+                                  localServer={this.state.localServer}/>
                 </div>
             </div>
         );
@@ -318,7 +335,8 @@ function NewNotesArea(props) {
     return (
         <div style={{marginTop: "15px"}}>
             <NewNotesButton showForm={props.showForm} switchShowForm={props.switchShowForm}/>
-            <NewNotesForm showForm={props.showForm} switchShowForm={props.switchShowForm}/>
+            <NewNotesForm showForm={props.showForm} switchShowForm={props.switchShowForm}
+                          localServer={props.localServer}/>
         </div>
     )
 }
@@ -343,9 +361,14 @@ class NewNotesForm extends React.Component {
                 active: true, currentWindow: true
             }, tabs => {
                 let currentURL = tabs[0].url;
-                const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(currentURL);
+                // Call from server
+                let baseServerURL = deployedServerURL;
+                if (this.props.localServer) { // Use local server if it's active
+                    baseServerURL = localServerURL;
+                }
+                const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentURL);
                 // Create item based on the current page
-                $.getJSON(contextExtractionURL, (item) => {
+                $.getJSON(contentExtractionURL, (item) => {
                     addNotesToItemInGraph(item, notes);
                 });
             }

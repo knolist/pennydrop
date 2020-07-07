@@ -13,7 +13,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * are in the README
  */
 
+// Global variables
+var localServerURL = "http://127.0.0.1:5000/";
+var deployedServerURL = "https://knolist.herokuapp.com/";
+
 // Wrapper for all components in the popup
+
 var PopupComponents = function (_React$Component) {
     _inherits(PopupComponents, _React$Component);
 
@@ -24,7 +29,8 @@ var PopupComponents = function (_React$Component) {
 
         _this.state = {
             graph: null,
-            showNewNotesForm: false
+            showNewNotesForm: false,
+            localServer: false
         };
 
         _this.getDataFromServer = _this.getDataFromServer.bind(_this);
@@ -32,7 +38,21 @@ var PopupComponents = function (_React$Component) {
         return _this;
     }
 
+    // Verifies if the local server is being run
+
+
     _createClass(PopupComponents, [{
+        key: "checkIfLocalServer",
+        value: function checkIfLocalServer() {
+            var _this2 = this;
+
+            $.ajax(localServerURL, {
+                complete: function complete(jqXHR, textStatus) {
+                    if (textStatus === "success") _this2.setState({ localServer: true });else _this2.setState({ localServer: false });
+                }
+            });
+        }
+    }, {
         key: "switchShowNewNotesForm",
         value: function switchShowNewNotesForm() {
             document.getElementById("new-notes-form").reset();
@@ -41,16 +61,17 @@ var PopupComponents = function (_React$Component) {
     }, {
         key: "getDataFromServer",
         value: function getDataFromServer() {
-            var _this2 = this;
+            var _this3 = this;
 
             getGraphFromDisk().then(function (graph) {
-                _this2.setState({ graph: graph });
+                _this3.setState({ graph: graph });
             });
         }
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.getDataFromServer();
+            this.checkIfLocalServer();
         }
     }, {
         key: "render",
@@ -63,7 +84,8 @@ var PopupComponents = function (_React$Component) {
                     "div",
                     { id: "popup-body" },
                     React.createElement(ProjectList, { graph: this.state.graph, refresh: this.getDataFromServer }),
-                    React.createElement(NewNotesArea, { showForm: this.state.showNewNotesForm, switchShowForm: this.switchShowNewNotesForm })
+                    React.createElement(NewNotesArea, { showForm: this.state.showNewNotesForm, switchShowForm: this.switchShowNewNotesForm,
+                        localServer: this.state.localServer })
                 )
             );
         }
@@ -100,7 +122,7 @@ var Header = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this4 = this;
+            var _this5 = this;
 
             return React.createElement(
                 "div",
@@ -113,7 +135,7 @@ var Header = function (_React$Component2) {
                     React.createElement(
                         "a",
                         { onClick: function onClick() {
-                                return _this4.openHomePage();
+                                return _this5.openHomePage();
                             }, id: "home-button" },
                         React.createElement("img", { src: "../../images/home-icon-black.png", alt: "Home", style: { height: "100%", margin: "1px" } })
                     )
@@ -134,20 +156,20 @@ var ProjectList = function (_React$Component3) {
     function ProjectList(props) {
         _classCallCheck(this, ProjectList);
 
-        var _this5 = _possibleConstructorReturn(this, (ProjectList.__proto__ || Object.getPrototypeOf(ProjectList)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (ProjectList.__proto__ || Object.getPrototypeOf(ProjectList)).call(this, props));
 
-        _this5.state = {
+        _this6.state = {
             dropdownOpen: false,
             showNewProjectForm: false,
             alertMessage: null, // null for no issue, "invalid-title", or "repeated-title"
             invalidTitle: null
         };
 
-        _this5.switchDropdown = _this5.switchDropdown.bind(_this5);
-        _this5.switchShowNewProjectForm = _this5.switchShowNewProjectForm.bind(_this5);
-        _this5.setAlertMessage = _this5.setAlertMessage.bind(_this5);
-        _this5.setInvalidTitle = _this5.setInvalidTitle.bind(_this5);
-        return _this5;
+        _this6.switchDropdown = _this6.switchDropdown.bind(_this6);
+        _this6.switchShowNewProjectForm = _this6.switchShowNewProjectForm.bind(_this6);
+        _this6.setAlertMessage = _this6.setAlertMessage.bind(_this6);
+        _this6.setInvalidTitle = _this6.setInvalidTitle.bind(_this6);
+        return _this6;
     }
 
     _createClass(ProjectList, [{
@@ -178,7 +200,7 @@ var ProjectList = function (_React$Component3) {
     }, {
         key: "render",
         value: function render() {
-            var _this6 = this;
+            var _this7 = this;
 
             if (this.props.graph === null) return null;
 
@@ -234,9 +256,9 @@ var ProjectList = function (_React$Component3) {
                         Object.keys(this.props.graph).map(function (project) {
                             return React.createElement(DropdownItem, { key: project,
                                 projectName: project,
-                                curProject: _this6.props.graph.curProject,
-                                refresh: _this6.props.refresh,
-                                switchDropdown: _this6.switchDropdown });
+                                curProject: _this7.props.graph.curProject,
+                                refresh: _this7.props.refresh,
+                                switchDropdown: _this7.switchDropdown });
                         })
                     )
                 )
@@ -277,16 +299,16 @@ var NewProjectForm = function (_React$Component4) {
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this7 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this7.handleSubmit = _this7.handleSubmit.bind(_this7);
-        return _this7;
+        _this8.handleSubmit = _this8.handleSubmit.bind(_this8);
+        return _this8;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this8 = this;
+            var _this9 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -304,7 +326,7 @@ var NewProjectForm = function (_React$Component4) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this8.props.refresh();
+                    return _this9.props.refresh();
                 });
 
                 // Activate tracking
@@ -384,20 +406,20 @@ var DropdownItem = function (_React$Component5) {
     function DropdownItem(props) {
         _classCallCheck(this, DropdownItem);
 
-        var _this9 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
 
-        _this9.activateProject = _this9.activateProject.bind(_this9);
-        return _this9;
+        _this10.activateProject = _this10.activateProject.bind(_this10);
+        return _this10;
     }
 
     _createClass(DropdownItem, [{
         key: "activateProject",
         value: function activateProject() {
-            var _this10 = this;
+            var _this11 = this;
 
             this.props.switchDropdown();
             setCurrentProjectInGraph(this.props.projectName).then(function () {
-                return _this10.props.refresh();
+                return _this11.props.refresh();
             });
         }
     }, {
@@ -426,10 +448,10 @@ var ActivateProjectSwitch = function (_React$Component6) {
     function ActivateProjectSwitch(props) {
         _classCallCheck(this, ActivateProjectSwitch);
 
-        var _this11 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
 
-        _this11.switchTracking = _this11.switchTracking.bind(_this11);
-        return _this11;
+        _this12.switchTracking = _this12.switchTracking.bind(_this12);
+        return _this12;
     }
 
     _createClass(ActivateProjectSwitch, [{
@@ -473,7 +495,8 @@ function NewNotesArea(props) {
         "div",
         { style: { marginTop: "15px" } },
         React.createElement(NewNotesButton, { showForm: props.showForm, switchShowForm: props.switchShowForm }),
-        React.createElement(NewNotesForm, { showForm: props.showForm, switchShowForm: props.switchShowForm })
+        React.createElement(NewNotesForm, { showForm: props.showForm, switchShowForm: props.switchShowForm,
+            localServer: props.localServer })
     );
 }
 
@@ -483,15 +506,17 @@ var NewNotesForm = function (_React$Component7) {
     function NewNotesForm(props) {
         _classCallCheck(this, NewNotesForm);
 
-        var _this12 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
+        var _this13 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
 
-        _this12.handleSubmit = _this12.handleSubmit.bind(_this12);
-        return _this12;
+        _this13.handleSubmit = _this13.handleSubmit.bind(_this13);
+        return _this13;
     }
 
     _createClass(NewNotesForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
+            var _this14 = this;
+
             event.preventDefault();
 
             var notes = event.target.notes.value;
@@ -504,9 +529,15 @@ var NewNotesForm = function (_React$Component7) {
                 active: true, currentWindow: true
             }, function (tabs) {
                 var currentURL = tabs[0].url;
-                var contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(currentURL);
+                // Call from server
+                var baseServerURL = deployedServerURL;
+                if (_this14.props.localServer) {
+                    // Use local server if it's active
+                    baseServerURL = localServerURL;
+                }
+                var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentURL);
                 // Create item based on the current page
-                $.getJSON(contextExtractionURL, function (item) {
+                $.getJSON(contentExtractionURL, function (item) {
                     addNotesToItemInGraph(item, notes);
                 });
             });

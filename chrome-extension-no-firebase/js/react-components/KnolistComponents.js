@@ -5,6 +5,10 @@
  * are in the README
  */
 
+// Global variables
+const localServerURL = "http://127.0.0.1:5000/";
+const deployedServerURL = "https://knolist.herokuapp.com/";
+
 // Helper global function for title case
 function titleCase(str) {
     str = str.toLowerCase().split(' ');
@@ -68,7 +72,12 @@ class KnolistComponents extends React.Component {
 
     // Verifies if the local server is being run
     checkIfLocalServer() {
-
+        $.ajax(localServerURL, {
+            complete: (jqXHR, textStatus) => {
+                if (textStatus === "success") this.setState({localServer: true});
+                else this.setState({localServer: false});
+            }
+        });
     }
 
     // Calls graph.js function to pull the graph from the Chrome storage
@@ -329,6 +338,7 @@ class KnolistComponents extends React.Component {
 
     componentDidMount() {
         this.getDataFromServer();
+        this.checkIfLocalServer();
     }
 
     render() {
@@ -351,7 +361,7 @@ class KnolistComponents extends React.Component {
                     <div id="graph"/>
                     <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
-                                 graph={this.state.graph}
+                                 graph={this.state.graph} localServer={this.state.localServer}
                                  closeForm={this.closeNewNodeForm} refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
@@ -580,8 +590,12 @@ class NewNodeForm extends React.Component {
     handleSubmit(event) {
         event.preventDefault(); // Stop page from reloading
         // Call from server
-        const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(event.target.url.value);
-        $.getJSON(contextExtractionURL, (item) => {
+        let baseServerURL = deployedServerURL;
+        if (this.props.localServer) { // Use local server if it's active
+            baseServerURL = localServerURL;
+        }
+        const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
+        $.getJSON(contentExtractionURL, (item) => {
             addItemToGraph(item, "").then(() => {
                 return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
             }).then(() => this.props.refresh());

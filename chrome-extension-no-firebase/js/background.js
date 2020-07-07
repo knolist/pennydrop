@@ -1,7 +1,24 @@
+/* Global variables */
 // All the websites as a graph
 let itemGraph = createNewGraph();
 // getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
-let trackBrowsing = false;
+let trackBrowsing = false; // true if tracking is active
+const localServerURL = "http://127.0.0.1:5000/";
+const deployedServerURL = "https://knolist.herokuapp.com/";
+
+/* Functions */
+// Function to verify if the server is being run locally
+// Returns local url if running locally, deployed url if running on deployed version
+async function getBaseServerURL() {
+    return new Promise((resolve, reject) => {
+        $.ajax(localServerURL, {
+            complete: (jqXHR, textStatus) => {
+                if (textStatus === "success") resolve(localServerURL);
+                else resolve(deployedServerURL);
+            }
+        });
+    });
+}
 
 const contextMenuItem = {
     "id": "highlight",
@@ -10,19 +27,21 @@ const contextMenuItem = {
 };
 
 chrome.contextMenus.create(contextMenuItem);
-chrome.contextMenus.onClicked.addListener(function (clickData) {
+chrome.contextMenus.onClicked.addListener(async function (clickData) {
     if (clickData.menuItemId === "highlight" && clickData.selectionText) {
-        const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(clickData.pageUrl);
-        $.getJSON(contextExtractionURL, (item) => {
+        const baseServerURL = await getBaseServerURL();
+        const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(clickData.pageUrl);
+        $.getJSON(contentExtractionURL, (item) => {
             addHighlightsToItemInGraph(item, clickData.selectionText);
         });
     }
 });
 
-chrome.runtime.onMessage.addListener(function (message, _sender, _sendResponse) {
+chrome.runtime.onMessage.addListener(async function (message, _sender, _sendResponse) {
     if (message.url !== undefined && trackBrowsing) {
-        const contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(message.url);
-        $.getJSON(contextExtractionURL, (item) => {
+        const baseServerURL = await getBaseServerURL();
+        const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(message.url);
+        $.getJSON(contentExtractionURL, (item) => {
             addItemToGraph(item, message.prevURL);
         });
     } else if (message.command === "reset") {
@@ -37,9 +56,11 @@ chrome.runtime.onMessage.addListener(function (message, _sender, _sendResponse) 
         const contents = getContentFromGraph(message.currentURL);
         console.log("Starting search to answer question: " + message.selectedText);
         contents.forEach(content => {
-            const similarity_API_URL = "https://knolist.herokuapp.com/bertSimilarity?question=" + encodeURIComponent(message.selectedText) + "&text=" + encodeURIComponent(content);
-            $.getJSON(similarity_API_URL, (result) => {
-                console.log(JSON.stringify(result))
+            getBaseServerURL().then(baseServerURL => {
+                const similarity_API_URL = baseServerURL + "bertSimilarity?question=" + encodeURIComponent(message.selectedText) + "&text=" + encodeURIComponent(content);
+                $.getJSON(similarity_API_URL, (result) => {
+                    console.log(JSON.stringify(result))
+                });
             });
         });
     } else if (message.command === "get_tracking") {

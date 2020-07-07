@@ -15,6 +15,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * are in the README
  */
 
+// Global variables
+var localServerURL = "http://127.0.0.1:5000/";
+var deployedServerURL = "https://knolist.herokuapp.com/";
+
 // Helper global function for title case
 function titleCase(str) {
     str = str.toLowerCase().split(' ');
@@ -44,7 +48,8 @@ var KnolistComponents = function (_React$Component) {
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
             bibliographyData: null, // The data to be exported as bibliography
-            showProjectsSidebar: false
+            showProjectsSidebar: false,
+            localServer: false // Set to true if the server is being run locally
         };
 
         // Bind functions that need to be passed as parameters
@@ -82,25 +87,39 @@ var KnolistComponents = function (_React$Component) {
         return _this;
     }
 
-    // Calls graph.js function to pull the graph from the Chrome storage
+    // Verifies if the local server is being run
 
 
     _createClass(KnolistComponents, [{
-        key: 'getDataFromServer',
-        value: function getDataFromServer() {
+        key: "checkIfLocalServer",
+        value: function checkIfLocalServer() {
             var _this2 = this;
+
+            $.ajax(localServerURL, {
+                complete: function complete(jqXHR, textStatus) {
+                    if (textStatus === "success") _this2.setState({ localServer: true });else _this2.setState({ localServer: false });
+                }
+            });
+        }
+
+        // Calls graph.js function to pull the graph from the Chrome storage
+
+    }, {
+        key: "getDataFromServer",
+        value: function getDataFromServer() {
+            var _this3 = this;
 
             // All the websites as a graph
             getGraphFromDisk().then(function (graph) {
-                _this2.setState({ graph: graph });
-                _this2.setupVisGraph();
+                _this3.setState({ graph: graph });
+                _this3.setupVisGraph();
 
                 // Manually update selectedNode if it's not null (for notes update)
-                if (_this2.state.selectedNode !== null) {
-                    var url = _this2.state.selectedNode.source;
+                if (_this3.state.selectedNode !== null) {
+                    var url = _this3.state.selectedNode.source;
                     var curProject = graph.curProject;
                     var updatedSelectedNode = graph[curProject][url];
-                    _this2.setState({ selectedNode: updatedSelectedNode });
+                    _this3.setState({ selectedNode: updatedSelectedNode });
                 }
             });
 
@@ -112,40 +131,40 @@ var KnolistComponents = function (_React$Component) {
         // Pulls the bibliography data from the backend
 
     }, {
-        key: 'getBibliographyData',
+        key: "getBibliographyData",
         value: function getBibliographyData() {
-            var _this3 = this;
+            var _this4 = this;
 
             getTitlesFromGraph().then(function (bibliographyData) {
-                _this3.setState({ bibliographyData: bibliographyData });
+                _this4.setState({ bibliographyData: bibliographyData });
             });
         }
 
         // Used for the export bibliography button
 
     }, {
-        key: 'exportData',
+        key: "exportData",
         value: function exportData() {
             this.setState({ displayExport: true });
         }
     }, {
-        key: 'resetDisplayExport',
+        key: "resetDisplayExport",
         value: function resetDisplayExport() {
             this.setState({ displayExport: false });
         }
     }, {
-        key: 'resetSelectedNode',
+        key: "resetSelectedNode",
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
         }
     }, {
-        key: 'setSelectedNode',
+        key: "setSelectedNode",
         value: function setSelectedNode(url) {
             var curProject = this.state.graph.curProject;
             this.setState({ selectedNode: this.state.graph[curProject][url] });
         }
     }, {
-        key: 'closePageView',
+        key: "closePageView",
         value: function closePageView() {
             // Only call switchForm if the notes form is showing
             if (this.state.showNewNotesForm) {
@@ -158,7 +177,7 @@ var KnolistComponents = function (_React$Component) {
         // Set selected node for the detailed view
 
     }, {
-        key: 'handleClickedNode',
+        key: "handleClickedNode",
         value: function handleClickedNode(id) {
             var visCloseButton = document.getElementsByClassName("vis-close")[0];
             // Only open modal outside of edit mode
@@ -167,7 +186,7 @@ var KnolistComponents = function (_React$Component) {
             }
         }
     }, {
-        key: 'deleteNode',
+        key: "deleteNode",
         value: function deleteNode(data, callback) {
             var nodeId = data.nodes[0];
             removeItemFromGraph(nodeId).then(function () {
@@ -175,7 +194,7 @@ var KnolistComponents = function (_React$Component) {
             });
         }
     }, {
-        key: 'addNode',
+        key: "addNode",
         value: function addNode(nodeData, callback) {
             this.setState({
                 showNewNodeForm: !this.state.showNewNodeForm,
@@ -183,58 +202,58 @@ var KnolistComponents = function (_React$Component) {
             });
         }
     }, {
-        key: 'deleteEdge',
+        key: "deleteEdge",
         value: function deleteEdge(data, callback) {
-            var _this4 = this;
+            var _this5 = this;
 
             var edgeId = data.edges[0];
             var connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
             removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]).then(function () {
-                _this4.getDataFromServer();
+                _this5.getDataFromServer();
                 callback(data);
             });
             callback(data);
         }
     }, {
-        key: 'addEdge',
+        key: "addEdge",
         value: function addEdge(edgeData, callback) {
-            var _this5 = this;
+            var _this6 = this;
 
             if (edgeData.from !== edgeData.to) {
                 // Ensure that user isn't adding self edge
                 addEdgeToGraph(edgeData.from, edgeData.to).then(function () {
-                    _this5.getDataFromServer();
+                    _this6.getDataFromServer();
                     callback(edgeData);
                 });
             }
         }
     }, {
-        key: 'switchShowNewNodeForm',
+        key: "switchShowNewNodeForm",
         value: function switchShowNewNodeForm() {
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
         }
     }, {
-        key: 'switchShowNewNotesForm',
+        key: "switchShowNewNotesForm",
         value: function switchShowNewNotesForm() {
             document.getElementById("new-notes-form").reset();
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
         }
     }, {
-        key: 'openProjectsSidebar',
+        key: "openProjectsSidebar",
         value: function openProjectsSidebar() {
             this.setState({ showProjectsSidebar: true });
             document.getElementById("projects-sidebar").style.width = "400px";
             document.getElementById("projects-sidebar-btn").style.right = "400px";
         }
     }, {
-        key: 'closeProjectsSidebar',
+        key: "closeProjectsSidebar",
         value: function closeProjectsSidebar() {
             this.setState({ showProjectsSidebar: false });
             document.getElementById("projects-sidebar").style.width = "0";
             document.getElementById("projects-sidebar-btn").style.right = "0";
         }
     }, {
-        key: 'closeNewNodeForm',
+        key: "closeNewNodeForm",
         value: function closeNewNodeForm() {
             document.getElementById("new-node-form").reset();
             this.switchShowNewNodeForm();
@@ -246,7 +265,7 @@ var KnolistComponents = function (_React$Component) {
          */
 
     }, {
-        key: 'generateNodePositions',
+        key: "generateNodePositions",
         value: function generateNodePositions(node) {
             var xOffset = 0;
             var yOffset = 0;
@@ -274,7 +293,7 @@ var KnolistComponents = function (_React$Component) {
         // Helper function to setup the nodes and edges for the graph
 
     }, {
-        key: 'createNodesAndEdges',
+        key: "createNodesAndEdges",
         value: function createNodesAndEdges() {
             var nodes = [];
             var edges = [];
@@ -307,9 +326,9 @@ var KnolistComponents = function (_React$Component) {
         // Main function to set up the vis-network object
 
     }, {
-        key: 'setupVisGraph',
+        key: "setupVisGraph",
         value: function setupVisGraph() {
-            var _this6 = this;
+            var _this7 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -365,7 +384,7 @@ var KnolistComponents = function (_React$Component) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this6.handleClickedNode(nodeId);
+                    _this7.handleClickedNode(nodeId);
                 }
             });
 
@@ -391,12 +410,13 @@ var KnolistComponents = function (_React$Component) {
             this.setState({ visNetwork: network });
         }
     }, {
-        key: 'componentDidMount',
+        key: "componentDidMount",
         value: function componentDidMount() {
             this.getDataFromServer();
+            this.checkIfLocalServer();
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.state.graph === null) {
                 return null;
@@ -404,25 +424,25 @@ var KnolistComponents = function (_React$Component) {
             this.getBibliographyData();
             var curProject = this.state.graph.curProject;
             return React.createElement(
-                'div',
+                "div",
                 null,
                 React.createElement(Header, { projectName: curProject, refresh: this.getDataFromServer,
                     showProjectsSidebar: this.state.showProjectsSidebar,
                     openProjectsSidebar: this.openProjectsSidebar,
                     closeProjectsSidebar: this.closeProjectsSidebar }),
                 React.createElement(
-                    'div',
-                    { className: 'main-body' },
+                    "div",
+                    { className: "main-body" },
                     React.createElement(
-                        'div',
-                        { id: 'buttons-bar' },
+                        "div",
+                        { id: "buttons-bar" },
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
-                        React.createElement(ExportGraphButton, { 'export': this.exportData })
+                        React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
-                    React.createElement('div', { id: 'graph' }),
+                    React.createElement("div", { id: "graph" }),
                     React.createElement(ProjectsSidebar, { graph: this.state.graph, refresh: this.getDataFromServer }),
                     React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
-                        graph: this.state.graph,
+                        graph: this.state.graph, localServer: this.state.localServer,
                         closeForm: this.closeNewNodeForm, refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
                         resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
@@ -448,62 +468,62 @@ var ProjectsSidebar = function (_React$Component2) {
     function ProjectsSidebar(props) {
         _classCallCheck(this, ProjectsSidebar);
 
-        var _this7 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
+        var _this8 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
 
-        _this7.state = {
+        _this8.state = {
             showNewProjectForm: false,
             projectForDeletion: null
         };
 
-        _this7.switchShowNewProjectForm = _this7.switchShowNewProjectForm.bind(_this7);
-        _this7.setProjectForDeletion = _this7.setProjectForDeletion.bind(_this7);
-        _this7.resetProjectForDeletion = _this7.resetProjectForDeletion.bind(_this7);
-        return _this7;
+        _this8.switchShowNewProjectForm = _this8.switchShowNewProjectForm.bind(_this8);
+        _this8.setProjectForDeletion = _this8.setProjectForDeletion.bind(_this8);
+        _this8.resetProjectForDeletion = _this8.resetProjectForDeletion.bind(_this8);
+        return _this8;
     }
 
     _createClass(ProjectsSidebar, [{
-        key: 'setProjectForDeletion',
+        key: "setProjectForDeletion",
         value: function setProjectForDeletion(project) {
             this.setState({ projectForDeletion: project });
         }
     }, {
-        key: 'resetProjectForDeletion',
+        key: "resetProjectForDeletion",
         value: function resetProjectForDeletion() {
             this.setState({ projectForDeletion: null });
         }
     }, {
-        key: 'switchShowNewProjectForm',
+        key: "switchShowNewProjectForm",
         value: function switchShowNewProjectForm() {
             document.getElementById("new-project-form").reset();
             this.setState({ showNewProjectForm: !this.state.showNewProjectForm });
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
-            var _this8 = this;
+            var _this9 = this;
 
             return React.createElement(
-                'div',
-                { id: 'projects-sidebar', className: 'sidebar' },
+                "div",
+                { id: "projects-sidebar", className: "sidebar" },
                 React.createElement(
-                    'div',
-                    { id: 'sidebar-header' },
+                    "div",
+                    { id: "sidebar-header" },
                     React.createElement(
-                        'h1',
-                        { id: 'sidebar-title' },
-                        'Your Projects'
+                        "h1",
+                        { id: "sidebar-title" },
+                        "Your Projects"
                     ),
                     React.createElement(NewProjectButton, { showForm: this.state.showNewProjectForm,
                         switchShowForm: this.switchShowNewProjectForm })
                 ),
                 React.createElement(
-                    'div',
-                    { id: 'sidebar-content' },
+                    "div",
+                    { id: "sidebar-content" },
                     Object.keys(this.props.graph).map(function (project) {
-                        return React.createElement(ProjectItem, { key: project, graph: _this8.props.graph,
+                        return React.createElement(ProjectItem, { key: project, graph: _this9.props.graph,
                             project: project,
-                            refresh: _this8.props.refresh,
-                            setForDeletion: _this8.setProjectForDeletion });
+                            refresh: _this9.props.refresh,
+                            setForDeletion: _this9.setProjectForDeletion });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
@@ -528,60 +548,60 @@ var ConfirmProjectDeletionWindow = function (_React$Component3) {
     function ConfirmProjectDeletionWindow(props) {
         _classCallCheck(this, ConfirmProjectDeletionWindow);
 
-        var _this9 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
 
-        _this9.deleteProject = _this9.deleteProject.bind(_this9);
-        return _this9;
+        _this10.deleteProject = _this10.deleteProject.bind(_this10);
+        return _this10;
     }
 
     _createClass(ConfirmProjectDeletionWindow, [{
-        key: 'deleteProject',
+        key: "deleteProject",
         value: function deleteProject() {
-            var _this10 = this;
+            var _this11 = this;
 
             this.props.resetForDeletion();
             deleteProjectFromGraph(this.props.project).then(function () {
-                return _this10.props.refresh();
+                return _this11.props.refresh();
             });
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.project === null) {
                 return null;
             }
             return React.createElement(
-                'div',
-                { className: 'modal' },
+                "div",
+                { className: "modal" },
                 React.createElement(
-                    'div',
-                    { id: 'delete-confirmation-modal', className: 'modal-content' },
-                    React.createElement('img', { src: '../../images/alert-icon-black.png', alt: 'Alert icon',
+                    "div",
+                    { id: "delete-confirmation-modal", className: "modal-content" },
+                    React.createElement("img", { src: "../../images/alert-icon-black.png", alt: "Alert icon",
                         style: { width: "30%", display: "block", marginLeft: "auto", marginRight: "auto" } }),
                     React.createElement(
-                        'h1',
+                        "h1",
                         null,
-                        'Are you sure you want to delete "',
+                        "Are you sure you want to delete \"",
                         this.props.project,
-                        '"?'
+                        "\"?"
                     ),
                     React.createElement(
-                        'h3',
+                        "h3",
                         null,
-                        'This action cannot be undone.'
+                        "This action cannot be undone."
                     ),
                     React.createElement(
-                        'div',
+                        "div",
                         { style: { display: "flex", justifyContent: "space-between" } },
                         React.createElement(
-                            'button',
-                            { className: 'button confirmation-button', onClick: this.deleteProject },
-                            'Yes, delete it!'
+                            "button",
+                            { className: "button confirmation-button", onClick: this.deleteProject },
+                            "Yes, delete it!"
                         ),
                         React.createElement(
-                            'button',
-                            { className: 'button confirmation-button', onClick: this.props.resetForDeletion },
-                            'Cancel'
+                            "button",
+                            { className: "button confirmation-button", onClick: this.props.resetForDeletion },
+                            "Cancel"
                         )
                     )
                 )
@@ -598,19 +618,19 @@ var ConfirmProjectDeletionWindow = function (_React$Component3) {
 function NewProjectButton(props) {
     if (props.showForm) {
         return React.createElement(
-            'button',
-            { className: 'button new-project-button cancel-new-project', onClick: props.switchShowForm },
+            "button",
+            { className: "button new-project-button cancel-new-project", onClick: props.switchShowForm },
             React.createElement(
-                'p',
+                "p",
                 null,
-                'Cancel'
+                "Cancel"
             )
         );
     }
     return React.createElement(
-        'button',
-        { className: 'button new-project-button', onClick: props.switchShowForm },
-        React.createElement('img', { src: '../../images/add-icon-white.png', alt: 'New', style: { width: "100%" } })
+        "button",
+        { className: "button new-project-button", onClick: props.switchShowForm },
+        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New", style: { width: "100%" } })
     );
 }
 
@@ -622,16 +642,16 @@ var NewProjectForm = function (_React$Component4) {
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this11 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this11.handleSubmit = _this11.handleSubmit.bind(_this11);
-        return _this11;
+        _this12.handleSubmit = _this12.handleSubmit.bind(_this12);
+        return _this12;
     }
 
     _createClass(NewProjectForm, [{
-        key: 'handleSubmit',
+        key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this12 = this;
+            var _this13 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -647,7 +667,7 @@ var NewProjectForm = function (_React$Component4) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this12.props.refresh();
+                    return _this13.props.refresh();
                 });
 
                 // Reset entry and close form
@@ -656,23 +676,23 @@ var NewProjectForm = function (_React$Component4) {
             }
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             var style = { display: "none" };
             if (this.props.showNewProjectForm) {
                 style = { display: "block" };
             }
             return React.createElement(
-                'div',
-                { style: style, className: 'project-item new-project-form-area' },
+                "div",
+                { style: style, className: "project-item new-project-form-area" },
                 React.createElement(
-                    'form',
-                    { id: 'new-project-form', onSubmit: this.handleSubmit },
-                    React.createElement('input', { type: 'text', id: 'newProjectTitle', name: 'newProjectTitle', defaultValue: 'New Project', required: true }),
+                    "form",
+                    { id: "new-project-form", onSubmit: this.handleSubmit },
+                    React.createElement("input", { type: "text", id: "newProjectTitle", name: "newProjectTitle", defaultValue: "New Project", required: true }),
                     React.createElement(
-                        'button',
-                        { className: 'button create-project-button' },
-                        'Create'
+                        "button",
+                        { className: "button create-project-button" },
+                        "Create"
                     )
                 )
             );
@@ -691,32 +711,32 @@ var ProjectItem = function (_React$Component5) {
     function ProjectItem(props) {
         _classCallCheck(this, ProjectItem);
 
-        var _this13 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
-        _this13.switchProject = _this13.switchProject.bind(_this13);
-        _this13.deleteProject = _this13.deleteProject.bind(_this13);
-        return _this13;
+        _this14.switchProject = _this14.switchProject.bind(_this14);
+        _this14.deleteProject = _this14.deleteProject.bind(_this14);
+        return _this14;
     }
 
     _createClass(ProjectItem, [{
-        key: 'switchProject',
+        key: "switchProject",
         value: function switchProject(data) {
-            var _this14 = this;
+            var _this15 = this;
 
             // Only switch if the click was on the item, not on the delete button
             if (data.target.className === "project-item" || data.target.tagName === "H2") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
-                    return _this14.props.refresh();
+                    return _this15.props.refresh();
                 });
             }
         }
     }, {
-        key: 'deleteProject',
+        key: "deleteProject",
         value: function deleteProject() {
             this.props.setForDeletion(this.props.project);
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             var project = this.props.project;
             // Ignore properties that are not project names
@@ -726,33 +746,33 @@ var ProjectItem = function (_React$Component5) {
             // Display the active project in a different color and show more info
             if (project === this.props.graph.curProject) {
                 return React.createElement(
-                    'div',
-                    { className: 'project-item active-project', onClick: this.switchProject },
+                    "div",
+                    { className: "project-item active-project", onClick: this.switchProject },
                     React.createElement(
-                        'h2',
+                        "h2",
                         null,
                         this.props.project
                     ),
                     React.createElement(
-                        'button',
-                        { className: 'button delete-project-button', onClick: this.deleteProject },
-                        React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
+                        "button",
+                        { className: "button delete-project-button", onClick: this.deleteProject },
+                        React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node", style: { width: "100%" } })
                     )
                 );
             }
             // Display other projects
             return React.createElement(
-                'div',
-                { className: 'project-item', onClick: this.switchProject },
+                "div",
+                { className: "project-item", onClick: this.switchProject },
                 React.createElement(
-                    'h2',
+                    "h2",
                     null,
                     this.props.project
                 ),
                 React.createElement(
-                    'button',
-                    { className: 'button delete-project-button', onClick: this.deleteProject },
-                    React.createElement('img', { src: '../../images/delete-icon-white.png', alt: 'Delete node', style: { width: "100%" } })
+                    "button",
+                    { className: "button delete-project-button", onClick: this.deleteProject },
+                    React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node", style: { width: "100%" } })
                 )
             );
         }
@@ -770,25 +790,30 @@ var NewNodeForm = function (_React$Component6) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this15 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this16 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this15.handleSubmit = _this15.handleSubmit.bind(_this15);
-        return _this15;
+        _this16.handleSubmit = _this16.handleSubmit.bind(_this16);
+        return _this16;
     }
 
     _createClass(NewNodeForm, [{
-        key: 'handleSubmit',
+        key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this16 = this;
+            var _this17 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
-            var contextExtractionURL = "https://knolist.herokuapp.com/extract?url=" + encodeURIComponent(event.target.url.value);
-            $.getJSON(contextExtractionURL, function (item) {
+            var baseServerURL = deployedServerURL;
+            if (this.props.localServer) {
+                // Use local server if it's active
+                baseServerURL = localServerURL;
+            }
+            var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
+            $.getJSON(contentExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this16.props.nodeData.x, _this16.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this17.props.nodeData.x, _this17.props.nodeData.y);
                 }).then(function () {
-                    return _this16.props.refresh();
+                    return _this17.props.refresh();
                 });
             });
 
@@ -796,37 +821,37 @@ var NewNodeForm = function (_React$Component6) {
             event.target.reset(); // Clear the form entries
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             var style = { display: "none" };
             if (this.props.showNewNodeForm) {
                 style = { display: "block" };
             }
             return React.createElement(
-                'div',
-                { className: 'modal', style: style },
+                "div",
+                { className: "modal", style: style },
                 React.createElement(
-                    'div',
-                    { className: 'modal-content' },
+                    "div",
+                    { className: "modal-content" },
                     React.createElement(
-                        'button',
-                        { className: 'close-modal button', onClick: this.props.closeForm },
-                        React.createElement('img', { src: '../../images/close-icon-black.png', alt: 'Close', style: { width: "100%" } })
+                        "button",
+                        { className: "close-modal button", onClick: this.props.closeForm },
+                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close", style: { width: "100%" } })
                     ),
                     React.createElement(
-                        'h1',
+                        "h1",
                         null,
-                        'Add new node'
+                        "Add new node"
                     ),
                     React.createElement(
-                        'form',
-                        { id: 'new-node-form', onSubmit: this.handleSubmit },
-                        React.createElement('input', { id: 'url', name: 'url', type: 'url', placeholder: 'Insert URL', required: true }),
-                        React.createElement('br', null),
+                        "form",
+                        { id: "new-node-form", onSubmit: this.handleSubmit },
+                        React.createElement("input", { id: "url", name: "url", type: "url", placeholder: "Insert URL", required: true }),
+                        React.createElement("br", null),
                         React.createElement(
-                            'button',
-                            { className: 'button', style: { width: 100 } },
-                            'Add node'
+                            "button",
+                            { className: "button", style: { width: 100 } },
+                            "Add node"
                         )
                     )
                 )
@@ -846,48 +871,48 @@ var PageView = function (_React$Component7) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this17 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this17.deleteNode = _this17.deleteNode.bind(_this17);
-        return _this17;
+        _this18.deleteNode = _this18.deleteNode.bind(_this18);
+        return _this18;
     }
 
     _createClass(PageView, [{
-        key: 'deleteNode',
+        key: "deleteNode",
         value: function deleteNode() {
-            var _this18 = this;
+            var _this19 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this18.props.resetSelectedNode();
-                _this18.props.refresh();
+                _this19.props.resetSelectedNode();
+                _this19.props.refresh();
             });
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.selectedNode === null) {
                 return null;
             }
 
             return React.createElement(
-                'div',
-                { id: 'page-view', className: 'modal' },
+                "div",
+                { id: "page-view", className: "modal" },
                 React.createElement(
-                    'div',
-                    { className: 'modal-content' },
+                    "div",
+                    { className: "modal-content" },
                     React.createElement(
-                        'button',
-                        { className: 'close-modal button', id: 'close-page-view',
+                        "button",
+                        { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.closePageView },
-                        React.createElement('img', { src: '../../images/close-icon-black.png', alt: 'Close', style: { width: "100%" } })
+                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close", style: { width: "100%" } })
                     ),
                     React.createElement(
-                        'a',
-                        { href: this.props.selectedNode.source, target: '_blank' },
+                        "a",
+                        { href: this.props.selectedNode.source, target: "_blank" },
                         React.createElement(
-                            'h1',
+                            "h1",
                             null,
                             this.props.selectedNode.title
                         )
@@ -897,7 +922,7 @@ var PageView = function (_React$Component7) {
                         switchShowNewNotesForm: this.props.switchShowNewNotesForm,
                         selectedNode: this.props.selectedNode, refresh: this.props.refresh }),
                     React.createElement(
-                        'div',
+                        "div",
                         { style: { display: "flex" } },
                         React.createElement(ListURL, { type: "prev", graph: this.props.graph, selectedNode: this.props.selectedNode,
                             setSelectedNode: this.props.setSelectedNode }),
@@ -905,12 +930,12 @@ var PageView = function (_React$Component7) {
                             setSelectedNode: this.props.setSelectedNode })
                     ),
                     React.createElement(
-                        'div',
+                        "div",
                         { style: { textAlign: "right" } },
                         React.createElement(
-                            'button',
-                            { className: 'button', onClick: this.deleteNode },
-                            React.createElement('img', { src: '../../images/delete-icon-black.png', alt: 'Delete node', style: { width: "100%" } })
+                            "button",
+                            { className: "button", onClick: this.deleteNode },
+                            React.createElement("img", { src: "../../images/delete-icon-black.png", alt: "Delete node", style: { width: "100%" } })
                         )
                     )
                 )
@@ -934,37 +959,37 @@ var ExportView = function (_React$Component8) {
     }
 
     _createClass(ExportView, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.shouldShow === false) {
                 return null;
             }
             return React.createElement(
-                'div',
-                { className: 'modal' },
+                "div",
+                { className: "modal" },
                 React.createElement(
-                    'div',
-                    { className: 'modal-content' },
+                    "div",
+                    { className: "modal-content" },
                     React.createElement(
-                        'button',
-                        { className: 'close-modal button', id: 'close-page-view',
+                        "button",
+                        { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.resetDisplayExport },
-                        React.createElement('img', { src: '../../images/close-icon-black.png', alt: 'Close', style: { width: "100%" } })
+                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close", style: { width: "100%" } })
                     ),
                     React.createElement(
-                        'h1',
+                        "h1",
                         null,
-                        'Export for Bibliography'
+                        "Export for Bibliography"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.bibliographyData.map(function (item) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: item.url },
                                 item.title,
-                                ', ',
+                                ", ",
                                 item.url
                             );
                         })
@@ -990,33 +1015,33 @@ var ListURL = function (_React$Component9) {
     }
 
     _createClass(ListURL, [{
-        key: 'render',
+        key: "render",
         value: function render() {
-            var _this21 = this;
+            var _this22 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
-                    'div',
-                    { className: 'url-column' },
+                    "div",
+                    { className: "url-column" },
                     React.createElement(
-                        'h2',
+                        "h2",
                         { style: { textAlign: "center" } },
-                        'Previous Connections'
+                        "Previous Connections"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.selectedNode.prevURLs.map(function (url, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 React.createElement(
-                                    'a',
-                                    { href: '#',
+                                    "a",
+                                    { href: "#",
                                         onClick: function onClick() {
-                                            return _this21.props.setSelectedNode(url);
+                                            return _this22.props.setSelectedNode(url);
                                         } },
-                                    _this21.props.graph[url].title
+                                    _this22.props.graph[url].title
                                 )
                             );
                         })
@@ -1024,27 +1049,27 @@ var ListURL = function (_React$Component9) {
                 );
             } else if (this.props.type === "next") {
                 return React.createElement(
-                    'div',
-                    { className: 'url-column' },
+                    "div",
+                    { className: "url-column" },
                     React.createElement(
-                        'h2',
+                        "h2",
                         { style: { textAlign: "center" } },
-                        'Next Connections'
+                        "Next Connections"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.selectedNode.nextURLs.map(function (url, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 React.createElement(
-                                    'a',
-                                    { href: '#',
+                                    "a",
+                                    { href: "#",
                                         onClick: function onClick() {
-                                            return _this21.props.setSelectedNode(url);
+                                            return _this22.props.setSelectedNode(url);
                                         } },
-                                    _this21.props.graph[url].title
+                                    _this22.props.graph[url].title
                                 )
                             );
                         })
@@ -1070,23 +1095,23 @@ var HighlightsList = function (_React$Component10) {
     }
 
     _createClass(HighlightsList, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.highlights.length !== 0) {
                 return React.createElement(
-                    'div',
+                    "div",
                     null,
                     React.createElement(
-                        'h2',
+                        "h2",
                         null,
-                        'My Highlights'
+                        "My Highlights"
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.highlights.map(function (highlight, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 highlight
                             );
@@ -1095,9 +1120,9 @@ var HighlightsList = function (_React$Component10) {
                 );
             }
             return React.createElement(
-                'h2',
+                "h2",
                 null,
-                'You haven\'t added any highlights yet.'
+                "You haven't added any highlights yet."
             );
         }
     }]);
@@ -1114,48 +1139,48 @@ var NotesList = function (_React$Component11) {
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this23 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this24 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this23.handleSubmit = _this23.handleSubmit.bind(_this23);
-        return _this23;
+        _this24.handleSubmit = _this24.handleSubmit.bind(_this24);
+        return _this24;
     }
 
     _createClass(NotesList, [{
-        key: 'handleSubmit',
+        key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this24 = this;
+            var _this25 = this;
 
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this24.props.refresh();
+                _this25.props.refresh();
             });
             this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.selectedNode.notes.length !== 0) {
                 return React.createElement(
-                    'div',
+                    "div",
                     null,
                     React.createElement(
-                        'div',
+                        "div",
                         { style: { display: "flex" } },
                         React.createElement(
-                            'h2',
+                            "h2",
                             null,
-                            'My Notes'
+                            "My Notes"
                         ),
                         React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
                             switchShowForm: this.props.switchShowNewNotesForm })
                     ),
                     React.createElement(
-                        'ul',
+                        "ul",
                         null,
                         this.props.selectedNode.notes.map(function (notes, index) {
                             return React.createElement(
-                                'li',
+                                "li",
                                 { key: index },
                                 notes
                             );
@@ -1165,15 +1190,15 @@ var NotesList = function (_React$Component11) {
                 );
             }
             return React.createElement(
-                'div',
+                "div",
                 null,
                 React.createElement(
-                    'div',
+                    "div",
                     { style: { display: "flex" } },
                     React.createElement(
-                        'h2',
+                        "h2",
                         null,
-                        'You haven\'t added any notes yet.'
+                        "You haven't added any notes yet."
                     ),
                     React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
                         switchShowForm: this.props.switchShowNewNotesForm })
@@ -1194,13 +1219,13 @@ function NewNotesForm(props) {
     }
 
     return React.createElement(
-        'form',
-        { id: 'new-notes-form', onSubmit: props.handleSubmit, style: style },
-        React.createElement('input', { id: 'notes', name: 'notes', type: 'text', placeholder: 'Insert Notes', required: true }),
+        "form",
+        { id: "new-notes-form", onSubmit: props.handleSubmit, style: style },
+        React.createElement("input", { id: "notes", name: "notes", type: "text", placeholder: "Insert Notes", required: true }),
         React.createElement(
-            'button',
-            { className: 'button add-note-button cancel-new-project', style: { marginTop: 0, marginBottom: 0 } },
-            'Add'
+            "button",
+            { className: "button add-note-button cancel-new-project", style: { marginTop: 0, marginBottom: 0 } },
+            "Add"
         )
     );
 }
@@ -1209,35 +1234,35 @@ function NewNotesForm(props) {
 function NewNotesButton(props) {
     if (props.showForm) {
         return React.createElement(
-            'button',
-            { className: 'button add-note-button cancel-new-project', onClick: props.switchShowForm },
+            "button",
+            { className: "button add-note-button cancel-new-project", onClick: props.switchShowForm },
             React.createElement(
-                'p',
+                "p",
                 null,
-                'Cancel'
+                "Cancel"
             )
         );
     }
     return React.createElement(
-        'button',
-        { className: 'button add-note-button', onClick: props.switchShowForm },
-        React.createElement('img', { src: '../../images/add-icon-black.png', alt: 'New', style: { width: "100%" } })
+        "button",
+        { className: "button add-note-button", onClick: props.switchShowForm },
+        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New", style: { width: "100%" } })
     );
 }
 
 function RefreshGraphButton(props) {
     return React.createElement(
-        'button',
-        { onClick: props.refresh, className: 'button' },
-        React.createElement('img', { src: '../../images/refresh-icon.png', alt: 'Refresh Button', style: { width: "100%" } })
+        "button",
+        { onClick: props.refresh, className: "button" },
+        React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button", style: { width: "100%" } })
     );
 }
 
 function ExportGraphButton(props) {
     return React.createElement(
-        'button',
-        { onClick: props.export, className: 'button' },
-        React.createElement('img', { src: '../../images/share-icon.webp', alt: 'Refresh Button', style: { width: "100%" } })
+        "button",
+        { onClick: props.export, className: "button" },
+        React.createElement("img", { src: "../../images/share-icon.webp", alt: "Refresh Button", style: { width: "100%" } })
     );
 }
 
@@ -1251,24 +1276,24 @@ var Header = function (_React$Component12) {
     }
 
     _createClass(Header, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             return React.createElement(
-                'div',
-                { className: 'header' },
-                React.createElement('img', { className: 'logo', src: '../../images/horizontal_main.PNG', alt: 'Knolist Logo' }),
+                "div",
+                { className: "header" },
+                React.createElement("img", { className: "logo", src: "../../images/horizontal_main.PNG", alt: "Knolist Logo" }),
                 React.createElement(
-                    'div',
+                    "div",
                     null,
                     React.createElement(
-                        'h5',
-                        { id: 'project-name' },
-                        'Current Project: ',
+                        "h5",
+                        { id: "project-name" },
+                        "Current Project: ",
                         this.props.projectName
                     )
                 ),
                 React.createElement(
-                    'div',
+                    "div",
                     { style: { width: "70px" } },
                     React.createElement(ProjectsSidebarButton, { showSidebar: this.props.showProjectsSidebar,
                         openProjectsSidebar: this.props.openProjectsSidebar,
@@ -1291,22 +1316,22 @@ var ProjectsSidebarButton = function (_React$Component13) {
     }
 
     _createClass(ProjectsSidebarButton, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             if (this.props.showSidebar) {
                 return React.createElement(
-                    'button',
-                    { id: 'projects-sidebar-btn', onClick: this.props.closeProjectsSidebar },
-                    React.createElement('img', { src: '../../images/close-icon-white.png', alt: 'Close', id: 'close-sidebar-btn' })
+                    "button",
+                    { id: "projects-sidebar-btn", onClick: this.props.closeProjectsSidebar },
+                    React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close", id: "close-sidebar-btn" })
                 );
             }
             return React.createElement(
-                'button',
-                { id: 'projects-sidebar-btn', onClick: this.props.openProjectsSidebar },
+                "button",
+                { id: "projects-sidebar-btn", onClick: this.props.openProjectsSidebar },
                 React.createElement(
-                    'p',
+                    "p",
                     null,
-                    'Your projects'
+                    "Your projects"
                 )
             );
         }
