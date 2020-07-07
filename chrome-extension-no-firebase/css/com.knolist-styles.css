@@ -207,6 +207,11 @@ li {
     width: 386px;
 }
 
+.new-project-form-area p {
+    color: orange;
+    font-size: 12px;
+}
+
 /* Avoid color change for the new project form */
 .new-project-form-area:hover{
     background-color: var(--sidebar-background);

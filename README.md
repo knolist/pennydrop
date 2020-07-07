@@ -14,12 +14,12 @@ run the compiler by calling `babelc_kno` from your command line)
 
 ## Running the server
 The server has been deployed to [knolist.herokuapp.com](knolist.herokuapp.com). The source for the deployed version of the server
-is in a separate repo in the Knolist organization, called `knolist-backend`. If you make any updates to `server.py`, remember to
-transfer that over to the other repo. Automatic deploy is active on Heroku, so all you need to do is push the updated code
-to master in `knolist-backend`.
+is in a separate repo in the Knolist organization, called `knolist-backend`. If you want to make any updates to `server.py`, do so
+in that other repo, as we will only keep the version in this repo for reference. Automatic deploy is active on Heroku, 
+so all you need to do is push the updated code to master in `knolist-backend`.
 
 If running locally for debugging purposes, you must run the server that extracts website data.
-1) Open a terminal and run `cd server`
+1) Open the `knolist-backend` repository
 2) Run `python3 server.py`
 3) If any of the necessary packages is not locally installed, follow the error messages to install them using `pip`
 

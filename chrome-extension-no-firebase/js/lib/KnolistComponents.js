@@ -472,16 +472,30 @@ var ProjectsSidebar = function (_React$Component2) {
 
         _this8.state = {
             showNewProjectForm: false,
-            projectForDeletion: null
+            projectForDeletion: null,
+            alertMessage: null,
+            invalidTitle: null
         };
 
         _this8.switchShowNewProjectForm = _this8.switchShowNewProjectForm.bind(_this8);
         _this8.setProjectForDeletion = _this8.setProjectForDeletion.bind(_this8);
         _this8.resetProjectForDeletion = _this8.resetProjectForDeletion.bind(_this8);
+        _this8.setAlertMessage = _this8.setAlertMessage.bind(_this8);
+        _this8.setInvalidTitle = _this8.setInvalidTitle.bind(_this8);
         return _this8;
     }
 
     _createClass(ProjectsSidebar, [{
+        key: "setAlertMessage",
+        value: function setAlertMessage(value) {
+            this.setState({ alertMessage: value });
+        }
+    }, {
+        key: "setInvalidTitle",
+        value: function setInvalidTitle(value) {
+            this.setState({ invalidTitle: value });
+        }
+    }, {
         key: "setProjectForDeletion",
         value: function setProjectForDeletion(project) {
             this.setState({ projectForDeletion: project });
@@ -495,7 +509,11 @@ var ProjectsSidebar = function (_React$Component2) {
         key: "switchShowNewProjectForm",
         value: function switchShowNewProjectForm() {
             document.getElementById("new-project-form").reset();
-            this.setState({ showNewProjectForm: !this.state.showNewProjectForm });
+            this.setState({
+                showNewProjectForm: !this.state.showNewProjectForm,
+                alertMessage: null,
+                invalidTitle: null
+            });
         }
     }, {
         key: "render",
@@ -527,6 +545,10 @@ var ProjectsSidebar = function (_React$Component2) {
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
+                        setAlertMessage: this.setAlertMessage,
+                        setInvalidTitle: this.setInvalidTitle,
+                        alertMessage: this.state.alertMessage,
+                        invalidTitle: this.state.invalidTitle,
                         projects: Object.keys(this.props.graph) }),
                     React.createElement(ConfirmProjectDeletionWindow, { project: this.state.projectForDeletion,
                         resetForDeletion: this.resetProjectForDeletion,
@@ -660,10 +682,12 @@ var NewProjectForm = function (_React$Component4) {
             var title = event.target.newProjectTitle.value;
             if (title === "curProject" || title === "version") {
                 // Invalid options (reserved words for the graph structure)
-                alert(event.target.newProjectTitle.value + " is not a valid title.");
+                this.props.setInvalidTitle(title);
+                this.props.setAlertMessage("invalid-title");
             } else if (this.props.projects.includes(title)) {
                 // Don't allow repeated project names
-                alert("You already have a project called " + title + ".");
+                this.props.setInvalidTitle(title);
+                this.props.setAlertMessage("repeated-title");
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
@@ -672,7 +696,11 @@ var NewProjectForm = function (_React$Component4) {
 
                 // Reset entry and close form
                 event.target.reset();
+                // Close the form
                 this.props.switchForm();
+                // Hide alert message if there was one
+                this.props.setAlertMessage(null);
+                this.props.setInvalidTitle(null);
             }
         }
     }, {
@@ -694,7 +722,9 @@ var NewProjectForm = function (_React$Component4) {
                         { className: "button create-project-button" },
                         "Create"
                     )
-                )
+                ),
+                React.createElement(ProjectTitleAlertMessage, { alertMessage: this.props.alertMessage,
+                    projectTitle: this.props.invalidTitle })
             );
         }
     }]);
@@ -702,8 +732,35 @@ var NewProjectForm = function (_React$Component4) {
     return NewProjectForm;
 }(React.Component);
 
-// Visualization of a project in the sidebar, used to switch active projects
+/** Alert message for invalid project names
+ * @return {null}
+ */
 
+
+function ProjectTitleAlertMessage(props) {
+    if (props.alertMessage === "invalid-title") {
+        return React.createElement(
+            "p",
+            null,
+            props.projectTitle,
+            " is not a valid title."
+        );
+    }
+
+    if (props.alertMessage === "repeated-title") {
+        return React.createElement(
+            "p",
+            null,
+            "You already have a project called ",
+            props.projectTitle,
+            "."
+        );
+    }
+
+    return null;
+}
+
+// Visualization of a project in the sidebar, used to switch active projects
 
 var ProjectItem = function (_React$Component5) {
     _inherits(ProjectItem, _React$Component5);

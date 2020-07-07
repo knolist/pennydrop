@@ -383,12 +383,24 @@ class ProjectsSidebar extends React.Component {
 
         this.state = {
             showNewProjectForm: false,
-            projectForDeletion: null
+            projectForDeletion: null,
+            alertMessage: null,
+            invalidTitle: null
         };
 
         this.switchShowNewProjectForm = this.switchShowNewProjectForm.bind(this);
         this.setProjectForDeletion = this.setProjectForDeletion.bind(this);
         this.resetProjectForDeletion = this.resetProjectForDeletion.bind(this);
+        this.setAlertMessage = this.setAlertMessage.bind(this);
+        this.setInvalidTitle = this.setInvalidTitle.bind(this);
+    }
+
+    setAlertMessage(value) {
+        this.setState({alertMessage: value});
+    }
+
+    setInvalidTitle(value) {
+        this.setState({invalidTitle: value});
     }
 
     setProjectForDeletion(project) {
@@ -401,7 +413,11 @@ class ProjectsSidebar extends React.Component {
 
     switchShowNewProjectForm() {
         document.getElementById("new-project-form").reset();
-        this.setState({showNewProjectForm: !this.state.showNewProjectForm});
+        this.setState({
+            showNewProjectForm: !this.state.showNewProjectForm,
+            alertMessage: null,
+            invalidTitle: null
+        });
     }
 
     render() {
@@ -419,6 +435,10 @@ class ProjectsSidebar extends React.Component {
                                                                                setForDeletion={this.setProjectForDeletion}/>)}
                     <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
                                     switchForm={this.switchShowNewProjectForm}
+                                    setAlertMessage={this.setAlertMessage}
+                                    setInvalidTitle={this.setInvalidTitle}
+                                    alertMessage={this.state.alertMessage}
+                                    invalidTitle={this.state.invalidTitle}
                                     projects={Object.keys(this.props.graph)}/>
                     <ConfirmProjectDeletionWindow project={this.state.projectForDeletion}
                                                   resetForDeletion={this.resetProjectForDeletion}
@@ -500,17 +520,23 @@ class NewProjectForm extends React.Component {
         const title = event.target.newProjectTitle.value;
         if (title === "curProject" || title === "version") {
             // Invalid options (reserved words for the graph structure)
-            alert(event.target.newProjectTitle.value + " is not a valid title.");
+            this.props.setInvalidTitle(title);
+            this.props.setAlertMessage("invalid-title");
         } else if (this.props.projects.includes(title)) {
             // Don't allow repeated project names
-            alert("You already have a project called " + title + ".");
+            this.props.setInvalidTitle(title);
+            this.props.setAlertMessage("repeated-title");
         } else {
             // Valid name
             createNewProjectInGraph(title).then(() => this.props.refresh());
 
             // Reset entry and close form
             event.target.reset();
+            // Close the form
             this.props.switchForm();
+            // Hide alert message if there was one
+            this.props.setAlertMessage(null);
+            this.props.setInvalidTitle(null);
         }
     }
 
@@ -525,9 +551,30 @@ class NewProjectForm extends React.Component {
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
                     <button className="button create-project-button">Create</button>
                 </form>
+                <ProjectTitleAlertMessage alertMessage={this.props.alertMessage}
+                                          projectTitle={this.props.invalidTitle}/>
             </div>
         );
     }
+}
+
+/** Alert message for invalid project names
+ * @return {null}
+ */
+function ProjectTitleAlertMessage(props) {
+    if (props.alertMessage === "invalid-title") {
+        return (
+            <p>{props.projectTitle} is not a valid title.</p>
+        );
+    }
+
+    if (props.alertMessage === "repeated-title") {
+        return (
+            <p>You already have a project called {props.projectTitle}.</p>
+        );
+    }
+
+    return null;
 }
 
 // Visualization of a project in the sidebar, used to switch active projects
