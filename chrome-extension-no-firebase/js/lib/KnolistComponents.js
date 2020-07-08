@@ -47,6 +47,8 @@ var KnolistComponents = function (_React$Component) {
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
+            visNodes: null, // The vis DataSet of nodes
+            visEdges: null, // The vis DataSet of edges
             bibliographyData: null, // The data to be exported as bibliography
             showProjectsSidebar: false,
             localServer: false // Set to true if the server is being run locally
@@ -296,8 +298,8 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "createNodesAndEdges",
         value: function createNodesAndEdges() {
-            var nodes = [];
-            var edges = [];
+            var nodes = new vis.DataSet();
+            var edges = new vis.DataSet();
             var curProject = this.state.graph.curProject;
             // Iterate through each node in the graph and build the arrays of nodes and edges
             for (var index in this.state.graph[curProject]) {
@@ -310,17 +312,18 @@ var KnolistComponents = function (_React$Component) {
                         x = _generateNodePosition2[0],
                         y = _generateNodePosition2[1];
 
-                    nodes.push({ id: node.source, label: node.title, x: x, y: y });
+                    nodes.add({ id: node.source, label: node.title, x: x, y: y });
                 } else {
-                    nodes.push({ id: node.source, label: node.title, x: node.x, y: node.y });
+                    nodes.add({ id: node.source, label: node.title, x: node.x, y: node.y });
                 }
                 // Deal with edges
                 for (var nextIndex in node.nextURLs) {
-                    edges.push({ from: node.source, to: node.nextURLs[nextIndex] });
+                    edges.add({ from: node.source, to: node.nextURLs[nextIndex] });
                 }
             }
             // console.log(nodes);
             // console.log(edges);
+            this.setState({ visNodes: nodes, visEdges: edges });
             return [nodes, edges];
         }
 
