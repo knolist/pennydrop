@@ -8,6 +8,8 @@
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
 const deployedServerURL = "https://knolist.herokuapp.com/";
+const nodeBackgroundDefaultColor = "#7dc2ff";
+const nodeHighlightDefaultColor = "#d2e5ff";
 
 // Helper global function for title case
 function titleCase(str) {
@@ -217,29 +219,28 @@ class KnolistComponents extends React.Component {
             this.state.visNodes.forEach(node => {
                 node.opacity = 1;
                 node.color = {
-                    background: "#D2E5FF"
+                    background: nodeBackgroundDefaultColor
                 };
                 this.state.visNodes.update(node);
-            })
+            });
+            return;
         }
 
         // If list is not null, highlight based on the list
         this.state.visNodes.forEach(node => {
             if (!nodesToHighlight.includes(node.id)) {
                 node.opacity = 0.3;
-                node.color = {
-                    background: "#919db4"
-                };
             } else {
+                node.opacity = 1;
                 node.color = {
-                    background: "#bfd8ff"
+                    background: nodeHighlightDefaultColor
                 };
             }
             this.state.visNodes.update(node);
         });
     }
 
-    searchNodes(query) {
+    getSearchResults(query) {
         // Return null for empty queries
         if (query === "") {
             return null;
@@ -248,6 +249,21 @@ class KnolistComponents extends React.Component {
         const curProject = this.state.graph.curProject;
         const graph = this.state.graph[curProject];
 
+        // REMOVE AFTER THIS
+        switch(query.length) {
+            case 1: return ["https://engineering.jhu.edu/fields-of-study/computer-science/"];
+            case 2: return ["https://en.wikipedia.org/wiki/West_Germanic_languages"];
+            case 3: return ["https://dontstarve.fandom.com/wiki/Butterfly_Wings"];
+            case 4: return ["https://dontstarve.fandom.com/wiki/Wall"];
+            case 5: return ["https://dontstarve.fandom.com/wiki/Healing_Salve"];
+            default: return ["https://dontstarve.fandom.com/wiki/Spider_Gland"];
+        }
+
+    }
+
+    search(query) {
+        const results = this.getSearchResults(query);
+        this.highlightNodes(results);
     }
 
     /* Helper function to generate position for nodes
@@ -324,6 +340,9 @@ class KnolistComponents extends React.Component {
                 chosen: true,
                 font: {
                     face: "Product Sans"
+                },
+                color: {
+                    background: nodeBackgroundDefaultColor
                 }
             },
             edges: {
@@ -424,6 +443,7 @@ class KnolistComponents extends React.Component {
                         openProjectsSidebar={this.openProjectsSidebar}
                         closeProjectsSidebar={this.closeProjectsSidebar}/>
                 <div className="main-body">
+                    <input id="test" type="text" onKeyUp={(elem) => this.search(elem.target.value)}/>
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
                         <ExportGraphButton export={this.exportData}/>
