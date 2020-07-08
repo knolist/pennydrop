@@ -207,6 +207,49 @@ class KnolistComponents extends React.Component {
         this.switchShowNewNodeForm();
     }
 
+    /**
+     * Visually highlights nodes by changing colors and opacity
+     * @param nodesToHighlight an array of ids of the nodes to be highlighted
+     */
+    highlightNodes(nodesToHighlight) {
+        // If the list is null, reset all nodes to the default
+        if (nodesToHighlight === null) {
+            this.state.visNodes.forEach(node => {
+                node.opacity = 1;
+                node.color = {
+                    background: "#D2E5FF"
+                };
+                this.state.visNodes.update(node);
+            })
+        }
+
+        // If list is not null, highlight based on the list
+        this.state.visNodes.forEach(node => {
+            if (!nodesToHighlight.includes(node.id)) {
+                node.opacity = 0.3;
+                node.color = {
+                    background: "#919db4"
+                };
+            } else {
+                node.color = {
+                    background: "#bfd8ff"
+                };
+            }
+            this.state.visNodes.update(node);
+        });
+    }
+
+    searchNodes(query) {
+        // Return null for empty queries
+        if (query === "") {
+            return null;
+        }
+
+        const curProject = this.state.graph.curProject;
+        const graph = this.state.graph[curProject];
+
+    }
+
     /* Helper function to generate position for nodes
     This function adds an offset to  the randomly generated position based on the
     position of the node's parent (if it has one)

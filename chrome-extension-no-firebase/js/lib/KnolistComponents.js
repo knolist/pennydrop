@@ -262,6 +262,54 @@ var KnolistComponents = function (_React$Component) {
             this.switchShowNewNodeForm();
         }
 
+        /**
+         * Visually highlights nodes by changing colors and opacity
+         * @param nodesToHighlight an array of ids of the nodes to be highlighted
+         */
+
+    }, {
+        key: "highlightNodes",
+        value: function highlightNodes(nodesToHighlight) {
+            var _this7 = this;
+
+            // If the list is null, reset all nodes to the default
+            if (nodesToHighlight === null) {
+                this.state.visNodes.forEach(function (node) {
+                    node.opacity = 1;
+                    node.color = {
+                        background: "#D2E5FF"
+                    };
+                    _this7.state.visNodes.update(node);
+                });
+            }
+
+            // If list is not null, highlight based on the list
+            this.state.visNodes.forEach(function (node) {
+                if (!nodesToHighlight.includes(node.id)) {
+                    node.opacity = 0.3;
+                    node.color = {
+                        background: "#919db4"
+                    };
+                } else {
+                    node.color = {
+                        background: "#bfd8ff"
+                    };
+                }
+                _this7.state.visNodes.update(node);
+            });
+        }
+    }, {
+        key: "searchNodes",
+        value: function searchNodes(query) {
+            // Return null for empty queries
+            if (query === "") {
+                return null;
+            }
+
+            var curProject = this.state.graph.curProject;
+            var graph = this.state.graph[curProject];
+        }
+
         /* Helper function to generate position for nodes
         This function adds an offset to  the randomly generated position based on the
         position of the node's parent (if it has one)
@@ -332,7 +380,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "setupVisGraph",
         value: function setupVisGraph() {
-            var _this7 = this;
+            var _this8 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -391,7 +439,7 @@ var KnolistComponents = function (_React$Component) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this7.handleClickedNode(nodeId);
+                    _this8.handleClickedNode(nodeId);
                 }
             });
 
@@ -419,7 +467,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this8 = this;
+            var _this9 = this;
 
             this.getDataFromServer();
             this.checkIfLocalServer();
@@ -428,7 +476,7 @@ var KnolistComponents = function (_React$Component) {
                 chrome.tabs.get(activeInfo.tabId, function (tab) {
                     if (tab.title === "Knolist") {
                         // Update data
-                        _this8.getDataFromServer();
+                        _this9.getDataFromServer();
                     }
                 });
             });
@@ -499,21 +547,21 @@ var ProjectsSidebar = function (_React$Component2) {
     function ProjectsSidebar(props) {
         _classCallCheck(this, ProjectsSidebar);
 
-        var _this9 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
+        var _this10 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
 
-        _this9.state = {
+        _this10.state = {
             showNewProjectForm: false,
             projectForDeletion: null,
             alertMessage: null,
             invalidTitle: null
         };
 
-        _this9.switchShowNewProjectForm = _this9.switchShowNewProjectForm.bind(_this9);
-        _this9.setProjectForDeletion = _this9.setProjectForDeletion.bind(_this9);
-        _this9.resetProjectForDeletion = _this9.resetProjectForDeletion.bind(_this9);
-        _this9.setAlertMessage = _this9.setAlertMessage.bind(_this9);
-        _this9.setInvalidTitle = _this9.setInvalidTitle.bind(_this9);
-        return _this9;
+        _this10.switchShowNewProjectForm = _this10.switchShowNewProjectForm.bind(_this10);
+        _this10.setProjectForDeletion = _this10.setProjectForDeletion.bind(_this10);
+        _this10.resetProjectForDeletion = _this10.resetProjectForDeletion.bind(_this10);
+        _this10.setAlertMessage = _this10.setAlertMessage.bind(_this10);
+        _this10.setInvalidTitle = _this10.setInvalidTitle.bind(_this10);
+        return _this10;
     }
 
     _createClass(ProjectsSidebar, [{
@@ -549,7 +597,7 @@ var ProjectsSidebar = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this10 = this;
+            var _this11 = this;
 
             return React.createElement(
                 "div",
@@ -569,10 +617,10 @@ var ProjectsSidebar = function (_React$Component2) {
                     "div",
                     { id: "sidebar-content" },
                     Object.keys(this.props.graph).map(function (project) {
-                        return React.createElement(ProjectItem, { key: project, graph: _this10.props.graph,
+                        return React.createElement(ProjectItem, { key: project, graph: _this11.props.graph,
                             project: project,
-                            refresh: _this10.props.refresh,
-                            setForDeletion: _this10.setProjectForDeletion });
+                            refresh: _this11.props.refresh,
+                            setForDeletion: _this11.setProjectForDeletion });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
@@ -601,20 +649,20 @@ var ConfirmProjectDeletionWindow = function (_React$Component3) {
     function ConfirmProjectDeletionWindow(props) {
         _classCallCheck(this, ConfirmProjectDeletionWindow);
 
-        var _this11 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
 
-        _this11.deleteProject = _this11.deleteProject.bind(_this11);
-        return _this11;
+        _this12.deleteProject = _this12.deleteProject.bind(_this12);
+        return _this12;
     }
 
     _createClass(ConfirmProjectDeletionWindow, [{
         key: "deleteProject",
         value: function deleteProject() {
-            var _this12 = this;
+            var _this13 = this;
 
             this.props.resetForDeletion();
             deleteProjectFromGraph(this.props.project).then(function () {
-                return _this12.props.refresh();
+                return _this13.props.refresh();
             });
         }
     }, {
@@ -695,16 +743,16 @@ var NewProjectForm = function (_React$Component4) {
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this13 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this13.handleSubmit = _this13.handleSubmit.bind(_this13);
-        return _this13;
+        _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
+        return _this14;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this14 = this;
+            var _this15 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -722,7 +770,7 @@ var NewProjectForm = function (_React$Component4) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this14.props.refresh();
+                    return _this15.props.refresh();
                 });
 
                 // Reset entry and close form
@@ -799,22 +847,22 @@ var ProjectItem = function (_React$Component5) {
     function ProjectItem(props) {
         _classCallCheck(this, ProjectItem);
 
-        var _this15 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+        var _this16 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
-        _this15.switchProject = _this15.switchProject.bind(_this15);
-        _this15.deleteProject = _this15.deleteProject.bind(_this15);
-        return _this15;
+        _this16.switchProject = _this16.switchProject.bind(_this16);
+        _this16.deleteProject = _this16.deleteProject.bind(_this16);
+        return _this16;
     }
 
     _createClass(ProjectItem, [{
         key: "switchProject",
         value: function switchProject(data) {
-            var _this16 = this;
+            var _this17 = this;
 
             // Only switch if the click was on the item, not on the delete button
             if (data.target.className === "project-item" || data.target.tagName === "H2") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
-                    return _this16.props.refresh();
+                    return _this17.props.refresh();
                 });
             }
         }
@@ -878,16 +926,16 @@ var NewNodeForm = function (_React$Component6) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this17 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this17.handleSubmit = _this17.handleSubmit.bind(_this17);
-        return _this17;
+        _this18.handleSubmit = _this18.handleSubmit.bind(_this18);
+        return _this18;
     }
 
     _createClass(NewNodeForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this18 = this;
+            var _this19 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
@@ -899,9 +947,9 @@ var NewNodeForm = function (_React$Component6) {
             var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contentExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this18.props.nodeData.x, _this18.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this19.props.nodeData.x, _this19.props.nodeData.y);
                 }).then(function () {
-                    return _this18.props.refresh();
+                    return _this19.props.refresh();
                 });
             });
 
@@ -959,22 +1007,22 @@ var PageView = function (_React$Component7) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this19 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this19.deleteNode = _this19.deleteNode.bind(_this19);
-        return _this19;
+        _this20.deleteNode = _this20.deleteNode.bind(_this20);
+        return _this20;
     }
 
     _createClass(PageView, [{
         key: "deleteNode",
         value: function deleteNode() {
-            var _this20 = this;
+            var _this21 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this20.props.resetSelectedNode();
-                _this20.props.refresh();
+                _this21.props.resetSelectedNode();
+                _this21.props.refresh();
             });
         }
     }, {
@@ -1111,7 +1159,7 @@ var ListURL = function (_React$Component9) {
     _createClass(ListURL, [{
         key: "render",
         value: function render() {
-            var _this23 = this;
+            var _this24 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -1133,9 +1181,9 @@ var ListURL = function (_React$Component9) {
                                     "a",
                                     { href: "#",
                                         onClick: function onClick() {
-                                            return _this23.props.setSelectedNode(url);
+                                            return _this24.props.setSelectedNode(url);
                                         } },
-                                    _this23.props.graph[url].title
+                                    _this24.props.graph[url].title
                                 )
                             );
                         })
@@ -1161,9 +1209,9 @@ var ListURL = function (_React$Component9) {
                                     "a",
                                     { href: "#",
                                         onClick: function onClick() {
-                                            return _this23.props.setSelectedNode(url);
+                                            return _this24.props.setSelectedNode(url);
                                         } },
-                                    _this23.props.graph[url].title
+                                    _this24.props.graph[url].title
                                 )
                             );
                         })
@@ -1233,20 +1281,20 @@ var NotesList = function (_React$Component11) {
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this25 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this26 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this25.handleSubmit = _this25.handleSubmit.bind(_this25);
-        return _this25;
+        _this26.handleSubmit = _this26.handleSubmit.bind(_this26);
+        return _this26;
     }
 
     _createClass(NotesList, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this26 = this;
+            var _this27 = this;
 
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this26.props.refresh();
+                _this27.props.refresh();
             });
             this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
