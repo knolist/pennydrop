@@ -4,21 +4,13 @@
  * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
  * are in the README
  */
+import Utils from "../utils.js"
 
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
 const deployedServerURL = "https://knolist.herokuapp.com/";
 const nodeBackgroundDefaultColor = "#7dc2ff";
 const nodeHighlightDefaultColor = "#d2e5ff";
-
-// Helper global function for title case
-function titleCase(str) {
-    str = str.toLowerCase().split(' ');
-    for (let i = 0; i < str.length; i++) {
-        str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
-    }
-    return str.join(' ');
-}
 
 // Wrapper for all the components in the page
 class KnolistComponents extends React.Component {
@@ -248,16 +240,27 @@ class KnolistComponents extends React.Component {
 
         const curProject = this.state.graph.curProject;
         const graph = this.state.graph[curProject];
+        const graphKeys = Object.keys(graph);
 
-        // REMOVE AFTER THIS
-        switch(query.length) {
-            case 1: return ["https://engineering.jhu.edu/fields-of-study/computer-science/"];
-            case 2: return ["https://en.wikipedia.org/wiki/West_Germanic_languages"];
-            case 3: return ["https://dontstarve.fandom.com/wiki/Butterfly_Wings"];
-            case 4: return ["https://dontstarve.fandom.com/wiki/Wall"];
-            case 5: return ["https://dontstarve.fandom.com/wiki/Healing_Salve"];
-            default: return ["https://dontstarve.fandom.com/wiki/Spider_Gland"];
+        let results = [];
+        query = Utils.trimString(query); // trim it
+        query = query.toLowerCase();
+        for (let i in graphKeys) {
+            const node = graph[graphKeys[i]];
+            for (let nodeKey in node) {
+                // Act depending on the type of node[key]
+                let elem = node[nodeKey];
+                if (typeof(elem) === "number") break; // Ignore pure numbers
+                if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
+                elem = elem.toLowerCase(); // Lower case for case-insensitive search
+
+                // Check if query is present
+                if (elem.indexOf(query) !== -1) {
+                    if (!results.includes(node.source)) results.push(node.source);
+                }
+            }
         }
+        return results;
 
     }
 
