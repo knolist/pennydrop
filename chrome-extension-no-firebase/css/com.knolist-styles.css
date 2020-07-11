@@ -27,13 +27,28 @@ body {
     border-bottom-color: var(--dark-blue);
 }
 
+#project-name-div {
+    text-align: center;
+    position: relative;
+    margin: auto;
+}
+
 #project-name {
     vertical-align: middle;
     margin: 10px;
+    display: inline-block;
 }
 
 .logo {
     height: 100%;
+}
+
+.header-corner-wrapper {
+    width: 150px;
+}
+
+.logo-wrapper {
+    text-align: left;
 }
 
 #buttons-bar {
@@ -260,4 +275,26 @@ li {
 
 .confirmation-button {
     width: 45%;
+}
+
+#search-bar {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    height: 30px;
+    display: flex;
+}
+
+#search-bar img {
+    height: 80%;
+    margin: 0.6%;
+    position: relative;
+    cursor: pointer;
+}
+
+#search-text {
+    font-size: 16px;
+    width: 400px;
+    height: 30px;
+    border: none;
+    padding-left: 8px;
 }

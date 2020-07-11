@@ -49,6 +49,7 @@ class KnolistComponents extends React.Component {
         this.closePageView = this.closePageView.bind(this);
         this.closeNewNodeForm = this.closeNewNodeForm.bind(this);
         this.setSelectedNode = this.setSelectedNode.bind(this);
+        this.search = this.search.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -250,7 +251,7 @@ class KnolistComponents extends React.Component {
             for (let nodeKey in node) {
                 // Act depending on the type of node[key]
                 let elem = node[nodeKey];
-                if (typeof(elem) === "number") break; // Ignore pure numbers
+                if (typeof (elem) === "number") break; // Ignore pure numbers
                 if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
                 elem = elem.toLowerCase(); // Lower case for case-insensitive search
 
@@ -446,9 +447,9 @@ class KnolistComponents extends React.Component {
                         openProjectsSidebar={this.openProjectsSidebar}
                         closeProjectsSidebar={this.closeProjectsSidebar}/>
                 <div className="main-body">
-                    <input id="test" type="text" onKeyUp={(elem) => this.search(elem.target.value)}/>
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
+                        <SearchBar search={this.search}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph"/>
@@ -987,6 +988,16 @@ function RefreshGraphButton(props) {
     );
 }
 
+function SearchBar(props) {
+    return (
+        <div id="search-bar">
+            <input id="search-text" type="text" onKeyUp={(elem) => props.search(elem.target.value)}
+                   placeholder="Search through your project"/>
+            <img src="../../images/search-icon-black.png" alt="Search"/>
+        </div>
+    );
+}
+
 function ExportGraphButton(props) {
     return (
         <button onClick={props.export} className="button">
@@ -1003,11 +1014,13 @@ class Header extends React.Component {
     render() {
         return (
             <div className="header">
-                <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
-                <div>
+                <div className="header-corner-wrapper logo-wrapper">
+                    <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
+                </div>
+                <div id="project-name-div">
                     <h5 id="project-name">Current Project: {this.props.projectName}</h5>
                 </div>
-                <div style={{width: "70px"}}>
+                <div className="header-corner-wrapper">
                     <ProjectsSidebarButton showSidebar={this.props.showProjectsSidebar}
                                            openProjectsSidebar={this.props.openProjectsSidebar}
                                            closeProjectsSidebar={this.props.closeProjectsSidebar}/>
