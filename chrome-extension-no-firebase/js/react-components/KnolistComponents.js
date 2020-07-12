@@ -49,7 +49,8 @@ class KnolistComponents extends React.Component {
         this.closePageView = this.closePageView.bind(this);
         this.closeNewNodeForm = this.closeNewNodeForm.bind(this);
         this.setSelectedNode = this.setSelectedNode.bind(this);
-        this.search = this.search.bind(this);
+        this.basicSearch = this.basicSearch.bind(this);
+        this.fullSearch = this.fullSearch.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -233,7 +234,26 @@ class KnolistComponents extends React.Component {
         });
     }
 
-    getSearchResults(query) {
+    /**
+     * Given a text query, this function searches the current project for occurrences of that query. If the query is
+     * empty, the function returns null. Else, it returns an array of node IDs that contain the desired query somewhere
+     * inside its contents.
+     * @param query the query to be searched
+     * @returns {null|[]} null if the query is empty, else array of resulting node IDs
+     */
+
+    /**
+     * Given a text query, this function searches the current project for occurrences of that query. If the query is
+     * empty, the function returns null. Else, if a filterList is supplied, the function returns an array of objects
+     * that represent the occurrences of the query on each node of the current project (used in fullSearch).
+     * If a filterList is not supplied, it returns an array of node IDs that contain the desired query anywhere
+     * inside them (used in basicSearch).
+     * @param query the query to be searched
+     * @param filterList a list of node keys that whose contents will be included in the search
+     * @returns {null|[]} null if the query is empty, else array of resulting node IDs if filterList is undefined,
+     * else array of result objects
+     */
+    getSearchResults(query, filterList) {
         // Return null for empty queries
         if (query === "") {
             return null;
@@ -241,13 +261,15 @@ class KnolistComponents extends React.Component {
 
         const curProject = this.state.graph.curProject;
         const graph = this.state.graph[curProject];
-        const graphKeys = Object.keys(graph);
 
         let results = [];
         query = Utils.trimString(query); // trim it
         query = query.toLowerCase();
-        for (let i in graphKeys) {
-            const node = graph[graphKeys[i]];
+        for (let graphKey in graph) {
+            const node = graph[graphKey];
+            let occurrences = [];
+            let occurrencesCount = 0;
+            // Iterate through the keys inside the node
             for (let nodeKey in node) {
                 // Act depending on the type of node[key]
                 let elem = node[nodeKey];
@@ -255,19 +277,47 @@ class KnolistComponents extends React.Component {
                 if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
                 elem = elem.toLowerCase(); // Lower case for case-insensitive search
 
-                // Check if query is present
-                if (elem.indexOf(query) !== -1) {
+                // Check if query is present under basic search
+                if (filterList === undefined && elem.indexOf(query) !== -1) {
                     if (!results.includes(node.source)) results.push(node.source);
+                } else if (filterList !== undefined && filterList.includes(nodeKey)) { // Check if query is present under full search
+                    const indices = Utils.getIndicesOf(query, elem);
+                    // Only add if results were found
+                    if (indices.length > 0) {
+                        occurrences.push({
+                            key: nodeKey,
+                            indices: indices
+                        });
+                        occurrencesCount += indices.length;
+                    }
                 }
+            }
+            // If occurrences were found and we are doing a filtered search, include the current node in results
+            if (filterList !== undefined && occurrences.length > 0) {
+                results.push({
+                    url: node.source,
+                    occurrences: occurrences,
+                    occurrencesCount: occurrencesCount
+                })
             }
         }
         return results;
-
     }
 
-    search(query) {
+    basicSearch(query) {
         const results = this.getSearchResults(query);
         this.highlightNodes(results);
+    }
+
+    fullSearch(query, filterList) {
+        // REMOVE STARTING HERE
+        const curProject = this.state.graph.curProject;
+        const graph = this.state.graph[curProject];
+        const nodeList = Object.keys(graph);
+        filterList = Object.keys(graph[nodeList[0]]);
+        // STOP REMOVING
+
+        console.log(this.getSearchResults(query, filterList));
     }
 
     /* Helper function to generate position for nodes
@@ -449,7 +499,7 @@ class KnolistComponents extends React.Component {
                 <div className="main-body">
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
-                        <SearchBar search={this.search}/>
+                        <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph"/>
@@ -988,14 +1038,36 @@ function RefreshGraphButton(props) {
     );
 }
 
-function SearchBar(props) {
-    return (
-        <div id="search-bar">
-            <input id="search-text" type="text" onKeyUp={(elem) => props.search(elem.target.value)}
-                   placeholder="Search through your project"/>
-            <img src="../../images/search-icon-black.png" alt="Search"/>
-        </div>
-    );
+class SearchBar extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.submitSearch = this.submitSearch.bind(this);
+        this.searchButtonAction = this.searchButtonAction.bind(this);
+    }
+
+    searchButtonAction() {
+        const query = document.getElementById("search-text").value;
+        if (query !== "") this.props.fullSearch(query);
+    }
+
+    submitSearch(searchInput) {
+        if (searchInput.key === "Enter") {
+            if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value);
+        } else {
+            this.props.basicSearch(searchInput.target.value);
+        }
+    }
+
+    render() {
+        return (
+            <div id="search-bar">
+                <input id="search-text" type="text" onKeyUp={(searchInput) => this.submitSearch(searchInput)}
+                       placeholder="Search through your project"/>
+                <img onClick={this.searchButtonAction} src="../../images/search-icon-black.png" alt="Search"/>
+            </div>
+        );
+    }
 }
 
 function ExportGraphButton(props) {

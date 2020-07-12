@@ -65,7 +65,8 @@ var KnolistComponents = function (_React$Component) {
         _this.closePageView = _this.closePageView.bind(_this);
         _this.closeNewNodeForm = _this.closeNewNodeForm.bind(_this);
         _this.setSelectedNode = _this.setSelectedNode.bind(_this);
-        _this.search = _this.search.bind(_this);
+        _this.basicSearch = _this.basicSearch.bind(_this);
+        _this.fullSearch = _this.fullSearch.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
@@ -292,9 +293,18 @@ var KnolistComponents = function (_React$Component) {
                 _this7.state.visNodes.update(node);
             });
         }
+
+        /**
+         * Given a text query, this function searches the current project for occurrences of that query. If the query is
+         * empty, the function returns null. Else, it returns an array of node IDs that contain the desired query somewhere
+         * inside its contents.
+         * @param query the query to be searched
+         * @returns {null|[]} null if the query is empty, else array of resulting node IDs
+         */
+
     }, {
         key: "getSearchResults",
-        value: function getSearchResults(query) {
+        value: function getSearchResults(query, filterList) {
             // Return null for empty queries
             if (query === "") {
                 return null;
@@ -302,13 +312,14 @@ var KnolistComponents = function (_React$Component) {
 
             var curProject = this.state.graph.curProject;
             var graph = this.state.graph[curProject];
-            var graphKeys = Object.keys(graph);
 
             var results = [];
             query = Utils.trimString(query); // trim it
             query = query.toLowerCase();
-            for (var i in graphKeys) {
-                var node = graph[graphKeys[i]];
+            for (var graphKey in graph) {
+                var node = graph[graphKey];
+                var occurrences = [];
+                var occurrencesCount = 0;
                 for (var nodeKey in node) {
                     // Act depending on the type of node[key]
                     var elem = node[nodeKey];
@@ -316,19 +327,51 @@ var KnolistComponents = function (_React$Component) {
                     if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
                     elem = elem.toLowerCase(); // Lower case for case-insensitive search
 
-                    // Check if query is present
-                    if (elem.indexOf(query) !== -1) {
+                    // Check if query is present under basic search
+                    if (filterList === undefined && elem.indexOf(query) !== -1) {
                         if (!results.includes(node.source)) results.push(node.source);
+                    } else if (filterList !== undefined && filterList.includes(nodeKey)) {
+                        // Check if query is present under full search
+                        var indices = Utils.getIndicesOf(query, elem);
+                        // Only add if results were found
+                        if (indices.length > 0) {
+                            occurrences.push({
+                                key: nodeKey,
+                                indices: indices
+                            });
+                            occurrencesCount += indices.length;
+                        }
                     }
+                }
+                // If occurrences were found and we are doing a filtered search, include the current node in results
+                if (filterList !== undefined && occurrences.length > 0) {
+                    results.push({
+                        url: node.source,
+                        occurrences: occurrences,
+                        occurrencesCount: occurrencesCount
+                    });
                 }
             }
             return results;
         }
     }, {
-        key: "search",
-        value: function search(query) {
+        key: "basicSearch",
+        value: function basicSearch(query) {
             var results = this.getSearchResults(query);
             this.highlightNodes(results);
+        }
+    }, {
+        key: "fullSearch",
+        value: function fullSearch(query, filterList) {
+            // REMOVE STARTING HERE
+            var curProject = this.state.graph.curProject;
+            var graph = this.state.graph[curProject];
+            var nodeList = Object.keys(graph);
+            filterList = Object.keys(graph[nodeList[0]]);
+            // STOP REMOVING
+
+            console.log("full search of " + query);
+            console.log(this.getSearchResults(query, filterList));
         }
 
         /* Helper function to generate position for nodes
@@ -540,7 +583,7 @@ var KnolistComponents = function (_React$Component) {
                         "div",
                         { id: "buttons-bar" },
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
-                        React.createElement(SearchBar, { search: this.search }),
+                        React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
                     React.createElement("div", { id: "graph" }),
@@ -1425,17 +1468,53 @@ function RefreshGraphButton(props) {
     );
 }
 
-function SearchBar(props) {
-    return React.createElement(
-        "div",
-        { id: "search-bar" },
-        React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(elem) {
-                return props.search(elem.target.value);
-            },
-            placeholder: "Search through your project" }),
-        React.createElement("img", { src: "../../images/search-icon-black.png", alt: "Search" })
-    );
-}
+var SearchBar = function (_React$Component12) {
+    _inherits(SearchBar, _React$Component12);
+
+    function SearchBar(props) {
+        _classCallCheck(this, SearchBar);
+
+        var _this28 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+
+        _this28.submitSearch = _this28.submitSearch.bind(_this28);
+        _this28.searchButtonAction = _this28.searchButtonAction.bind(_this28);
+        return _this28;
+    }
+
+    _createClass(SearchBar, [{
+        key: "searchButtonAction",
+        value: function searchButtonAction() {
+            var query = document.getElementById("search-text").value;
+            if (query !== "") this.props.fullSearch(query);
+        }
+    }, {
+        key: "submitSearch",
+        value: function submitSearch(searchInput) {
+            if (searchInput.key === "Enter") {
+                if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value);
+            } else {
+                this.props.basicSearch(searchInput.target.value);
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this29 = this;
+
+            return React.createElement(
+                "div",
+                { id: "search-bar" },
+                React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
+                        return _this29.submitSearch(searchInput);
+                    },
+                    placeholder: "Search through your project" }),
+                React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
+            );
+        }
+    }]);
+
+    return SearchBar;
+}(React.Component);
 
 function ExportGraphButton(props) {
     return React.createElement(
@@ -1445,8 +1524,8 @@ function ExportGraphButton(props) {
     );
 }
 
-var Header = function (_React$Component12) {
-    _inherits(Header, _React$Component12);
+var Header = function (_React$Component13) {
+    _inherits(Header, _React$Component13);
 
     function Header(props) {
         _classCallCheck(this, Header);
@@ -1489,8 +1568,8 @@ var Header = function (_React$Component12) {
     return Header;
 }(React.Component);
 
-var ProjectsSidebarButton = function (_React$Component13) {
-    _inherits(ProjectsSidebarButton, _React$Component13);
+var ProjectsSidebarButton = function (_React$Component14) {
+    _inherits(ProjectsSidebarButton, _React$Component14);
 
     function ProjectsSidebarButton(props) {
         _classCallCheck(this, ProjectsSidebarButton);
