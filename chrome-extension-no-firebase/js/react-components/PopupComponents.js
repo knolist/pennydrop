@@ -147,14 +147,6 @@ class ProjectList extends React.Component {
     render() {
         if (this.props.graph === null) return null;
 
-        // Define arrow icon to use based on whether dropdown is active
-        let arrowIconURL = "../../images/down-chevron-icon-black.png";
-        if (this.state.dropdownOpen) arrowIconURL = "../../images/up-chevron-icon-black.png";
-
-        // Hide or display the dropdown content
-        let dropdownStyle = {display: "none"};
-        if (this.state.dropdownOpen) dropdownStyle = {display: "block"};
-
         return (
             <div id="projects-list">
                 <div style={{display: "flex", justifyContent: "space-between"}}>
@@ -169,21 +161,8 @@ class ProjectList extends React.Component {
                                 alertMessage={this.state.alertMessage}
                                 invalidTitle={this.state.invalidTitle}
                                 projects={Object.keys(this.props.graph)}/>
-                <div className="dropdown">
-                    <div onClick={this.switchDropdown} id="current-project-area">
-                        <p>{this.props.graph.curProject}</p>
-                        <button className="dropdown-button">
-                            <img src={arrowIconURL} alt="Dropdown"/>
-                        </button>
-                    </div>
-                    <div id="myDropdown" className="dropdown-content" style={dropdownStyle}>
-                        {Object.keys(this.props.graph).map((project) => <DropdownItem key={project}
-                                                                                      projectName={project}
-                                                                                      curProject={this.props.graph.curProject}
-                                                                                      refresh={this.props.refresh}
-                                                                                      switchDropdown={this.switchDropdown}/>)}
-                    </div>
-                </div>
+                <ProjectsDropdown dropdownOpen={this.state.dropdownOpen} switchDropdown={this.switchDropdown}
+                                  graph={this.props.graph} refresh={this.props.refresh}/>
             </div>
         );
     }
@@ -279,6 +258,35 @@ function AlertMessage(props) {
     }
 
     return null;
+}
+
+function ProjectsDropdown(props) {
+    // Define arrow icon to use based on whether dropdown is active
+    // Hide or display the dropdown content
+    let arrowIconURL = "../../images/down-chevron-icon-black.png";
+    let dropdownStyle = {display: "none"};
+    if (props.dropdownOpen) {
+        arrowIconURL = "../../images/up-chevron-icon-black.png";
+        dropdownStyle = {display: "block"};
+    }
+
+    return (
+        <div className="dropdown">
+            <div onClick={props.switchDropdown} id="current-project-area">
+                <p>{props.graph.curProject}</p>
+                <button className="dropdown-button">
+                    <img src={arrowIconURL} alt="Dropdown"/>
+                </button>
+            </div>
+            <div className="dropdown-content" style={dropdownStyle}>
+                {Object.keys(props.graph).map((project) => <DropdownItem key={project}
+                                                                         projectName={project}
+                                                                         curProject={props.graph.curProject}
+                                                                         refresh={props.refresh}
+                                                                         switchDropdown={props.switchDropdown}/>)}
+            </div>
+        </div>
+    );
 }
 
 // Each item in the project dropdown
