@@ -68,7 +68,16 @@ class KnolistComponents extends React.Component {
                     this.closeNewNodeForm();
                 }
             }
-        }
+        };
+
+        // Set up listener to close search results on Escape press
+        window.onkeyup = (event) => {
+            if (event.key === "Escape") {
+                if (this.state.fullSearchResults !== null) {
+                    this.resetFullSearchResults();
+                }
+            }
+        };
     }
 
     // Verifies if the local server is being run
@@ -544,6 +553,7 @@ class FullSearchResults extends React.Component {
 
         this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
         this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
+        this.closeSearch = this.closeSearch.bind(this);
     }
 
     setExpandedSearchResult(url) {
@@ -551,33 +561,27 @@ class FullSearchResults extends React.Component {
     }
 
     resetExpandedSearchResult() {
-        this.setState({expandedSearchResult: null})
+        this.setState({expandedSearchResult: null});
+    }
+
+    closeSearch() {
+        this.resetExpandedSearchResult();
+        this.props.resetFullSearchResults();
     }
 
     render() {
         if (this.props.fullSearchResults === null) return null;
 
-        // No search results
-        if (this.props.fullSearchResults.length === 0) {
-            return (
-                <div id="full-search-results-area">
-                    <div style={{display: "flex"}}>
-                        <button className="button" onClick={this.props.resetFullSearchResults}>
-                            <img src="../../images/back-icon-black.png" alt="Return"/>
-                        </button>
-                        <h2>Sorry, we couldn't find any results for your search.</h2>
-                    </div>
-                </div>
-            );
-        }
+        const noResultsMessage = "Sorry, we couldn't find any results for your search.";
+        const searchResultsMessage = "Search results";
 
         return (
             <div id="full-search-results-area">
                 <div style={{display: "flex", marginBottom: "20px"}}>
-                    <button className="button" onClick={this.props.resetFullSearchResults}>
+                    <button className="button" onClick={this.closeSearch}>
                         <img src="../../images/back-icon-black.png" alt="Return"/>
                     </button>
-                    <h2>Search results</h2>
+                    <h2>{this.props.fullSearchResults.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
                 </div>
                 {/* List of results */}
                 {this.props.fullSearchResults.map((result) => <SearchResultItem key={result.url}
@@ -591,21 +595,35 @@ class FullSearchResults extends React.Component {
     }
 }
 
-function SearchResultItem(props) {
-    if (props.expandedSearchResult === props.result.url) {
+class SearchResultItem extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.itemAction = this.itemAction.bind(this);
+    }
+
+    itemAction() {
+        if (this.props.expandedSearchResult === this.props.result.url) this.props.resetExpandedSearchResult();
+        else this.props.setExpandedSearchResult(this.props.result.url);
+    }
+
+    render() {
         return (
-            <div onClick={props.resetExpandedSearchResult} className="search-result-item">
-                <h3>{props.result.url}</h3>
-                <p>Expanded!</p>
+            <div onClick={this.itemAction} className="search-result-item">
+                <h3>{this.props.result.url}</h3>
+                <ExpandedSearchResultData display={this.props.expandedSearchResult === this.props.result.url}/>
             </div>
         );
     }
+}
 
-    return (
-        <div onClick={() => props.setExpandedSearchResult(props.result.url)} className="search-result-item">
-            <h3>{props.result.url}</h3>
-        </div>
-    );
+/**
+ * @return {null}
+ */
+function ExpandedSearchResultData(props) {
+    if (!props.display) return null;
+
+    return <p>Expanded!</p>
 }
 
 // Sidebar to switch between projects
