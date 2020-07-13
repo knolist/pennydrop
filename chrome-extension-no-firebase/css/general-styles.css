@@ -13,6 +13,8 @@
     --sidebar-background: #326697;
     --active-project-background: #3e87cc;
     --main-green: #93c42d;
+    --node-default-color: #7dc2ff;
+    --node-highlight-color: #d2e5ff
 }
 
 .button {
@@ -30,6 +32,10 @@
 .button:hover {
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
     cursor: pointer;
+}
+
+.button img {
+    width: 100%;
 }
 
 /* Style inputs */

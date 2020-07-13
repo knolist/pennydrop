@@ -298,3 +298,20 @@ li {
     border: none;
     padding-left: 8px;
 }
+
+#full-search-results-area {
+    margin-top: 20px;
+}
+
+#full-search-results-area h2 {
+    margin: auto;
+}
+
+.search-result-item {
+    background-color: var(--node-default-color);
+    border: solid 1px black;
+    border-radius: 5px;
+    padding-left: 10px;
+    margin: 0 20px 10px 20px;
+    cursor: pointer;
+}

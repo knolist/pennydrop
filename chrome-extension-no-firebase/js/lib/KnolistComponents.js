@@ -44,8 +44,9 @@ var KnolistComponents = function (_React$Component) {
             visNodes: null, // The vis DataSet of nodes
             visEdges: null, // The vis DataSet of edges
             bibliographyData: null, // The data to be exported as bibliography
-            showProjectsSidebar: false,
-            localServer: false // Set to true if the server is being run locally
+            showProjectsSidebar: false, // Whether or not to show the projects sidebar
+            localServer: false, // Set to true if the server is being run locally
+            fullSearchResults: null // Null when no search was made, search result object when searching (will hide the mind map)
         };
 
         // Bind functions that need to be passed as parameters
@@ -67,6 +68,8 @@ var KnolistComponents = function (_React$Component) {
         _this.setSelectedNode = _this.setSelectedNode.bind(_this);
         _this.basicSearch = _this.basicSearch.bind(_this);
         _this.fullSearch = _this.fullSearch.bind(_this);
+        _this.setFullSearchResults = _this.setFullSearchResults.bind(_this);
+        _this.resetFullSearchResults = _this.resetFullSearchResults.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
@@ -257,6 +260,18 @@ var KnolistComponents = function (_React$Component) {
             document.getElementById("new-node-form").reset();
             this.switchShowNewNodeForm();
         }
+    }, {
+        key: "setFullSearchResults",
+        value: function setFullSearchResults(results) {
+            this.setState({ fullSearchResults: results });
+        }
+    }, {
+        key: "resetFullSearchResults",
+        value: function resetFullSearchResults() {
+            document.getElementById("search-text").value = ""; // Reset the search bar
+            this.highlightNodes(null); // Reset highlighted nodes
+            this.setState({ fullSearchResults: null });
+        }
 
         /**
          * Visually highlights nodes by changing colors and opacity
@@ -293,14 +308,6 @@ var KnolistComponents = function (_React$Component) {
                 _this7.state.visNodes.update(node);
             });
         }
-
-        /**
-         * Given a text query, this function searches the current project for occurrences of that query. If the query is
-         * empty, the function returns null. Else, it returns an array of node IDs that contain the desired query somewhere
-         * inside its contents.
-         * @param query the query to be searched
-         * @returns {null|[]} null if the query is empty, else array of resulting node IDs
-         */
 
         /**
          * Given a text query, this function searches the current project for occurrences of that query. If the query is
@@ -383,7 +390,13 @@ var KnolistComponents = function (_React$Component) {
             filterList = Object.keys(graph[nodeList[0]]);
             // STOP REMOVING
 
-            console.log(this.getSearchResults(query, filterList));
+            var searchResults = this.getSearchResults(query, filterList);
+            // Sort so that results with the most occurrences are at the top
+            searchResults.sort(function (a, b) {
+                return a.occurrencesCount >= b.occurrencesCount ? -1 : 1;
+            });
+            this.setFullSearchResults(searchResults);
+            console.log(searchResults);
         }
 
         /* Helper function to generate position for nodes
@@ -576,9 +589,11 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "render",
         value: function render() {
-            if (this.state.graph === null) {
-                return null;
-            }
+            if (this.state.graph === null) return null;
+
+            // Only show mind map outside of full search mode
+            var graphStyle = { display: "block" };
+            if (this.state.fullSearchResults !== null) graphStyle = { display: "none" };
 
             var curProject = this.state.graph.curProject;
             return React.createElement(
@@ -598,11 +613,14 @@ var KnolistComponents = function (_React$Component) {
                         React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
-                    React.createElement("div", { id: "graph" }),
+                    React.createElement("div", { id: "graph", style: graphStyle }),
+                    React.createElement(FullSearchResults, { fullSearchResults: this.state.fullSearchResults,
+                        graph: this.state.graph[curProject],
+                        resetFullSearchResults: this.resetFullSearchResults }),
                     React.createElement(ProjectsSidebar, { graph: this.state.graph, refresh: this.getDataFromServer }),
                     React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
-                        graph: this.state.graph, localServer: this.state.localServer,
-                        closeForm: this.closeNewNodeForm, refresh: this.getDataFromServer }),
+                        localServer: this.state.localServer, closeForm: this.closeNewNodeForm,
+                        refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
                         resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
                         refresh: this.getDataFromServer, closePageView: this.closePageView,
@@ -618,30 +636,148 @@ var KnolistComponents = function (_React$Component) {
     return KnolistComponents;
 }(React.Component);
 
+var FullSearchResults = function (_React$Component2) {
+    _inherits(FullSearchResults, _React$Component2);
+
+    function FullSearchResults(props) {
+        _classCallCheck(this, FullSearchResults);
+
+        var _this10 = _possibleConstructorReturn(this, (FullSearchResults.__proto__ || Object.getPrototypeOf(FullSearchResults)).call(this, props));
+
+        _this10.state = {
+            expandedSearchResult: null
+        };
+
+        _this10.setExpandedSearchResult = _this10.setExpandedSearchResult.bind(_this10);
+        _this10.resetExpandedSearchResult = _this10.resetExpandedSearchResult.bind(_this10);
+        return _this10;
+    }
+
+    _createClass(FullSearchResults, [{
+        key: "setExpandedSearchResult",
+        value: function setExpandedSearchResult(url) {
+            this.setState({ expandedSearchResult: url });
+        }
+    }, {
+        key: "resetExpandedSearchResult",
+        value: function resetExpandedSearchResult() {
+            this.setState({ expandedSearchResult: null });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this11 = this;
+
+            if (this.props.fullSearchResults === null) return null;
+
+            // No search results
+            if (this.props.fullSearchResults.length === 0) {
+                return React.createElement(
+                    "div",
+                    { id: "full-search-results-area" },
+                    React.createElement(
+                        "div",
+                        { style: { display: "flex" } },
+                        React.createElement(
+                            "button",
+                            { className: "button", onClick: this.props.resetFullSearchResults },
+                            React.createElement("img", { src: "../../images/back-icon-black.png", alt: "Return" })
+                        ),
+                        React.createElement(
+                            "h2",
+                            null,
+                            "Sorry, we couldn't find any results for your search."
+                        )
+                    )
+                );
+            }
+
+            return React.createElement(
+                "div",
+                { id: "full-search-results-area" },
+                React.createElement(
+                    "div",
+                    { style: { display: "flex", marginBottom: "20px" } },
+                    React.createElement(
+                        "button",
+                        { className: "button", onClick: this.props.resetFullSearchResults },
+                        React.createElement("img", { src: "../../images/back-icon-black.png", alt: "Return" })
+                    ),
+                    React.createElement(
+                        "h2",
+                        null,
+                        "Search results"
+                    )
+                ),
+                this.props.fullSearchResults.map(function (result) {
+                    return React.createElement(SearchResultItem, { key: result.url,
+                        item: _this11.props.graph[result.url],
+                        expandedSearchResult: _this11.state.expandedSearchResult,
+                        result: result,
+                        setExpandedSearchResult: _this11.setExpandedSearchResult,
+                        resetExpandedSearchResult: _this11.resetExpandedSearchResult });
+                })
+            );
+        }
+    }]);
+
+    return FullSearchResults;
+}(React.Component);
+
+function SearchResultItem(props) {
+    if (props.expandedSearchResult === props.result.url) {
+        return React.createElement(
+            "div",
+            { onClick: props.resetExpandedSearchResult, className: "search-result-item" },
+            React.createElement(
+                "h3",
+                null,
+                props.result.url
+            ),
+            React.createElement(
+                "p",
+                null,
+                "Expanded!"
+            )
+        );
+    }
+
+    return React.createElement(
+        "div",
+        { onClick: function onClick() {
+                return props.setExpandedSearchResult(props.result.url);
+            }, className: "search-result-item" },
+        React.createElement(
+            "h3",
+            null,
+            props.result.url
+        )
+    );
+}
+
 // Sidebar to switch between projects
 
-
-var ProjectsSidebar = function (_React$Component2) {
-    _inherits(ProjectsSidebar, _React$Component2);
+var ProjectsSidebar = function (_React$Component3) {
+    _inherits(ProjectsSidebar, _React$Component3);
 
     function ProjectsSidebar(props) {
         _classCallCheck(this, ProjectsSidebar);
 
-        var _this10 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
 
-        _this10.state = {
+        _this12.state = {
             showNewProjectForm: false,
             projectForDeletion: null,
             alertMessage: null,
             invalidTitle: null
         };
 
-        _this10.switchShowNewProjectForm = _this10.switchShowNewProjectForm.bind(_this10);
-        _this10.setProjectForDeletion = _this10.setProjectForDeletion.bind(_this10);
-        _this10.resetProjectForDeletion = _this10.resetProjectForDeletion.bind(_this10);
-        _this10.setAlertMessage = _this10.setAlertMessage.bind(_this10);
-        _this10.setInvalidTitle = _this10.setInvalidTitle.bind(_this10);
-        return _this10;
+        _this12.switchShowNewProjectForm = _this12.switchShowNewProjectForm.bind(_this12);
+        _this12.setProjectForDeletion = _this12.setProjectForDeletion.bind(_this12);
+        _this12.resetProjectForDeletion = _this12.resetProjectForDeletion.bind(_this12);
+        _this12.setAlertMessage = _this12.setAlertMessage.bind(_this12);
+        _this12.setInvalidTitle = _this12.setInvalidTitle.bind(_this12);
+        return _this12;
     }
 
     _createClass(ProjectsSidebar, [{
@@ -677,7 +813,7 @@ var ProjectsSidebar = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this11 = this;
+            var _this13 = this;
 
             return React.createElement(
                 "div",
@@ -697,10 +833,10 @@ var ProjectsSidebar = function (_React$Component2) {
                     "div",
                     { id: "sidebar-content" },
                     Object.keys(this.props.graph).map(function (project) {
-                        return React.createElement(ProjectItem, { key: project, graph: _this11.props.graph,
+                        return React.createElement(ProjectItem, { key: project, graph: _this13.props.graph,
                             project: project,
-                            refresh: _this11.props.refresh,
-                            setForDeletion: _this11.setProjectForDeletion });
+                            refresh: _this13.props.refresh,
+                            setForDeletion: _this13.setProjectForDeletion });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
@@ -723,26 +859,26 @@ var ProjectsSidebar = function (_React$Component2) {
 // Confirmation window before a project is deleted
 
 
-var ConfirmProjectDeletionWindow = function (_React$Component3) {
-    _inherits(ConfirmProjectDeletionWindow, _React$Component3);
+var ConfirmProjectDeletionWindow = function (_React$Component4) {
+    _inherits(ConfirmProjectDeletionWindow, _React$Component4);
 
     function ConfirmProjectDeletionWindow(props) {
         _classCallCheck(this, ConfirmProjectDeletionWindow);
 
-        var _this12 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
 
-        _this12.deleteProject = _this12.deleteProject.bind(_this12);
-        return _this12;
+        _this14.deleteProject = _this14.deleteProject.bind(_this14);
+        return _this14;
     }
 
     _createClass(ConfirmProjectDeletionWindow, [{
         key: "deleteProject",
         value: function deleteProject() {
-            var _this13 = this;
+            var _this15 = this;
 
             this.props.resetForDeletion();
             deleteProjectFromGraph(this.props.project).then(function () {
-                return _this13.props.refresh();
+                return _this15.props.refresh();
             });
         }
     }, {
@@ -811,28 +947,28 @@ function NewProjectButton(props) {
     return React.createElement(
         "button",
         { className: "button new-project-button", onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New", style: { width: "100%" } })
+        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
     );
 }
 
 // Form to create a new project
 
-var NewProjectForm = function (_React$Component4) {
-    _inherits(NewProjectForm, _React$Component4);
+var NewProjectForm = function (_React$Component5) {
+    _inherits(NewProjectForm, _React$Component5);
 
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this14 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this16 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
-        return _this14;
+        _this16.handleSubmit = _this16.handleSubmit.bind(_this16);
+        return _this16;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this15 = this;
+            var _this17 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -850,7 +986,7 @@ var NewProjectForm = function (_React$Component4) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this15.props.refresh();
+                    return _this17.props.refresh();
                 });
 
                 // Reset entry and close form
@@ -921,28 +1057,28 @@ function ProjectTitleAlertMessage(props) {
 
 // Visualization of a project in the sidebar, used to switch active projects
 
-var ProjectItem = function (_React$Component5) {
-    _inherits(ProjectItem, _React$Component5);
+var ProjectItem = function (_React$Component6) {
+    _inherits(ProjectItem, _React$Component6);
 
     function ProjectItem(props) {
         _classCallCheck(this, ProjectItem);
 
-        var _this16 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
-        _this16.switchProject = _this16.switchProject.bind(_this16);
-        _this16.deleteProject = _this16.deleteProject.bind(_this16);
-        return _this16;
+        _this18.switchProject = _this18.switchProject.bind(_this18);
+        _this18.deleteProject = _this18.deleteProject.bind(_this18);
+        return _this18;
     }
 
     _createClass(ProjectItem, [{
         key: "switchProject",
         value: function switchProject(data) {
-            var _this17 = this;
+            var _this19 = this;
 
             // Only switch if the click was on the item, not on the delete button
             if (data.target.className === "project-item" || data.target.tagName === "H2") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
-                    return _this17.props.refresh();
+                    return _this19.props.refresh();
                 });
             }
         }
@@ -972,7 +1108,7 @@ var ProjectItem = function (_React$Component5) {
                     React.createElement(
                         "button",
                         { className: "button delete-project-button", onClick: this.deleteProject },
-                        React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node", style: { width: "100%" } })
+                        React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
                     )
                 );
             }
@@ -988,7 +1124,7 @@ var ProjectItem = function (_React$Component5) {
                 React.createElement(
                     "button",
                     { className: "button delete-project-button", onClick: this.deleteProject },
-                    React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node", style: { width: "100%" } })
+                    React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
                 )
             );
         }
@@ -1000,22 +1136,22 @@ var ProjectItem = function (_React$Component5) {
 // Form that allows the user to manually add nodes
 
 
-var NewNodeForm = function (_React$Component6) {
-    _inherits(NewNodeForm, _React$Component6);
+var NewNodeForm = function (_React$Component7) {
+    _inherits(NewNodeForm, _React$Component7);
 
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this18 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this18.handleSubmit = _this18.handleSubmit.bind(_this18);
-        return _this18;
+        _this20.handleSubmit = _this20.handleSubmit.bind(_this20);
+        return _this20;
     }
 
     _createClass(NewNodeForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this19 = this;
+            var _this21 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
@@ -1027,9 +1163,9 @@ var NewNodeForm = function (_React$Component6) {
             var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contentExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this19.props.nodeData.x, _this19.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this21.props.nodeData.x, _this21.props.nodeData.y);
                 }).then(function () {
-                    return _this19.props.refresh();
+                    return _this21.props.refresh();
                 });
             });
 
@@ -1052,7 +1188,7 @@ var NewNodeForm = function (_React$Component6) {
                     React.createElement(
                         "button",
                         { className: "close-modal button", onClick: this.props.closeForm },
-                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close", style: { width: "100%" } })
+                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
                     ),
                     React.createElement(
                         "h1",
@@ -1081,28 +1217,28 @@ var NewNodeForm = function (_React$Component6) {
 // Detailed view of a specific node
 
 
-var PageView = function (_React$Component7) {
-    _inherits(PageView, _React$Component7);
+var PageView = function (_React$Component8) {
+    _inherits(PageView, _React$Component8);
 
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this20 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this22 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this20.deleteNode = _this20.deleteNode.bind(_this20);
-        return _this20;
+        _this22.deleteNode = _this22.deleteNode.bind(_this22);
+        return _this22;
     }
 
     _createClass(PageView, [{
         key: "deleteNode",
         value: function deleteNode() {
-            var _this21 = this;
+            var _this23 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this21.props.resetSelectedNode();
-                _this21.props.refresh();
+                _this23.props.resetSelectedNode();
+                _this23.props.refresh();
             });
         }
     }, {
@@ -1128,7 +1264,7 @@ var PageView = function (_React$Component7) {
                         "button",
                         { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.closePageView },
-                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close", style: { width: "100%" } })
+                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
                     ),
                     React.createElement(
                         "a",
@@ -1157,7 +1293,7 @@ var PageView = function (_React$Component7) {
                         React.createElement(
                             "button",
                             { className: "button", onClick: this.deleteNode },
-                            React.createElement("img", { src: "../../images/delete-icon-black.png", alt: "Delete node", style: { width: "100%" } })
+                            React.createElement("img", { src: "../../images/delete-icon-black.png", alt: "Delete node" })
                         )
                     )
                 )
@@ -1171,8 +1307,8 @@ var PageView = function (_React$Component7) {
 // Bibliography export
 
 
-var ExportView = function (_React$Component8) {
-    _inherits(ExportView, _React$Component8);
+var ExportView = function (_React$Component9) {
+    _inherits(ExportView, _React$Component9);
 
     function ExportView(props) {
         _classCallCheck(this, ExportView);
@@ -1196,7 +1332,7 @@ var ExportView = function (_React$Component8) {
                         "button",
                         { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.resetDisplayExport },
-                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close", style: { width: "100%" } })
+                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
                     ),
                     React.createElement(
                         "h1",
@@ -1227,8 +1363,8 @@ var ExportView = function (_React$Component8) {
 // List of URLs in the detailed page view
 
 
-var ListURL = function (_React$Component9) {
-    _inherits(ListURL, _React$Component9);
+var ListURL = function (_React$Component10) {
+    _inherits(ListURL, _React$Component10);
 
     function ListURL(props) {
         _classCallCheck(this, ListURL);
@@ -1239,7 +1375,7 @@ var ListURL = function (_React$Component9) {
     _createClass(ListURL, [{
         key: "render",
         value: function render() {
-            var _this24 = this;
+            var _this26 = this;
 
             if (this.props.type === "prev") {
                 return React.createElement(
@@ -1261,9 +1397,9 @@ var ListURL = function (_React$Component9) {
                                     "a",
                                     { href: "#",
                                         onClick: function onClick() {
-                                            return _this24.props.setSelectedNode(url);
+                                            return _this26.props.setSelectedNode(url);
                                         } },
-                                    _this24.props.graph[url].title
+                                    _this26.props.graph[url].title
                                 )
                             );
                         })
@@ -1289,9 +1425,9 @@ var ListURL = function (_React$Component9) {
                                     "a",
                                     { href: "#",
                                         onClick: function onClick() {
-                                            return _this24.props.setSelectedNode(url);
+                                            return _this26.props.setSelectedNode(url);
                                         } },
-                                    _this24.props.graph[url].title
+                                    _this26.props.graph[url].title
                                 )
                             );
                         })
@@ -1307,8 +1443,8 @@ var ListURL = function (_React$Component9) {
 // List of highlights in the detailed page view
 
 
-var HighlightsList = function (_React$Component10) {
-    _inherits(HighlightsList, _React$Component10);
+var HighlightsList = function (_React$Component11) {
+    _inherits(HighlightsList, _React$Component11);
 
     function HighlightsList(props) {
         _classCallCheck(this, HighlightsList);
@@ -1355,26 +1491,26 @@ var HighlightsList = function (_React$Component10) {
 // List of notes in the detailed page view
 
 
-var NotesList = function (_React$Component11) {
-    _inherits(NotesList, _React$Component11);
+var NotesList = function (_React$Component12) {
+    _inherits(NotesList, _React$Component12);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this26 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this28 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this26.handleSubmit = _this26.handleSubmit.bind(_this26);
-        return _this26;
+        _this28.handleSubmit = _this28.handleSubmit.bind(_this28);
+        return _this28;
     }
 
     _createClass(NotesList, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this27 = this;
+            var _this29 = this;
 
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this27.props.refresh();
+                _this29.props.refresh();
             });
             this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
@@ -1468,7 +1604,7 @@ function NewNotesButton(props) {
     return React.createElement(
         "button",
         { className: "button add-note-button", onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New", style: { width: "100%" } })
+        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New" })
     );
 }
 
@@ -1476,21 +1612,21 @@ function RefreshGraphButton(props) {
     return React.createElement(
         "button",
         { onClick: props.refresh, className: "button" },
-        React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button", style: { width: "100%" } })
+        React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button" })
     );
 }
 
-var SearchBar = function (_React$Component12) {
-    _inherits(SearchBar, _React$Component12);
+var SearchBar = function (_React$Component13) {
+    _inherits(SearchBar, _React$Component13);
 
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this28 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this30 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this28.submitSearch = _this28.submitSearch.bind(_this28);
-        _this28.searchButtonAction = _this28.searchButtonAction.bind(_this28);
-        return _this28;
+        _this30.submitSearch = _this30.submitSearch.bind(_this30);
+        _this30.searchButtonAction = _this30.searchButtonAction.bind(_this30);
+        return _this30;
     }
 
     _createClass(SearchBar, [{
@@ -1511,13 +1647,13 @@ var SearchBar = function (_React$Component12) {
     }, {
         key: "render",
         value: function render() {
-            var _this29 = this;
+            var _this31 = this;
 
             return React.createElement(
                 "div",
                 { id: "search-bar" },
                 React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                        return _this29.submitSearch(searchInput);
+                        return _this31.submitSearch(searchInput);
                     },
                     placeholder: "Search through your project" }),
                 React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
@@ -1532,12 +1668,12 @@ function ExportGraphButton(props) {
     return React.createElement(
         "button",
         { onClick: props.export, className: "button" },
-        React.createElement("img", { src: "../../images/share-icon.webp", alt: "Refresh Button", style: { width: "100%" } })
+        React.createElement("img", { src: "../../images/share-icon.webp", alt: "Refresh Button" })
     );
 }
 
-var Header = function (_React$Component13) {
-    _inherits(Header, _React$Component13);
+var Header = function (_React$Component14) {
+    _inherits(Header, _React$Component14);
 
     function Header(props) {
         _classCallCheck(this, Header);
@@ -1580,8 +1716,8 @@ var Header = function (_React$Component13) {
     return Header;
 }(React.Component);
 
-var ProjectsSidebarButton = function (_React$Component14) {
-    _inherits(ProjectsSidebarButton, _React$Component14);
+var ProjectsSidebarButton = function (_React$Component15) {
+    _inherits(ProjectsSidebarButton, _React$Component15);
 
     function ProjectsSidebarButton(props) {
         _classCallCheck(this, ProjectsSidebarButton);

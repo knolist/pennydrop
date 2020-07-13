@@ -28,8 +28,9 @@ class KnolistComponents extends React.Component {
             visNodes: null, // The vis DataSet of nodes
             visEdges: null, // The vis DataSet of edges
             bibliographyData: null, // The data to be exported as bibliography
-            showProjectsSidebar: false,
-            localServer: false // Set to true if the server is being run locally
+            showProjectsSidebar: false, // Whether or not to show the projects sidebar
+            localServer: false, // Set to true if the server is being run locally
+            fullSearchResults: null // Null when no search was made, search result object when searching (will hide the mind map)
         };
 
         // Bind functions that need to be passed as parameters
@@ -51,6 +52,8 @@ class KnolistComponents extends React.Component {
         this.setSelectedNode = this.setSelectedNode.bind(this);
         this.basicSearch = this.basicSearch.bind(this);
         this.fullSearch = this.fullSearch.bind(this);
+        this.setFullSearchResults = this.setFullSearchResults.bind(this);
+        this.resetFullSearchResults = this.resetFullSearchResults.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
@@ -203,6 +206,16 @@ class KnolistComponents extends React.Component {
         this.switchShowNewNodeForm();
     }
 
+    setFullSearchResults(results) {
+        this.setState({fullSearchResults: results});
+    }
+
+    resetFullSearchResults() {
+        document.getElementById("search-text").value = ""; // Reset the search bar
+        this.highlightNodes(null); // Reset highlighted nodes
+        this.setState({fullSearchResults: null});
+    }
+
     /**
      * Visually highlights nodes by changing colors and opacity
      * @param nodesToHighlight an array of ids of the nodes to be highlighted
@@ -233,14 +246,6 @@ class KnolistComponents extends React.Component {
             this.state.visNodes.update(node);
         });
     }
-
-    /**
-     * Given a text query, this function searches the current project for occurrences of that query. If the query is
-     * empty, the function returns null. Else, it returns an array of node IDs that contain the desired query somewhere
-     * inside its contents.
-     * @param query the query to be searched
-     * @returns {null|[]} null if the query is empty, else array of resulting node IDs
-     */
 
     /**
      * Given a text query, this function searches the current project for occurrences of that query. If the query is
@@ -317,7 +322,11 @@ class KnolistComponents extends React.Component {
         filterList = Object.keys(graph[nodeList[0]]);
         // STOP REMOVING
 
-        console.log(this.getSearchResults(query, filterList));
+        const searchResults = this.getSearchResults(query, filterList);
+        // Sort so that results with the most occurrences are at the top
+        searchResults.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
+        this.setFullSearchResults(searchResults);
+        console.log(searchResults);
     }
 
     /* Helper function to generate position for nodes
@@ -485,9 +494,11 @@ class KnolistComponents extends React.Component {
     // }
 
     render() {
-        if (this.state.graph === null) {
-            return null;
-        }
+        if (this.state.graph === null) return null;
+
+        // Only show mind map outside of full search mode
+        let graphStyle = {display: "block"};
+        if (this.state.fullSearchResults !== null) graphStyle = {display: "none"};
 
         const curProject = this.state.graph.curProject;
         return (
@@ -502,11 +513,14 @@ class KnolistComponents extends React.Component {
                         <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
-                    <div id="graph"/>
+                    <div id="graph" style={graphStyle}/>
+                    <FullSearchResults fullSearchResults={this.state.fullSearchResults}
+                                       graph={this.state.graph[curProject]}
+                                       resetFullSearchResults={this.resetFullSearchResults}/>
                     <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
-                                 graph={this.state.graph} localServer={this.state.localServer}
-                                 closeForm={this.closeNewNodeForm} refresh={this.getDataFromServer}/>
+                                 localServer={this.state.localServer} closeForm={this.closeNewNodeForm}
+                                 refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
@@ -518,6 +532,80 @@ class KnolistComponents extends React.Component {
             </div>
         );
     }
+}
+
+class FullSearchResults extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            expandedSearchResult: null,
+        };
+
+        this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
+        this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
+    }
+
+    setExpandedSearchResult(url) {
+        this.setState({expandedSearchResult: url});
+    }
+
+    resetExpandedSearchResult() {
+        this.setState({expandedSearchResult: null})
+    }
+
+    render() {
+        if (this.props.fullSearchResults === null) return null;
+
+        // No search results
+        if (this.props.fullSearchResults.length === 0) {
+            return (
+                <div id="full-search-results-area">
+                    <div style={{display: "flex"}}>
+                        <button className="button" onClick={this.props.resetFullSearchResults}>
+                            <img src="../../images/back-icon-black.png" alt="Return"/>
+                        </button>
+                        <h2>Sorry, we couldn't find any results for your search.</h2>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div id="full-search-results-area">
+                <div style={{display: "flex", marginBottom: "20px"}}>
+                    <button className="button" onClick={this.props.resetFullSearchResults}>
+                        <img src="../../images/back-icon-black.png" alt="Return"/>
+                    </button>
+                    <h2>Search results</h2>
+                </div>
+                {/* List of results */}
+                {this.props.fullSearchResults.map((result) => <SearchResultItem key={result.url}
+                                                                                item={this.props.graph[result.url]}
+                                                                                expandedSearchResult={this.state.expandedSearchResult}
+                                                                                result={result}
+                                                                                setExpandedSearchResult={this.setExpandedSearchResult}
+                                                                                resetExpandedSearchResult={this.resetExpandedSearchResult}/>)}
+            </div>
+        );
+    }
+}
+
+function SearchResultItem(props) {
+    if (props.expandedSearchResult === props.result.url) {
+        return (
+            <div onClick={props.resetExpandedSearchResult} className="search-result-item">
+                <h3>{props.result.url}</h3>
+                <p>Expanded!</p>
+            </div>
+        );
+    }
+
+    return (
+        <div onClick={() => props.setExpandedSearchResult(props.result.url)} className="search-result-item">
+            <h3>{props.result.url}</h3>
+        </div>
+    );
 }
 
 // Sidebar to switch between projects
@@ -643,7 +731,7 @@ function NewProjectButton(props) {
     }
     return (
         <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-white.png" alt="New"/>
         </button>
     );
 }
@@ -753,7 +841,7 @@ class ProjectItem extends React.Component {
                 <div className="project-item active-project" onClick={this.switchProject}>
                     <h2>{this.props.project}</h2>
                     <button className="button delete-project-button" onClick={this.deleteProject}>
-                        <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
+                        <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                     </button>
                 </div>
             );
@@ -763,7 +851,7 @@ class ProjectItem extends React.Component {
             <div className="project-item" onClick={this.switchProject}>
                 <h2>{this.props.project}</h2>
                 <button className="button delete-project-button" onClick={this.deleteProject}>
-                    <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
+                    <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                 </button>
             </div>
         );
@@ -805,7 +893,7 @@ class NewNodeForm extends React.Component {
             <div className="modal" style={style}>
                 <div className="modal-content">
                     <button className="close-modal button" onClick={this.props.closeForm}>
-                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                        <img src="../../images/close-icon-black.png" alt="Close"/>
                     </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
@@ -850,7 +938,7 @@ class PageView extends React.Component {
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.closePageView}>
-                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                        <img src="../../images/close-icon-black.png" alt="Close"/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
@@ -866,7 +954,7 @@ class PageView extends React.Component {
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-black.png" alt="Delete node" style={{width: "100%"}}/>
+                            <img src="../../images/delete-icon-black.png" alt="Delete node"/>
                         </button>
                     </div>
                 </div>
@@ -890,7 +978,7 @@ class ExportView extends React.Component {
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.resetDisplayExport}>
-                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                        <img src="../../images/close-icon-black.png" alt="Close"/>
                     </button>
                     <h1>Export for Bibliography</h1>
                     <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
@@ -1025,7 +1113,7 @@ function NewNotesButton(props) {
     }
     return (
         <button className="button add-note-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-black.png" alt="New"/>
         </button>
     );
 }
@@ -1033,7 +1121,7 @@ function NewNotesButton(props) {
 function RefreshGraphButton(props) {
     return (
         <button onClick={props.refresh} className="button">
-            <img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/>
+            <img src="../../images/refresh-icon.png" alt="Refresh Button"/>
         </button>
     );
 }
@@ -1073,7 +1161,7 @@ class SearchBar extends React.Component {
 function ExportGraphButton(props) {
     return (
         <button onClick={props.export} className="button">
-            <img src="../../images/share-icon.webp" alt="Refresh Button" style={{width: "100%"}}/>
+            <img src="../../images/share-icon.webp" alt="Refresh Button"/>
         </button>
     );
 }
