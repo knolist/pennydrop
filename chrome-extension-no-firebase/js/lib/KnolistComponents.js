@@ -302,6 +302,18 @@ var KnolistComponents = function (_React$Component) {
          * @returns {null|[]} null if the query is empty, else array of resulting node IDs
          */
 
+        /**
+         * Given a text query, this function searches the current project for occurrences of that query. If the query is
+         * empty, the function returns null. Else, if a filterList is supplied, the function returns an array of objects
+         * that represent the occurrences of the query on each node of the current project (used in fullSearch).
+         * If a filterList is not supplied, it returns an array of node IDs that contain the desired query anywhere
+         * inside them (used in basicSearch).
+         * @param query the query to be searched
+         * @param filterList a list of node keys that whose contents will be included in the search
+         * @returns {null|[]} null if the query is empty, else array of resulting node IDs if filterList is undefined,
+         * else array of result objects
+         */
+
     }, {
         key: "getSearchResults",
         value: function getSearchResults(query, filterList) {
@@ -320,6 +332,7 @@ var KnolistComponents = function (_React$Component) {
                 var node = graph[graphKey];
                 var occurrences = [];
                 var occurrencesCount = 0;
+                // Iterate through the keys inside the node
                 for (var nodeKey in node) {
                     // Act depending on the type of node[key]
                     var elem = node[nodeKey];
@@ -370,7 +383,6 @@ var KnolistComponents = function (_React$Component) {
             filterList = Object.keys(graph[nodeList[0]]);
             // STOP REMOVING
 
-            console.log("full search of " + query);
             console.log(this.getSearchResults(query, filterList));
         }
 
