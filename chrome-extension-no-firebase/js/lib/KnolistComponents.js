@@ -384,6 +384,7 @@ var KnolistComponents = function (_React$Component) {
                 // If occurrences were found, include the current node in results
                 if (occurrences.length > 0) {
                     results.push({
+                        query: query,
                         url: node.source,
                         occurrences: occurrences,
                         occurrencesCount: occurrencesCount
@@ -652,7 +653,8 @@ var KnolistComponents = function (_React$Component) {
                     React.createElement("div", { id: "graph", style: graphStyle }),
                     React.createElement(FullSearchResults, { fullSearchResults: this.state.fullSearchResults,
                         graph: this.state.graph[curProject],
-                        resetFullSearchResults: this.resetFullSearchResults }),
+                        resetFullSearchResults: this.resetFullSearchResults,
+                        setSelectedNode: this.setSelectedNode }),
                     React.createElement(ProjectsSidebar, { graph: this.state.graph, refresh: this.getDataFromServer }),
                     React.createElement(NewNodeForm, { showNewNodeForm: this.state.showNewNodeForm, nodeData: this.state.newNodeData,
                         localServer: this.state.localServer, closeForm: this.closeNewNodeForm,
@@ -660,8 +662,9 @@ var KnolistComponents = function (_React$Component) {
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
                         resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
                         refresh: this.getDataFromServer, closePageView: this.closePageView,
-                        showNewNotesForm: this.state.showNewNotesForm,
-                        switchShowNewNotesForm: this.switchShowNewNotesForm }),
+                        switchShowNewNotesForm: this.switchShowNewNotesForm,
+                        fullSearchResults: this.state.fullSearchResults,
+                        showNewNotesForm: this.state.showNewNotesForm }),
                     React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
                         resetDisplayExport: this.resetDisplayExport })
                 )
@@ -738,6 +741,7 @@ var FullSearchResults = function (_React$Component2) {
                         item: _this11.props.graph[result.url],
                         expandedSearchResult: _this11.state.expandedSearchResult,
                         result: result,
+                        setSelectedNode: _this11.props.setSelectedNode,
                         setExpandedSearchResult: _this11.setExpandedSearchResult,
                         resetExpandedSearchResult: _this11.resetExpandedSearchResult });
                 })
@@ -763,7 +767,9 @@ var SearchResultItem = function (_React$Component3) {
     _createClass(SearchResultItem, [{
         key: "itemAction",
         value: function itemAction() {
-            if (this.props.expandedSearchResult === this.props.result.url) this.props.resetExpandedSearchResult();else this.props.setExpandedSearchResult(this.props.result.url);
+            this.props.setSelectedNode(this.props.item.source);
+            // if (this.props.expandedSearchResult === this.props.result.url) this.props.resetExpandedSearchResult();
+            // else this.props.setExpandedSearchResult(this.props.result.url);
         }
     }, {
         key: "render",
@@ -1300,7 +1306,8 @@ var PageView = function (_React$Component9) {
                 return null;
             }
 
-            // Don't render if selectedNode doesn't belong to curProject (to allow for CU-96hk2k)
+            // Don't render if selectedNode doesn't belong to curProject
+            // (To allow for data update when the page is focused - CU-96hk2k)
             if (!this.props.graph.hasOwnProperty(this.props.selectedNode.source)) {
                 return null;
             }
@@ -1329,7 +1336,8 @@ var PageView = function (_React$Component9) {
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(NotesList, { showNewNotesForm: this.props.showNewNotesForm,
                         switchShowNewNotesForm: this.props.switchShowNewNotesForm,
-                        selectedNode: this.props.selectedNode, refresh: this.props.refresh }),
+                        selectedNode: this.props.selectedNode, fullSearchResults: this.props.fullSearchResults,
+                        refresh: this.props.refresh }),
                     React.createElement(
                         "div",
                         { style: { display: "flex" } },
@@ -1569,35 +1577,7 @@ var NotesList = function (_React$Component13) {
     }, {
         key: "render",
         value: function render() {
-            if (this.props.selectedNode.notes.length !== 0) {
-                return React.createElement(
-                    "div",
-                    null,
-                    React.createElement(
-                        "div",
-                        { style: { display: "flex" } },
-                        React.createElement(
-                            "h2",
-                            null,
-                            "My Notes"
-                        ),
-                        React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
-                            switchShowForm: this.props.switchShowNewNotesForm })
-                    ),
-                    React.createElement(
-                        "ul",
-                        null,
-                        this.props.selectedNode.notes.map(function (notes, index) {
-                            return React.createElement(
-                                "li",
-                                { key: index },
-                                notes
-                            );
-                        })
-                    ),
-                    React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
-                );
-            }
+            // if (this.props.selectedNode.notes.length !== 0) {
             return React.createElement(
                 "div",
                 null,
@@ -1607,13 +1587,36 @@ var NotesList = function (_React$Component13) {
                     React.createElement(
                         "h2",
                         null,
-                        "You haven't added any notes yet."
+                        this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."
                     ),
-                    React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
-                        switchShowForm: this.props.switchShowNewNotesForm })
+                    // Only show button to add notes outside of search mode
+                    this.props.fullSearchResults === null ? React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
+                        switchShowForm: this.props.switchShowNewNotesForm }) : null
+                ),
+                React.createElement(
+                    "ul",
+                    null,
+                    this.props.selectedNode.notes.map(function (notes, index) {
+                        return React.createElement(
+                            "li",
+                            { key: index },
+                            notes
+                        );
+                    })
                 ),
                 React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
             );
+            // }
+            // return (
+            //     <div>
+            //         <div style={{display: "flex"}}>
+            //             <h2>You haven't added any notes yet.</h2>
+            //             <NewNotesButton showForm={this.props.showNewNotesForm}
+            //                             switchShowForm={this.props.switchShowNewNotesForm}/>
+            //         </div>
+            //         <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
+            //     </div>
+            // );
         }
     }]);
 

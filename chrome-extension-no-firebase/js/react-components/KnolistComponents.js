@@ -314,6 +314,7 @@ class KnolistComponents extends React.Component {
             // If occurrences were found, include the current node in results
             if (occurrences.length > 0) {
                 results.push({
+                    query: query,
                     url: node.source,
                     occurrences: occurrences,
                     occurrencesCount: occurrencesCount
@@ -546,7 +547,8 @@ class KnolistComponents extends React.Component {
                     <div id="graph" style={graphStyle}/>
                     <FullSearchResults fullSearchResults={this.state.fullSearchResults}
                                        graph={this.state.graph[curProject]}
-                                       resetFullSearchResults={this.resetFullSearchResults}/>
+                                       resetFullSearchResults={this.resetFullSearchResults}
+                                       setSelectedNode={this.setSelectedNode}/>
                     <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
                                  localServer={this.state.localServer} closeForm={this.closeNewNodeForm}
@@ -554,8 +556,9 @@ class KnolistComponents extends React.Component {
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
-                              showNewNotesForm={this.state.showNewNotesForm}
-                              switchShowNewNotesForm={this.switchShowNewNotesForm}/>
+                              switchShowNewNotesForm={this.switchShowNewNotesForm}
+                              fullSearchResults={this.state.fullSearchResults}
+                              showNewNotesForm={this.state.showNewNotesForm}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
@@ -609,6 +612,7 @@ class FullSearchResults extends React.Component {
                                                                                 item={this.props.graph[result.url]}
                                                                                 expandedSearchResult={this.state.expandedSearchResult}
                                                                                 result={result}
+                                                                                setSelectedNode={this.props.setSelectedNode}
                                                                                 setExpandedSearchResult={this.setExpandedSearchResult}
                                                                                 resetExpandedSearchResult={this.resetExpandedSearchResult}/>)}
             </div>
@@ -624,8 +628,9 @@ class SearchResultItem extends React.Component {
     }
 
     itemAction() {
-        if (this.props.expandedSearchResult === this.props.result.url) this.props.resetExpandedSearchResult();
-        else this.props.setExpandedSearchResult(this.props.result.url);
+        this.props.setSelectedNode(this.props.item.source);
+        // if (this.props.expandedSearchResult === this.props.result.url) this.props.resetExpandedSearchResult();
+        // else this.props.setExpandedSearchResult(this.props.result.url);
     }
 
     render() {
@@ -968,7 +973,8 @@ class PageView extends React.Component {
             return null;
         }
 
-        // Don't render if selectedNode doesn't belong to curProject (to allow for CU-96hk2k)
+        // Don't render if selectedNode doesn't belong to curProject
+        // (To allow for data update when the page is focused - CU-96hk2k)
         if (!this.props.graph.hasOwnProperty(this.props.selectedNode.source)) {
             return null;
         }
@@ -985,7 +991,8 @@ class PageView extends React.Component {
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
-                               selectedNode={this.props.selectedNode} refresh={this.props.refresh}/>
+                               selectedNode={this.props.selectedNode} fullSearchResults={this.props.fullSearchResults}
+                               refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
@@ -1100,26 +1107,18 @@ class NotesList extends React.Component {
     }
 
     render() {
-        if (this.props.selectedNode.notes.length !== 0) {
-            return (
-                <div>
-                    <div style={{display: "flex"}}>
-                        <h2>My Notes</h2>
-                        <NewNotesButton showForm={this.props.showNewNotesForm}
-                                        switchShowForm={this.props.switchShowNewNotesForm}/>
-                    </div>
-                    <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
-                    <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
-                </div>
-            );
-        }
         return (
             <div>
                 <div style={{display: "flex"}}>
-                    <h2>You haven't added any notes yet.</h2>
-                    <NewNotesButton showForm={this.props.showNewNotesForm}
-                                    switchShowForm={this.props.switchShowNewNotesForm}/>
+                    <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
+                    { // Only show button to add notes outside of search mode
+                        this.props.fullSearchResults === null ?
+                            <NewNotesButton showForm={this.props.showNewNotesForm}
+                                            switchShowForm={this.props.switchShowNewNotesForm}/> :
+                            null
+                    }
                 </div>
+                <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
                 <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
             </div>
         );
