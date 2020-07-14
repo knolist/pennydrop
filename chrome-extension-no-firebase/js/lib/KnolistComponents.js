@@ -147,6 +147,11 @@ var KnolistComponents = function (_React$Component) {
                     var updatedSelectedNode = graph[curProject][url];
                     _this3.setState({ selectedNode: updatedSelectedNode });
                 }
+
+                // Redo search if search mode is active
+                if (_this3.state.fullSearchResults !== null) {
+                    _this3.fullSearch();
+                }
             });
 
             // window.setTimeout(() => {
@@ -334,26 +339,34 @@ var KnolistComponents = function (_React$Component) {
         }
 
         /**
-         * Given a text query, this function searches the current project for occurrences of that query. If the query is
-         * empty, the function returns null. Else, the function returns an array of objects
-         * that represent the occurrences of the query on each node of the current project.
+         * Given a text query, this function searches the current project for occurrences of that query. The function returns
+         * a "result object", which contains the query, filterList, and an array of results grouped by node. If the query is empty,
+         * the results array is set to null.
          * @param query the query to be searched
          * @param filterList a list of node keys that whose contents will be included in the search
-         * @returns {null|[]} null if the query is empty, else array of result objects
+         * @returns {{query: *, filterList: *, results: []}} the result object. The results array is null is the query is empty
          */
 
     }, {
         key: "getSearchResults",
         value: function getSearchResults(query, filterList) {
-            // Return null for empty queries
+            // Return object with null results for empty queries
             if (query === "") {
-                return null;
+                return {
+                    query: query,
+                    filterList: filterList,
+                    results: null
+                };
             }
 
             var curProject = this.state.graph.curProject;
             var graph = this.state.graph[curProject];
 
-            var results = [];
+            var resultObject = {
+                query: query,
+                filterList: filterList,
+                results: []
+            };
             query = Utils.trimString(query); // trim it
             query = query.toLowerCase();
             for (var graphKey in graph) {
@@ -383,15 +396,14 @@ var KnolistComponents = function (_React$Component) {
                 }
                 // If occurrences were found, include the current node in results
                 if (occurrences.length > 0) {
-                    results.push({
-                        query: query,
+                    resultObject.results.push({
                         url: node.source,
                         occurrences: occurrences,
                         occurrencesCount: occurrencesCount
                     });
                 }
             }
-            return results;
+            return resultObject;
         }
     }, {
         key: "basicSearch",
@@ -403,14 +415,14 @@ var KnolistComponents = function (_React$Component) {
             filterList = Object.keys(graph[nodeList[0]]);
             // STOP REMOVING
 
-            var results = this.getSearchResults(query, filterList);
-            if (results === null) {
+            var resultObject = this.getSearchResults(query, filterList);
+            if (resultObject.results === null) {
                 // If results are null, the query was empty
-                this.highlightNodes(results);
+                this.highlightNodes(null);
             } else {
                 // Construct array of IDs based on the results
                 var resultIDs = [];
-                results.forEach(function (result) {
+                resultObject.results.forEach(function (result) {
                     return resultIDs.push(result.url);
                 });
                 // Highlight results
@@ -427,13 +439,13 @@ var KnolistComponents = function (_React$Component) {
             filterList = Object.keys(graph[nodeList[0]]);
             // STOP REMOVING
 
-            var searchResults = this.getSearchResults(query, filterList);
+            var resultObject = this.getSearchResults(query, filterList);
             // Sort so that results with the most occurrences are at the top
-            searchResults.sort(function (a, b) {
+            resultObject.results.sort(function (a, b) {
                 return a.occurrencesCount >= b.occurrencesCount ? -1 : 1;
             });
-            this.setFullSearchResults(searchResults);
-            console.log(searchResults);
+            this.setFullSearchResults(resultObject);
+            console.log(resultObject);
         }
 
         /* Helper function to generate position for nodes
@@ -681,32 +693,30 @@ var FullSearchResults = function (_React$Component2) {
     function FullSearchResults(props) {
         _classCallCheck(this, FullSearchResults);
 
+        // this.state = {
+        //     expandedSearchResult: null,
+        // };
+        //
+        // this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
+        // this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
         var _this10 = _possibleConstructorReturn(this, (FullSearchResults.__proto__ || Object.getPrototypeOf(FullSearchResults)).call(this, props));
 
-        _this10.state = {
-            expandedSearchResult: null
-        };
-
-        _this10.setExpandedSearchResult = _this10.setExpandedSearchResult.bind(_this10);
-        _this10.resetExpandedSearchResult = _this10.resetExpandedSearchResult.bind(_this10);
         _this10.closeSearch = _this10.closeSearch.bind(_this10);
         return _this10;
     }
 
+    // setExpandedSearchResult(url) {
+    //     this.setState({expandedSearchResult: url});
+    // }
+    //
+    // resetExpandedSearchResult() {
+    //     this.setState({expandedSearchResult: null});
+    // }
+
     _createClass(FullSearchResults, [{
-        key: "setExpandedSearchResult",
-        value: function setExpandedSearchResult(url) {
-            this.setState({ expandedSearchResult: url });
-        }
-    }, {
-        key: "resetExpandedSearchResult",
-        value: function resetExpandedSearchResult() {
-            this.setState({ expandedSearchResult: null });
-        }
-    }, {
         key: "closeSearch",
         value: function closeSearch() {
-            this.resetExpandedSearchResult();
+            // this.resetExpandedSearchResult();
             this.props.resetFullSearchResults();
         }
     }, {
@@ -733,17 +743,17 @@ var FullSearchResults = function (_React$Component2) {
                     React.createElement(
                         "h2",
                         null,
-                        this.props.fullSearchResults.length === 0 ? noResultsMessage : searchResultsMessage
+                        this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage
                     )
                 ),
-                this.props.fullSearchResults.map(function (result) {
+                this.props.fullSearchResults.results.map(function (result) {
                     return React.createElement(SearchResultItem, { key: result.url,
-                        item: _this11.props.graph[result.url],
-                        expandedSearchResult: _this11.state.expandedSearchResult,
-                        result: result,
-                        setSelectedNode: _this11.props.setSelectedNode,
-                        setExpandedSearchResult: _this11.setExpandedSearchResult,
-                        resetExpandedSearchResult: _this11.resetExpandedSearchResult });
+                        item: _this11.props.graph[result.url]
+                        // expandedSearchResult={this.state.expandedSearchResult}
+                        // setExpandedSearchResult={this.setExpandedSearchResult}
+                        // resetExpandedSearchResult={this.resetExpandedSearchResult}
+                        , result: result,
+                        setSelectedNode: _this11.props.setSelectedNode });
                 })
             );
         }
@@ -788,8 +798,7 @@ var SearchResultItem = function (_React$Component3) {
                     this.props.result.occurrencesCount,
                     " ",
                     this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"
-                ),
-                React.createElement(ExpandedSearchResultData, { display: this.props.expandedSearchResult === this.props.result.url })
+                )
             );
         }
     }]);

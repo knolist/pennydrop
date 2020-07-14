@@ -116,6 +116,11 @@ class KnolistComponents extends React.Component {
                 const updatedSelectedNode = graph[curProject][url];
                 this.setState({selectedNode: updatedSelectedNode});
             }
+
+            // Redo search if search mode is active
+            if (this.state.fullSearchResults !== null) {
+                this.fullSearch()
+            }
         });
 
         // window.setTimeout(() => {
@@ -268,23 +273,31 @@ class KnolistComponents extends React.Component {
     }
 
     /**
-     * Given a text query, this function searches the current project for occurrences of that query. If the query is
-     * empty, the function returns null. Else, the function returns an array of objects
-     * that represent the occurrences of the query on each node of the current project.
+     * Given a text query, this function searches the current project for occurrences of that query. The function returns
+     * a "result object", which contains the query, filterList, and an array of results grouped by node. If the query is empty,
+     * the results array is set to null.
      * @param query the query to be searched
      * @param filterList a list of node keys that whose contents will be included in the search
-     * @returns {null|[]} null if the query is empty, else array of result objects
+     * @returns {{query: *, filterList: *, results: []}} the result object. The results array is null is the query is empty
      */
     getSearchResults(query, filterList) {
-        // Return null for empty queries
+        // Return object with null results for empty queries
         if (query === "") {
-            return null;
+            return {
+                query: query,
+                filterList: filterList,
+                results: null
+            };
         }
 
         const curProject = this.state.graph.curProject;
         const graph = this.state.graph[curProject];
 
-        let results = [];
+        let resultObject = {
+            query: query,
+            filterList: filterList,
+            results: []
+        };
         query = Utils.trimString(query); // trim it
         query = query.toLowerCase();
         for (let graphKey in graph) {
@@ -313,15 +326,14 @@ class KnolistComponents extends React.Component {
             }
             // If occurrences were found, include the current node in results
             if (occurrences.length > 0) {
-                results.push({
-                    query: query,
+                resultObject.results.push({
                     url: node.source,
                     occurrences: occurrences,
                     occurrencesCount: occurrencesCount
                 })
             }
         }
-        return results;
+        return resultObject;
     }
 
     basicSearch(query, filterList) {
@@ -332,14 +344,14 @@ class KnolistComponents extends React.Component {
         filterList = Object.keys(graph[nodeList[0]]);
         // STOP REMOVING
 
-        const results = this.getSearchResults(query, filterList);
-        if (results === null) {
+        const resultObject = this.getSearchResults(query, filterList);
+        if (resultObject.results === null) {
             // If results are null, the query was empty
-            this.highlightNodes(results);
+            this.highlightNodes(null);
         } else {
             // Construct array of IDs based on the results
             let resultIDs = [];
-            results.forEach(result => resultIDs.push(result.url));
+            resultObject.results.forEach(result => resultIDs.push(result.url));
             // Highlight results
             this.highlightNodes(resultIDs);
         }
@@ -353,11 +365,11 @@ class KnolistComponents extends React.Component {
         filterList = Object.keys(graph[nodeList[0]]);
         // STOP REMOVING
 
-        const searchResults = this.getSearchResults(query, filterList);
+        const resultObject = this.getSearchResults(query, filterList);
         // Sort so that results with the most occurrences are at the top
-        searchResults.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
-        this.setFullSearchResults(searchResults);
-        console.log(searchResults);
+        resultObject.results.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
+        this.setFullSearchResults(resultObject);
+        console.log(resultObject);
     }
 
     /* Helper function to generate position for nodes
@@ -571,25 +583,25 @@ class FullSearchResults extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            expandedSearchResult: null,
-        };
-
-        this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
-        this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
+        // this.state = {
+        //     expandedSearchResult: null,
+        // };
+        //
+        // this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
+        // this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
         this.closeSearch = this.closeSearch.bind(this);
     }
 
-    setExpandedSearchResult(url) {
-        this.setState({expandedSearchResult: url});
-    }
-
-    resetExpandedSearchResult() {
-        this.setState({expandedSearchResult: null});
-    }
+    // setExpandedSearchResult(url) {
+    //     this.setState({expandedSearchResult: url});
+    // }
+    //
+    // resetExpandedSearchResult() {
+    //     this.setState({expandedSearchResult: null});
+    // }
 
     closeSearch() {
-        this.resetExpandedSearchResult();
+        // this.resetExpandedSearchResult();
         this.props.resetFullSearchResults();
     }
 
@@ -605,16 +617,16 @@ class FullSearchResults extends React.Component {
                     <button className="button" onClick={this.closeSearch}>
                         <img src="../../images/back-icon-black.png" alt="Return"/>
                     </button>
-                    <h2>{this.props.fullSearchResults.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
+                    <h2>{this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
                 </div>
                 {/* List of results */}
-                {this.props.fullSearchResults.map((result) => <SearchResultItem key={result.url}
-                                                                                item={this.props.graph[result.url]}
-                                                                                expandedSearchResult={this.state.expandedSearchResult}
-                                                                                result={result}
-                                                                                setSelectedNode={this.props.setSelectedNode}
-                                                                                setExpandedSearchResult={this.setExpandedSearchResult}
-                                                                                resetExpandedSearchResult={this.resetExpandedSearchResult}/>)}
+                {this.props.fullSearchResults.results.map((result) => <SearchResultItem key={result.url}
+                                                                                        item={this.props.graph[result.url]}
+                                                                                        // expandedSearchResult={this.state.expandedSearchResult}
+                                                                                        // setExpandedSearchResult={this.setExpandedSearchResult}
+                                                                                        // resetExpandedSearchResult={this.resetExpandedSearchResult}
+                                                                                        result={result}
+                                                                                        setSelectedNode={this.props.setSelectedNode}/>)}
             </div>
         );
     }
@@ -638,7 +650,7 @@ class SearchResultItem extends React.Component {
             <div onClick={this.itemAction} className="search-result-item">
                 <h3>{this.props.item.title}</h3>
                 <p>{this.props.result.occurrencesCount} {this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"}</p>
-                <ExpandedSearchResultData display={this.props.expandedSearchResult === this.props.result.url}/>
+                {/*<ExpandedSearchResultData display={this.props.expandedSearchResult === this.props.result.url}/>*/}
             </div>
         );
     }
