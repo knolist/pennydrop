@@ -74,33 +74,48 @@ var KnolistComponents = function (_React$Component) {
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
             if (event.target.classList.contains("modal")) {
-                if (_this.state.selectedNode !== null) {
-                    _this.closePageView();
-                }
-                if (_this.state.displayExport) {
-                    _this.resetDisplayExport();
-                }
-                if (_this.state.showNewNodeForm) {
-                    _this.closeNewNodeForm();
-                }
+                _this.closeModals();
             }
         };
 
-        // Set up listener to close search results on Escape press
+        // Set up listener to close different elements by pressing Escape
         window.onkeyup = function (event) {
             if (event.key === "Escape") {
-                if (_this.state.fullSearchResults !== null) {
-                    _this.resetFullSearchResults();
+                if (!_this.closeModals()) {
+                    // Prioritize closing modals
+                    if (_this.state.fullSearchResults !== null) {
+                        _this.resetFullSearchResults();
+                    }
                 }
             }
         };
         return _this;
     }
 
-    // Verifies if the local server is being run
+    // Return true if a modal was closed. Used to prioritize modal closing
 
 
     _createClass(KnolistComponents, [{
+        key: "closeModals",
+        value: function closeModals() {
+            if (this.state.selectedNode !== null) {
+                this.closePageView();
+                return true;
+            }
+            if (this.state.displayExport) {
+                this.resetDisplayExport();
+                return true;
+            }
+            if (this.state.showNewNodeForm) {
+                this.closeNewNodeForm();
+                return true;
+            }
+            return false;
+        }
+
+        // Verifies if the local server is being run
+
+    }, {
         key: "checkIfLocalServer",
         value: function checkIfLocalServer() {
             var _this2 = this;
@@ -320,14 +335,11 @@ var KnolistComponents = function (_React$Component) {
 
         /**
          * Given a text query, this function searches the current project for occurrences of that query. If the query is
-         * empty, the function returns null. Else, if a filterList is supplied, the function returns an array of objects
-         * that represent the occurrences of the query on each node of the current project (used in fullSearch).
-         * If a filterList is not supplied, it returns an array of node IDs that contain the desired query anywhere
-         * inside them (used in basicSearch).
+         * empty, the function returns null. Else, the function returns an array of objects
+         * that represent the occurrences of the query on each node of the current project.
          * @param query the query to be searched
          * @param filterList a list of node keys that whose contents will be included in the search
-         * @returns {null|[]} null if the query is empty, else array of resulting node IDs if filterList is undefined,
-         * else array of result objects
+         * @returns {null|[]} null if the query is empty, else array of result objects
          */
 
     }, {
@@ -356,11 +368,8 @@ var KnolistComponents = function (_React$Component) {
                     if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
                     elem = elem.toLowerCase(); // Lower case for case-insensitive search
 
-                    // Check if query is present under basic search
-                    if (filterList === undefined && elem.indexOf(query) !== -1) {
-                        if (!results.includes(node.source)) results.push(node.source);
-                    } else if (filterList !== undefined && filterList.includes(nodeKey)) {
-                        // Check if query is present under full search
+                    if (filterList.includes(nodeKey)) {
+                        // Check if query is present
                         var indices = Utils.getIndicesOf(query, elem);
                         // Only add if results were found
                         if (indices.length > 0) {
@@ -372,8 +381,8 @@ var KnolistComponents = function (_React$Component) {
                         }
                     }
                 }
-                // If occurrences were found and we are doing a filtered search, include the current node in results
-                if (filterList !== undefined && occurrences.length > 0) {
+                // If occurrences were found, include the current node in results
+                if (occurrences.length > 0) {
                     results.push({
                         url: node.source,
                         occurrences: occurrences,
@@ -385,9 +394,27 @@ var KnolistComponents = function (_React$Component) {
         }
     }, {
         key: "basicSearch",
-        value: function basicSearch(query) {
-            var results = this.getSearchResults(query);
-            this.highlightNodes(results);
+        value: function basicSearch(query, filterList) {
+            // REMOVE STARTING HERE
+            var curProject = this.state.graph.curProject;
+            var graph = this.state.graph[curProject];
+            var nodeList = Object.keys(graph);
+            filterList = Object.keys(graph[nodeList[0]]);
+            // STOP REMOVING
+
+            var results = this.getSearchResults(query, filterList);
+            if (results === null) {
+                // If results are null, the query was empty
+                this.highlightNodes(results);
+            } else {
+                // Construct array of IDs based on the results
+                var resultIDs = [];
+                results.forEach(function (result) {
+                    return resultIDs.push(result.url);
+                });
+                // Highlight results
+                this.highlightNodes(resultIDs);
+            }
         }
     }, {
         key: "fullSearch",
@@ -747,7 +774,14 @@ var SearchResultItem = function (_React$Component3) {
                 React.createElement(
                     "h3",
                     null,
-                    this.props.result.url
+                    this.props.item.title
+                ),
+                React.createElement(
+                    "p",
+                    null,
+                    this.props.result.occurrencesCount,
+                    " ",
+                    this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"
                 ),
                 React.createElement(ExpandedSearchResultData, { display: this.props.expandedSearchResult === this.props.result.url })
             );

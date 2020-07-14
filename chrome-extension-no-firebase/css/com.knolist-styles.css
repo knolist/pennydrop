@@ -311,7 +311,15 @@ li {
     background-color: var(--node-default-color);
     border: solid 1px black;
     border-radius: 5px;
-    padding-left: 10px;
+    padding: 12px;
     margin: 0 20px 10px 20px;
     cursor: pointer;
+}
+
+.search-result-item h3 {
+    margin: 0;
+}
+
+.search-result-item p {
+    margin: 8px 0 0 0;
 }

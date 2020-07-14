@@ -58,26 +58,37 @@ class KnolistComponents extends React.Component {
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
             if (event.target.classList.contains("modal")) {
-                if (this.state.selectedNode !== null) {
-                    this.closePageView();
-                }
-                if (this.state.displayExport) {
-                    this.resetDisplayExport();
-                }
-                if (this.state.showNewNodeForm) {
-                    this.closeNewNodeForm();
-                }
+                this.closeModals();
             }
         };
 
-        // Set up listener to close search results on Escape press
+        // Set up listener to close different elements by pressing Escape
         window.onkeyup = (event) => {
             if (event.key === "Escape") {
-                if (this.state.fullSearchResults !== null) {
-                    this.resetFullSearchResults();
+                if (!this.closeModals()) { // Prioritize closing modals
+                    if (this.state.fullSearchResults !== null) {
+                        this.resetFullSearchResults();
+                    }
                 }
             }
         };
+    }
+
+    // Return true if a modal was closed. Used to prioritize modal closing
+    closeModals() {
+        if (this.state.selectedNode !== null) {
+            this.closePageView();
+            return true;
+        }
+        if (this.state.displayExport) {
+            this.resetDisplayExport();
+            return true;
+        }
+        if (this.state.showNewNodeForm) {
+            this.closeNewNodeForm();
+            return true;
+        }
+        return false;
     }
 
     // Verifies if the local server is being run
@@ -258,14 +269,11 @@ class KnolistComponents extends React.Component {
 
     /**
      * Given a text query, this function searches the current project for occurrences of that query. If the query is
-     * empty, the function returns null. Else, if a filterList is supplied, the function returns an array of objects
-     * that represent the occurrences of the query on each node of the current project (used in fullSearch).
-     * If a filterList is not supplied, it returns an array of node IDs that contain the desired query anywhere
-     * inside them (used in basicSearch).
+     * empty, the function returns null. Else, the function returns an array of objects
+     * that represent the occurrences of the query on each node of the current project.
      * @param query the query to be searched
      * @param filterList a list of node keys that whose contents will be included in the search
-     * @returns {null|[]} null if the query is empty, else array of resulting node IDs if filterList is undefined,
-     * else array of result objects
+     * @returns {null|[]} null if the query is empty, else array of result objects
      */
     getSearchResults(query, filterList) {
         // Return null for empty queries
@@ -291,10 +299,7 @@ class KnolistComponents extends React.Component {
                 if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
                 elem = elem.toLowerCase(); // Lower case for case-insensitive search
 
-                // Check if query is present under basic search
-                if (filterList === undefined && elem.indexOf(query) !== -1) {
-                    if (!results.includes(node.source)) results.push(node.source);
-                } else if (filterList !== undefined && filterList.includes(nodeKey)) { // Check if query is present under full search
+                if (filterList.includes(nodeKey)) { // Check if query is present
                     const indices = Utils.getIndicesOf(query, elem);
                     // Only add if results were found
                     if (indices.length > 0) {
@@ -306,8 +311,8 @@ class KnolistComponents extends React.Component {
                     }
                 }
             }
-            // If occurrences were found and we are doing a filtered search, include the current node in results
-            if (filterList !== undefined && occurrences.length > 0) {
+            // If occurrences were found, include the current node in results
+            if (occurrences.length > 0) {
                 results.push({
                     url: node.source,
                     occurrences: occurrences,
@@ -318,9 +323,25 @@ class KnolistComponents extends React.Component {
         return results;
     }
 
-    basicSearch(query) {
-        const results = this.getSearchResults(query);
-        this.highlightNodes(results);
+    basicSearch(query, filterList) {
+        // REMOVE STARTING HERE
+        const curProject = this.state.graph.curProject;
+        const graph = this.state.graph[curProject];
+        const nodeList = Object.keys(graph);
+        filterList = Object.keys(graph[nodeList[0]]);
+        // STOP REMOVING
+
+        const results = this.getSearchResults(query, filterList);
+        if (results === null) {
+            // If results are null, the query was empty
+            this.highlightNodes(results);
+        } else {
+            // Construct array of IDs based on the results
+            let resultIDs = [];
+            results.forEach(result => resultIDs.push(result.url));
+            // Highlight results
+            this.highlightNodes(resultIDs);
+        }
     }
 
     fullSearch(query, filterList) {
@@ -610,7 +631,8 @@ class SearchResultItem extends React.Component {
     render() {
         return (
             <div onClick={this.itemAction} className="search-result-item">
-                <h3>{this.props.result.url}</h3>
+                <h3>{this.props.item.title}</h3>
+                <p>{this.props.result.occurrencesCount} {this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"}</p>
                 <ExpandedSearchResultData display={this.props.expandedSearchResult === this.props.result.url}/>
             </div>
         );
