@@ -880,20 +880,10 @@ class ProjectItem extends React.Component {
         if (project === "version" || project === "curProject") {
             return null;
         }
-        // Display the active project in a different color and show more info
-        if (project === this.props.graph.curProject) {
-            return (
-                <div className="project-item active-project" onClick={this.switchProject}>
-                    <h2>{this.props.project}</h2>
-                    <button className="button delete-project-button" onClick={this.deleteProject}>
-                        <img src="../../images/delete-icon-white.png" alt="Delete node"/>
-                    </button>
-                </div>
-            );
-        }
-        // Display other projects
+
         return (
-            <div className="project-item" onClick={this.switchProject}>
+            <div className={project === this.props.graph.curProject ? "project-item active-project" : "project-item"}
+                 onClick={this.switchProject}>
                 <h2>{this.props.project}</h2>
                 <button className="button delete-project-button" onClick={this.deleteProject}>
                     <img src="../../images/delete-icon-white.png" alt="Delete node"/>

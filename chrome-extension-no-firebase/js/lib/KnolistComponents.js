@@ -1152,27 +1152,11 @@ var ProjectItem = function (_React$Component7) {
             if (project === "version" || project === "curProject") {
                 return null;
             }
-            // Display the active project in a different color and show more info
-            if (project === this.props.graph.curProject) {
-                return React.createElement(
-                    "div",
-                    { className: "project-item active-project", onClick: this.switchProject },
-                    React.createElement(
-                        "h2",
-                        null,
-                        this.props.project
-                    ),
-                    React.createElement(
-                        "button",
-                        { className: "button delete-project-button", onClick: this.deleteProject },
-                        React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
-                    )
-                );
-            }
-            // Display other projects
+
             return React.createElement(
                 "div",
-                { className: "project-item", onClick: this.switchProject },
+                { className: project === this.props.graph.curProject ? "project-item active-project" : "project-item",
+                    onClick: this.switchProject },
                 React.createElement(
                     "h2",
                     null,
