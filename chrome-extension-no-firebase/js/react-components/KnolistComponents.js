@@ -119,7 +119,8 @@ class KnolistComponents extends React.Component {
 
             // Redo search if search mode is active
             if (this.state.fullSearchResults !== null) {
-                this.fullSearch()
+                const resultObject = this.state.fullSearchResults;
+                this.fullSearch(resultObject.query, resultObject.filterList);
             }
         });
 
@@ -646,6 +647,7 @@ class SearchResultItem extends React.Component {
     }
 
     render() {
+        if (this.props.item === undefined) return null;
         return (
             <div onClick={this.itemAction} className="search-result-item">
                 <h3>{this.props.item.title}</h3>
@@ -993,7 +995,7 @@ class PageView extends React.Component {
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
-                               selectedNode={this.props.selectedNode} fullSearchResults={this.props.fullSearchResults}
+                               selectedNode={this.props.selectedNode}
                                refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
@@ -1105,12 +1107,8 @@ class NotesList extends React.Component {
             <div>
                 <div style={{display: "flex"}}>
                     <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
-                    { // Only show button to add notes outside of search mode
-                        this.props.fullSearchResults === null ?
-                            <NewNotesButton showForm={this.props.showNewNotesForm}
-                                            switchShowForm={this.props.switchShowNewNotesForm}/> :
-                            null
-                    }
+                    <NewNotesButton showForm={this.props.showNewNotesForm}
+                                    switchShowForm={this.props.switchShowNewNotesForm}/>
                 </div>
                 <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
                 <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>

@@ -150,7 +150,8 @@ var KnolistComponents = function (_React$Component) {
 
                 // Redo search if search mode is active
                 if (_this3.state.fullSearchResults !== null) {
-                    _this3.fullSearch();
+                    var resultObject = _this3.state.fullSearchResults;
+                    _this3.fullSearch(resultObject.query, resultObject.filterList);
                 }
             });
 
@@ -784,6 +785,7 @@ var SearchResultItem = function (_React$Component3) {
     }, {
         key: "render",
         value: function render() {
+            if (this.props.item === undefined) return null;
             return React.createElement(
                 "div",
                 { onClick: this.itemAction, className: "search-result-item" },
@@ -1329,7 +1331,7 @@ var PageView = function (_React$Component9) {
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
                     React.createElement(NotesList, { showNewNotesForm: this.props.showNewNotesForm,
                         switchShowNewNotesForm: this.props.switchShowNewNotesForm,
-                        selectedNode: this.props.selectedNode, fullSearchResults: this.props.fullSearchResults,
+                        selectedNode: this.props.selectedNode,
                         refresh: this.props.refresh }),
                     React.createElement(
                         "div",
@@ -1551,9 +1553,8 @@ var NotesList = function (_React$Component13) {
                         null,
                         this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."
                     ),
-                    // Only show button to add notes outside of search mode
-                    this.props.fullSearchResults === null ? React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
-                        switchShowForm: this.props.switchShowNewNotesForm }) : null
+                    React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
+                        switchShowForm: this.props.switchShowNewNotesForm })
                 ),
                 React.createElement(
                     "ul",
