@@ -1042,29 +1042,26 @@ class ListURL extends React.Component {
     }
 
     render() {
-        if (this.props.type === "prev") {
-            return (
-                <div className="url-column">
-                    <h2 style={{textAlign: "center"}}>Previous Connections</h2>
-                    <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href="#"
-                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
-                        </li>)}
-                    </ul>
-                </div>
-            );
-        } else if (this.props.type === "next") {
-            return (
-                <div className="url-column">
-                    <h2 style={{textAlign: "center"}}>Next Connections</h2>
-                    <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href="#"
-                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
-                        </li>)}
-                    </ul>
-                </div>
-            );
-        } else return null;
+        // Don't render if type is neither "prev" nor "next"
+        if (this.props.type !== "prev" && this.props.type !== "next") return null;
+
+        // Define the list to be used based on the type passed as props
+        let urlList = this.props.selectedNode.prevURLs;
+        if (this.props.type === "next") urlList = this.props.selectedNode.nextURLs;
+
+        return (
+            <div className="url-column">
+                <h2 style={{textAlign: "center"}}>
+                    {this.props.type === "prev" ? "Previous Connections" : "Next Connections"}
+                </h2>
+                <ul>{urlList.map((url, index) =>
+                    <li key={index}><a href="#"
+                                       onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
+                    </li>)}
+                </ul>
+            </div>
+        );
+
     }
 }
 

@@ -1436,63 +1436,40 @@ var ListURL = function (_React$Component11) {
         value: function render() {
             var _this27 = this;
 
-            if (this.props.type === "prev") {
-                return React.createElement(
-                    "div",
-                    { className: "url-column" },
-                    React.createElement(
-                        "h2",
-                        { style: { textAlign: "center" } },
-                        "Previous Connections"
-                    ),
-                    React.createElement(
-                        "ul",
-                        null,
-                        this.props.selectedNode.prevURLs.map(function (url, index) {
-                            return React.createElement(
-                                "li",
-                                { key: index },
-                                React.createElement(
-                                    "a",
-                                    { href: "#",
-                                        onClick: function onClick() {
-                                            return _this27.props.setSelectedNode(url);
-                                        } },
-                                    _this27.props.graph[url].title
-                                )
-                            );
-                        })
-                    )
-                );
-            } else if (this.props.type === "next") {
-                return React.createElement(
-                    "div",
-                    { className: "url-column" },
-                    React.createElement(
-                        "h2",
-                        { style: { textAlign: "center" } },
-                        "Next Connections"
-                    ),
-                    React.createElement(
-                        "ul",
-                        null,
-                        this.props.selectedNode.nextURLs.map(function (url, index) {
-                            return React.createElement(
-                                "li",
-                                { key: index },
-                                React.createElement(
-                                    "a",
-                                    { href: "#",
-                                        onClick: function onClick() {
-                                            return _this27.props.setSelectedNode(url);
-                                        } },
-                                    _this27.props.graph[url].title
-                                )
-                            );
-                        })
-                    )
-                );
-            } else return null;
+            // Don't render if type is neither "prev" nor "next"
+            if (this.props.type !== "prev" && this.props.type !== "next") return null;
+
+            // Define the list to be used based on the type passed as props
+            var urlList = this.props.selectedNode.prevURLs;
+            if (this.props.type === "next") urlList = this.props.selectedNode.nextURLs;
+
+            return React.createElement(
+                "div",
+                { className: "url-column" },
+                React.createElement(
+                    "h2",
+                    { style: { textAlign: "center" } },
+                    this.props.type === "prev" ? "Previous Connections" : "Next Connections"
+                ),
+                React.createElement(
+                    "ul",
+                    null,
+                    urlList.map(function (url, index) {
+                        return React.createElement(
+                            "li",
+                            { key: index },
+                            React.createElement(
+                                "a",
+                                { href: "#",
+                                    onClick: function onClick() {
+                                        return _this27.props.setSelectedNode(url);
+                                    } },
+                                _this27.props.graph[url].title
+                            )
+                        );
+                    })
+                )
+            );
         }
     }]);
 
