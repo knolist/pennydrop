@@ -1075,16 +1075,11 @@ class HighlightsList extends React.Component {
     }
 
     render() {
-        if (this.props.highlights.length !== 0) {
-            return (
-                <div>
-                    <h2>My Highlights</h2>
-                    <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
-                </div>
-            );
-        }
         return (
-            <h2>You haven't added any highlights yet.</h2>
+            <div>
+                <h2>{this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+                <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
+            </div>
         );
     }
 }

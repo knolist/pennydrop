@@ -1514,32 +1514,25 @@ var HighlightsList = function (_React$Component12) {
     _createClass(HighlightsList, [{
         key: "render",
         value: function render() {
-            if (this.props.highlights.length !== 0) {
-                return React.createElement(
-                    "div",
-                    null,
-                    React.createElement(
-                        "h2",
-                        null,
-                        "My Highlights"
-                    ),
-                    React.createElement(
-                        "ul",
-                        null,
-                        this.props.highlights.map(function (highlight, index) {
-                            return React.createElement(
-                                "li",
-                                { key: index },
-                                highlight
-                            );
-                        })
-                    )
-                );
-            }
             return React.createElement(
-                "h2",
+                "div",
                 null,
-                "You haven't added any highlights yet."
+                React.createElement(
+                    "h2",
+                    null,
+                    this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
+                ),
+                React.createElement(
+                    "ul",
+                    null,
+                    this.props.highlights.map(function (highlight, index) {
+                        return React.createElement(
+                            "li",
+                            { key: index },
+                            highlight
+                        );
+                    })
+                )
             );
         }
     }]);
@@ -1577,7 +1570,6 @@ var NotesList = function (_React$Component13) {
     }, {
         key: "render",
         value: function render() {
-            // if (this.props.selectedNode.notes.length !== 0) {
             return React.createElement(
                 "div",
                 null,
@@ -1606,17 +1598,6 @@ var NotesList = function (_React$Component13) {
                 ),
                 React.createElement(NewNotesForm, { handleSubmit: this.handleSubmit, showNewNotesForm: this.props.showNewNotesForm })
             );
-            // }
-            // return (
-            //     <div>
-            //         <div style={{display: "flex"}}>
-            //             <h2>You haven't added any notes yet.</h2>
-            //             <NewNotesButton showForm={this.props.showNewNotesForm}
-            //                             switchShowForm={this.props.switchShowNewNotesForm}/>
-            //         </div>
-            //         <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
-            //     </div>
-            // );
         }
     }]);
 
