@@ -46,7 +46,8 @@ var KnolistComponents = function (_React$Component) {
             bibliographyData: null, // The data to be exported as bibliography
             showProjectsSidebar: false, // Whether or not to show the projects sidebar
             localServer: false, // Set to true if the server is being run locally
-            fullSearchResults: null // Null when no search was made, search result object when searching (will hide the mind map)
+            fullSearchResults: null, // Null when no search was made, search result object when searching (will hide the mind map)
+            closeFilterDropdown: false
         };
 
         // Bind functions that need to be passed as parameters
@@ -74,7 +75,10 @@ var KnolistComponents = function (_React$Component) {
         // Set up listener to close modals when user clicks outside of them
         window.onclick = function (event) {
             if (event.target.classList.contains("modal")) {
+                // Close modal when clicking outside
                 _this.closeModals();
+            } else if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
+                _this.closeFilterDropdown();
             }
         };
 
@@ -92,10 +96,15 @@ var KnolistComponents = function (_React$Component) {
         return _this;
     }
 
-    // Return true if a modal was closed. Used to prioritize modal closing
-
-
     _createClass(KnolistComponents, [{
+        key: "closeFilterDropdown",
+        value: function closeFilterDropdown() {
+            this.setState({ closeFilterDropdown: !this.state.closeFilterDropdown });
+        }
+
+        // Return true if a modal was closed. Used to prioritize modal closing
+
+    }, {
         key: "closeModals",
         value: function closeModals() {
             if (this.state.selectedNode !== null) {
@@ -660,7 +669,8 @@ var KnolistComponents = function (_React$Component) {
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
                         React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch,
                             graph: this.state.graph[curProject],
-                            fullSearchResults: this.state.fullSearchResults }),
+                            fullSearchResults: this.state.fullSearchResults,
+                            closeFilterDropdown: this.state.closeFilterDropdown }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
                     React.createElement("div", { id: "graph", style: graphStyle }),
@@ -1630,6 +1640,7 @@ var SearchBar = function (_React$Component11) {
         _this30.searchButtonAction = _this30.searchButtonAction.bind(_this30);
         _this30.setActiveFilter = _this30.setActiveFilter.bind(_this30);
         _this30.switchShowFilterList = _this30.switchShowFilterList.bind(_this30);
+        _this30.setAllFilters = _this30.setAllFilters.bind(_this30);
         return _this30;
     }
 
@@ -1667,12 +1678,10 @@ var SearchBar = function (_React$Component11) {
             return filterList;
         }
     }, {
-        key: "setActiveFilter",
-        value: function setActiveFilter(name, active) {
+        key: "setFilterList",
+        value: function setFilterList(filterList) {
             var _this31 = this;
 
-            var filterList = this.state.filterList;
-            filterList[name].active = active;
             this.setState({ filterList: filterList }, function () {
                 // Call search with updated filter list
                 if (_this31.props.fullSearchResults !== null && _this31.props.fullSearchResults.query !== "") {
@@ -1682,6 +1691,22 @@ var SearchBar = function (_React$Component11) {
                     _this31.props.basicSearch(query, _this31.getActiveFilters());
                 }
             });
+        }
+    }, {
+        key: "setActiveFilter",
+        value: function setActiveFilter(name, active) {
+            var filterList = this.state.filterList;
+            filterList[name].active = active;
+            this.setFilterList(filterList);
+        }
+    }, {
+        key: "setAllFilters",
+        value: function setAllFilters(active) {
+            var filterList = this.state.filterList;
+            Object.keys(filterList).forEach(function (filter) {
+                filterList[filter].active = active;
+            });
+            this.setFilterList(filterList);
         }
     }, {
         key: "getActiveFilters",
@@ -1714,6 +1739,11 @@ var SearchBar = function (_React$Component11) {
             }
         }
     }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate(prevProps) {
+            if (prevProps.closeFilterDropdown !== this.props.closeFilterDropdown) this.closeFilterList();
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this33 = this;
@@ -1732,7 +1762,8 @@ var SearchBar = function (_React$Component11) {
                 ),
                 React.createElement(Filters, { filterList: this.state.filterList, showFilterList: this.state.showFilterList,
                     setActiveFilter: this.setActiveFilter,
-                    switchShowFilterList: this.switchShowFilterList })
+                    switchShowFilterList: this.switchShowFilterList,
+                    setAllFilters: this.setAllFilters })
             );
         }
     }]);
@@ -1750,7 +1781,7 @@ function Filters(props) {
             React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
         ),
         React.createElement(FiltersDropdown, { showFilterList: props.showFilterList, filterList: props.filterList,
-            setActiveFilter: props.setActiveFilter })
+            setActiveFilter: props.setActiveFilter, setAllFilters: props.setAllFilters })
     );
 }
 
@@ -1763,7 +1794,25 @@ function FiltersDropdown(props) {
         { className: "dropdown", style: dropdownStyle },
         React.createElement(
             "div",
-            { className: "dropdown-content filters-dropdown" },
+            { className: "dropdown-content filters-dropdown", id: "filter-dropdown" },
+            React.createElement(
+                "div",
+                { id: "filter-dropdown-buttons" },
+                React.createElement(
+                    "a",
+                    { onClick: function onClick() {
+                            return props.setAllFilters(true);
+                        }, id: "filter-dropdown-left-button" },
+                    "Select all"
+                ),
+                React.createElement(
+                    "a",
+                    { onClick: function onClick() {
+                            return props.setAllFilters(false);
+                        } },
+                    "Clear all"
+                )
+            ),
             Object.keys(props.filterList).map(function (filter) {
                 return React.createElement(FilterItem, { key: filter, filter: filter,
                     filterList: props.filterList,

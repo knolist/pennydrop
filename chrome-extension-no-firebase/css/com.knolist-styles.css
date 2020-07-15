@@ -357,6 +357,7 @@ li {
     max-height: 300px;
     right: 0;
     top: 5px;
+    border: solid 1px black;
 }
 
 .filter-item {
@@ -386,4 +387,17 @@ li {
 
 .filter-item p {
     margin: 0;
+}
+
+#filter-dropdown-buttons {
+    display: flex;
+    text-align: center;
+}
+
+#filter-dropdown-buttons a {
+    border-bottom: solid 1px black;
+}
+
+#filter-dropdown-left-button {
+    border-right: solid 1px black
 }

@@ -30,7 +30,8 @@ class KnolistComponents extends React.Component {
             bibliographyData: null, // The data to be exported as bibliography
             showProjectsSidebar: false, // Whether or not to show the projects sidebar
             localServer: false, // Set to true if the server is being run locally
-            fullSearchResults: null // Null when no search was made, search result object when searching (will hide the mind map)
+            fullSearchResults: null, // Null when no search was made, search result object when searching (will hide the mind map)
+            closeFilterDropdown: false
         };
 
         // Bind functions that need to be passed as parameters
@@ -58,7 +59,11 @@ class KnolistComponents extends React.Component {
         // Set up listener to close modals when user clicks outside of them
         window.onclick = (event) => {
             if (event.target.classList.contains("modal")) {
+                // Close modal when clicking outside
                 this.closeModals();
+            } else if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) &&
+                !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
+                this.closeFilterDropdown();
             }
         };
 
@@ -72,6 +77,10 @@ class KnolistComponents extends React.Component {
                 }
             }
         };
+    }
+
+    closeFilterDropdown() {
+        this.setState({closeFilterDropdown: !this.state.closeFilterDropdown});
     }
 
     // Return true if a modal was closed. Used to prioritize modal closing
@@ -549,7 +558,8 @@ class KnolistComponents extends React.Component {
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
                         <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}
                                    graph={this.state.graph[curProject]}
-                                   fullSearchResults={this.state.fullSearchResults}/>
+                                   fullSearchResults={this.state.fullSearchResults}
+                                   closeFilterDropdown={this.state.closeFilterDropdown}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph" style={graphStyle}/>
@@ -1178,6 +1188,7 @@ class SearchBar extends React.Component {
         this.searchButtonAction = this.searchButtonAction.bind(this);
         this.setActiveFilter = this.setActiveFilter.bind(this);
         this.switchShowFilterList = this.switchShowFilterList.bind(this);
+        this.setAllFilters = this.setAllFilters.bind(this);
     }
 
     switchShowFilterList() {
@@ -1210,9 +1221,7 @@ class SearchBar extends React.Component {
         return filterList;
     }
 
-    setActiveFilter(name, active) {
-        let filterList = this.state.filterList;
-        filterList[name].active = active;
+    setFilterList(filterList) {
         this.setState({filterList: filterList}, () => {
             // Call search with updated filter list
             if (this.props.fullSearchResults !== null && this.props.fullSearchResults.query !== "") {
@@ -1222,6 +1231,20 @@ class SearchBar extends React.Component {
                 this.props.basicSearch(query, this.getActiveFilters());
             }
         });
+    }
+
+    setActiveFilter(name, active) {
+        let filterList = this.state.filterList;
+        filterList[name].active = active;
+        this.setFilterList(filterList);
+    }
+
+    setAllFilters(active) {
+        let filterList = this.state.filterList;
+        Object.keys(filterList).forEach((filter) => {
+            filterList[filter].active = active;
+        });
+        this.setFilterList(filterList);
     }
 
     getActiveFilters() {
@@ -1249,6 +1272,10 @@ class SearchBar extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.closeFilterDropdown !== this.props.closeFilterDropdown) this.closeFilterList();
+    }
+
     render() {
         return (
             <div style={{display: "flex"}}>
@@ -1259,7 +1286,8 @@ class SearchBar extends React.Component {
                 </div>
                 <Filters filterList={this.state.filterList} showFilterList={this.state.showFilterList}
                          setActiveFilter={this.setActiveFilter}
-                         switchShowFilterList={this.switchShowFilterList}/>
+                         switchShowFilterList={this.switchShowFilterList}
+                         setAllFilters={this.setAllFilters}/>
             </div>
         );
     }
@@ -1272,7 +1300,7 @@ function Filters(props) {
                 <img src="../../images/filter-icon-black.png" alt="Filter"/>
             </button>
             <FiltersDropdown showFilterList={props.showFilterList} filterList={props.filterList}
-                             setActiveFilter={props.setActiveFilter}/>
+                             setActiveFilter={props.setActiveFilter} setAllFilters={props.setAllFilters}/>
         </div>
     );
 }
@@ -1283,7 +1311,11 @@ function FiltersDropdown(props) {
 
     return (
         <div className="dropdown" style={dropdownStyle}>
-            <div className="dropdown-content filters-dropdown">
+            <div className="dropdown-content filters-dropdown" id="filter-dropdown">
+                <div id="filter-dropdown-buttons">
+                    <a onClick={() => props.setAllFilters(true)} id="filter-dropdown-left-button">Select all</a>
+                    <a onClick={() => props.setAllFilters(false)}>Clear all</a>
+                </div>
                 {Object.keys(props.filterList).map(filter => <FilterItem key={filter} filter={filter}
                                                                          filterList={props.filterList}
                                                                          setActiveFilter={props.setActiveFilter}/>)}

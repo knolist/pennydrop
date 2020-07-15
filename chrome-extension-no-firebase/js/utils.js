@@ -48,5 +48,16 @@ export default class Utils {
         if (title === "prevURLs") return "Previous Connections";
         if (title === "content") return "Page Content";
         return Utils.titleCase(title);
-    }
+    };
+
+    static isDescendant = (parent, child) => {
+        let node = child;
+        while (node != null) {
+            if (node === parent) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
+    };
 }
