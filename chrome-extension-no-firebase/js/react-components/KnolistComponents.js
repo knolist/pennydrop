@@ -17,7 +17,7 @@ class KnolistComponents extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph: createNewGraph(), // All the graph data
+            graph: null, // All the graph data
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
@@ -242,6 +242,23 @@ class KnolistComponents extends React.Component {
         this.setState({fullSearchResults: null});
     }
 
+    generateFilterList() {
+        // Get list of all filters
+        const curProject = this.state.graph.curProject;
+        const graph = this.state.graph[curProject];
+        const nodeList = Object.keys(graph);
+        let filterList = Object.keys(graph[nodeList[0]]);
+
+        // Remove unwanted properties from filter list
+        const propertiesToRemove = ["x", "y"];
+        propertiesToRemove.forEach(property => {
+            const index = filterList.indexOf(property);
+            filterList.splice(index, 1);
+        });
+
+        return filterList;
+    }
+
     /**
      * Visually highlights nodes by changing colors and opacity
      * @param nodesToHighlight an array of ids of the nodes to be highlighted
@@ -338,13 +355,6 @@ class KnolistComponents extends React.Component {
     }
 
     basicSearch(query, filterList) {
-        // REMOVE STARTING HERE
-        const curProject = this.state.graph.curProject;
-        const graph = this.state.graph[curProject];
-        const nodeList = Object.keys(graph);
-        filterList = Object.keys(graph[nodeList[0]]);
-        // STOP REMOVING
-
         const resultObject = this.getSearchResults(query, filterList);
         if (resultObject.results === null) {
             // If results are null, the query was empty
@@ -359,13 +369,6 @@ class KnolistComponents extends React.Component {
     }
 
     fullSearch(query, filterList) {
-        // REMOVE STARTING HERE
-        const curProject = this.state.graph.curProject;
-        const graph = this.state.graph[curProject];
-        const nodeList = Object.keys(graph);
-        filterList = Object.keys(graph[nodeList[0]]);
-        // STOP REMOVING
-
         const resultObject = this.getSearchResults(query, filterList);
         // Sort so that results with the most occurrences are at the top
         resultObject.results.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
@@ -554,7 +557,8 @@ class KnolistComponents extends React.Component {
                 <div className="main-body">
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
-                        <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}/>
+                        <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}
+                                   filterList={this.generateFilterList()}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph" style={graphStyle}/>
@@ -614,18 +618,19 @@ class FullSearchResults extends React.Component {
 
         return (
             <div id="full-search-results-area">
-                <div style={{display: "flex", marginBottom: "20px"}}>
+                <div id="search-results-header">
                     <button className="button" onClick={this.closeSearch}>
                         <img src="../../images/back-icon-black.png" alt="Return"/>
                     </button>
                     <h2>{this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
+                    <div style={{width: "40px"}}/>
                 </div>
                 {/* List of results */}
                 {this.props.fullSearchResults.results.map((result) => <SearchResultItem key={result.url}
                                                                                         item={this.props.graph[result.url]}
-                                                                                        // expandedSearchResult={this.state.expandedSearchResult}
-                                                                                        // setExpandedSearchResult={this.setExpandedSearchResult}
-                                                                                        // resetExpandedSearchResult={this.resetExpandedSearchResult}
+                    // expandedSearchResult={this.state.expandedSearchResult}
+                    // setExpandedSearchResult={this.setExpandedSearchResult}
+                    // resetExpandedSearchResult={this.resetExpandedSearchResult}
                                                                                         result={result}
                                                                                         setSelectedNode={this.props.setSelectedNode}/>)}
             </div>
@@ -650,12 +655,33 @@ class SearchResultItem extends React.Component {
         if (this.props.item === undefined) return null;
         return (
             <div onClick={this.itemAction} className="search-result-item">
-                <h3>{this.props.item.title}</h3>
-                <p>{this.props.result.occurrencesCount} {this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"}</p>
+                <div>
+                    <h3>{this.props.item.title}</h3>
+                    <p>{this.props.result.occurrencesCount} {this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"}</p>
+                </div>
+                <OccurrenceCategories occurrences={this.props.result.occurrences}/>
                 {/*<ExpandedSearchResultData display={this.props.expandedSearchResult === this.props.result.url}/>*/}
             </div>
         );
     }
+}
+
+function OccurrenceCategories(props) {
+    return (
+        <div className="occurrence-categories">
+            {props.occurrences.map((occurrence, index) => {
+                return (
+                    <div key={occurrence.key} style={{display: "flex"}}>
+                        <div className="occurrence-item">
+                            <h3>{Utils.getNodePropertyTitle(occurrence.key)}</h3>
+                            <p>{occurrence.indices.length}</p>
+                        </div>
+                        {index < props.occurrences.length - 1 ? <div className="vertical-line"/> : null}
+                    </div>
+                );
+            })}
+        </div>
+    );
 }
 
 /**
@@ -1015,74 +1041,62 @@ class PageView extends React.Component {
 }
 
 // Bibliography export
-class ExportView extends React.Component {
-    constructor(props) {
-        super(props);
+/**
+ * @return {null}
+ */
+function ExportView(props) {
+    if (props.shouldShow === false) {
+        return null;
     }
-
-    render() {
-        if (this.props.shouldShow === false) {
-            return null;
-        }
-        return (
-            <div className="modal">
-                <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.resetDisplayExport}>
-                        <img src="../../images/close-icon-black.png" alt="Close"/>
-                    </button>
-                    <h1>Export for Bibliography</h1>
-                    <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
-                </div>
+    return (
+        <div className="modal">
+            <div className="modal-content">
+                <button className="close-modal button" id="close-page-view"
+                        onClick={props.resetDisplayExport}>
+                    <img src="../../images/close-icon-black.png" alt="Close"/>
+                </button>
+                <h1>Export for Bibliography</h1>
+                <ul>{props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 // List of URLs in the detailed page view
-class ListURL extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+/**
+ * @return {null}
+ */
+function ListURL(props) {
+    // Don't render if type is neither "prev" nor "next"
+    if (props.type !== "prev" && props.type !== "next") return null;
 
-    render() {
-        // Don't render if type is neither "prev" nor "next"
-        if (this.props.type !== "prev" && this.props.type !== "next") return null;
+    // Define the list to be used based on the type passed as props
+    let urlList = props.selectedNode.prevURLs;
+    if (props.type === "next") urlList = props.selectedNode.nextURLs;
 
-        // Define the list to be used based on the type passed as props
-        let urlList = this.props.selectedNode.prevURLs;
-        if (this.props.type === "next") urlList = this.props.selectedNode.nextURLs;
-
-        return (
-            <div className="url-column">
-                <h2 style={{textAlign: "center"}}>
-                    {this.props.type === "prev" ? "Previous Connections" : "Next Connections"}
-                </h2>
-                <ul>{urlList.map((url, index) =>
-                    <li key={index}><a href="#"
-                                       onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
-                    </li>)}
-                </ul>
-            </div>
-        );
-
-    }
+    return (
+        <div className="url-column">
+            <h2 style={{textAlign: "center"}}>
+                {props.type === "prev" ? "Previous Connections" : "Next Connections"}
+            </h2>
+            <ul>{urlList.map((url, index) =>
+                <li key={index}><a href="#"
+                                   onClick={() => props.setSelectedNode(url)}>{props.graph[url].title}</a>
+                </li>)}
+            </ul>
+        </div>
+    );
 }
 
 // List of highlights in the detailed page view
-class HighlightsList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+function HighlightsList(props) {
+    return (
+        <div>
+            <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+            <ul>{props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
+        </div>
+    );
 
-    render() {
-        return (
-            <div>
-                <h2>{this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
-                <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
-            </div>
-        );
-    }
 }
 
 // List of notes in the detailed page view
@@ -1161,30 +1175,47 @@ class SearchBar extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            activeFilters: props.filterList // Start with all filters active
+        };
+
         this.submitSearch = this.submitSearch.bind(this);
         this.searchButtonAction = this.searchButtonAction.bind(this);
     }
 
     searchButtonAction() {
         const query = document.getElementById("search-text").value;
-        if (query !== "") this.props.fullSearch(query);
+        if (query !== "") this.props.fullSearch(query, this.state.activeFilters);
     }
 
     submitSearch(searchInput) {
         if (searchInput.key === "Enter") {
-            if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value);
+            if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.state.activeFilters);
         } else {
-            this.props.basicSearch(searchInput.target.value);
+            this.props.basicSearch(searchInput.target.value, this.state.activeFilters);
         }
     }
 
     render() {
         return (
-            <div id="search-bar">
-                <input id="search-text" type="text" onKeyUp={(searchInput) => this.submitSearch(searchInput)}
-                       placeholder="Search through your project"/>
-                <img onClick={this.searchButtonAction} src="../../images/search-icon-black.png" alt="Search"/>
+            <div style={{display: "flex"}}>
+                <div id="search-bar">
+                    <input id="search-text" type="text" onKeyUp={(searchInput) => this.submitSearch(searchInput)}
+                           placeholder="Search through your project"/>
+                    <img onClick={this.searchButtonAction} src="../../images/search-icon-black.png" alt="Search"/>
+                </div>
+                <FiltersButton filterList={this.props.filterList} activeFilters={this.state.activeFilters}/>
             </div>
+        );
+    }
+}
+
+class FiltersButton extends React.Component {
+    render() {
+        return (
+            <button className="button" id="search-filters-button">
+                <img src="../../images/filter-icon-black.png" alt="Filter"/>
+            </button>
         );
     }
 }
@@ -1197,47 +1228,35 @@ function ExportGraphButton(props) {
     );
 }
 
-class Header extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        return (
-            <div className="header">
-                <div className="header-corner-wrapper logo-wrapper">
-                    <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
-                </div>
-                <div id="project-name-div">
-                    <h5 id="project-name">Current Project: {this.props.projectName}</h5>
-                </div>
-                <div className="header-corner-wrapper">
-                    <ProjectsSidebarButton showSidebar={this.props.showProjectsSidebar}
-                                           openProjectsSidebar={this.props.openProjectsSidebar}
-                                           closeProjectsSidebar={this.props.closeProjectsSidebar}/>
-                </div>
+function Header(props) {
+    return (
+        <div className="header">
+            <div className="header-corner-wrapper logo-wrapper">
+                <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
             </div>
-        );
-    }
+            <div id="project-name-div">
+                <h5 id="project-name">Current Project: {props.projectName}</h5>
+            </div>
+            <div className="header-corner-wrapper">
+                <ProjectsSidebarButton showSidebar={props.showProjectsSidebar}
+                                       openProjectsSidebar={props.openProjectsSidebar}
+                                       closeProjectsSidebar={props.closeProjectsSidebar}/>
+            </div>
+        </div>
+    );
 }
 
-class ProjectsSidebarButton extends React.Component {
-    constructor(props) {
-        super(props);
+function ProjectsSidebarButton(props) {
+    if (props.showSidebar) {
+        return <button id="projects-sidebar-btn" onClick={props.closeProjectsSidebar}>
+            <img src="../../images/close-icon-white.png" alt="Close" id="close-sidebar-btn"/>
+        </button>
     }
-
-    render() {
-        if (this.props.showSidebar) {
-            return <button id="projects-sidebar-btn" onClick={this.props.closeProjectsSidebar}>
-                <img src="../../images/close-icon-white.png" alt="Close" id="close-sidebar-btn"/>
-            </button>
-        }
-        return (
-            <button id="projects-sidebar-btn" onClick={this.props.openProjectsSidebar}>
-                <p>Your projects</p>
-            </button>
-        );
-    }
+    return (
+        <button id="projects-sidebar-btn" onClick={props.openProjectsSidebar}>
+            <p>Your projects</p>
+        </button>
+    );
 }
 
 ReactDOM.render(<KnolistComponents/>, document.querySelector("#knolist-page"));

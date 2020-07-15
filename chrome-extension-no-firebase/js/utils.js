@@ -39,5 +39,14 @@ export default class Utils {
             str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
         }
         return str.join(' ');
+    };
+
+    // Helper to return the title case and user-friendly title of node property names
+    static getNodePropertyTitle = (title) => {
+        if (title === "source") return "URL";
+        if (title === "nextURLs") return "Next Connections";
+        if (title === "prevURLs") return "Previous Connections";
+        if (title === "content") return "Page Content";
+        return Utils.titleCase(title);
     }
 }

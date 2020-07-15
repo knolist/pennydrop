@@ -21,7 +21,7 @@
     background-color: var(--bright-turquoise);
     height: 40px;
     width: 40px;
-    border: 2px solid var(--java-color);
+    border: 1px solid var(--java-color);
     transition: 0.3s;
     border-radius: 4px;
     outline: none;
@@ -60,4 +60,9 @@ input[type="text"] {
     border-bottom-color: gray;
     border-width: 1px;
     outline: none;
+}
+
+.vertical-line {
+    border-left: 1px solid black;
+    height: 100%;
 }

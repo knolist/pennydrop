@@ -33,7 +33,7 @@ var KnolistComponents = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (KnolistComponents.__proto__ || Object.getPrototypeOf(KnolistComponents)).call(this, props));
 
         _this.state = {
-            graph: createNewGraph(), // All the graph data
+            graph: null, // All the graph data
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
@@ -302,6 +302,24 @@ var KnolistComponents = function (_React$Component) {
             this.highlightNodes(null); // Reset highlighted nodes
             this.setState({ fullSearchResults: null });
         }
+    }, {
+        key: "generateFilterList",
+        value: function generateFilterList() {
+            // Get list of all filters
+            var curProject = this.state.graph.curProject;
+            var graph = this.state.graph[curProject];
+            var nodeList = Object.keys(graph);
+            var filterList = Object.keys(graph[nodeList[0]]);
+
+            // Remove unwanted properties from filter list
+            var propertiesToRemove = ["x", "y"];
+            propertiesToRemove.forEach(function (property) {
+                var index = filterList.indexOf(property);
+                filterList.splice(index, 1);
+            });
+
+            return filterList;
+        }
 
         /**
          * Visually highlights nodes by changing colors and opacity
@@ -409,13 +427,6 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "basicSearch",
         value: function basicSearch(query, filterList) {
-            // REMOVE STARTING HERE
-            var curProject = this.state.graph.curProject;
-            var graph = this.state.graph[curProject];
-            var nodeList = Object.keys(graph);
-            filterList = Object.keys(graph[nodeList[0]]);
-            // STOP REMOVING
-
             var resultObject = this.getSearchResults(query, filterList);
             if (resultObject.results === null) {
                 // If results are null, the query was empty
@@ -433,13 +444,6 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "fullSearch",
         value: function fullSearch(query, filterList) {
-            // REMOVE STARTING HERE
-            var curProject = this.state.graph.curProject;
-            var graph = this.state.graph[curProject];
-            var nodeList = Object.keys(graph);
-            filterList = Object.keys(graph[nodeList[0]]);
-            // STOP REMOVING
-
             var resultObject = this.getSearchResults(query, filterList);
             // Sort so that results with the most occurrences are at the top
             resultObject.results.sort(function (a, b) {
@@ -660,7 +664,8 @@ var KnolistComponents = function (_React$Component) {
                         "div",
                         { id: "buttons-bar" },
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
-                        React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch }),
+                        React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch,
+                            filterList: this.generateFilterList() }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
                     React.createElement("div", { id: "graph", style: graphStyle }),
@@ -735,7 +740,7 @@ var FullSearchResults = function (_React$Component2) {
                 { id: "full-search-results-area" },
                 React.createElement(
                     "div",
-                    { style: { display: "flex", marginBottom: "20px" } },
+                    { id: "search-results-header" },
                     React.createElement(
                         "button",
                         { className: "button", onClick: this.closeSearch },
@@ -745,7 +750,8 @@ var FullSearchResults = function (_React$Component2) {
                         "h2",
                         null,
                         this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage
-                    )
+                    ),
+                    React.createElement("div", { style: { width: "40px" } })
                 ),
                 this.props.fullSearchResults.results.map(function (result) {
                     return React.createElement(SearchResultItem, { key: result.url,
@@ -790,17 +796,22 @@ var SearchResultItem = function (_React$Component3) {
                 "div",
                 { onClick: this.itemAction, className: "search-result-item" },
                 React.createElement(
-                    "h3",
+                    "div",
                     null,
-                    this.props.item.title
+                    React.createElement(
+                        "h3",
+                        null,
+                        this.props.item.title
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        this.props.result.occurrencesCount,
+                        " ",
+                        this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"
+                    )
                 ),
-                React.createElement(
-                    "p",
-                    null,
-                    this.props.result.occurrencesCount,
-                    " ",
-                    this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"
-                )
+                React.createElement(OccurrenceCategories, { occurrences: this.props.result.occurrences })
             );
         }
     }]);
@@ -808,11 +819,37 @@ var SearchResultItem = function (_React$Component3) {
     return SearchResultItem;
 }(React.Component);
 
+function OccurrenceCategories(props) {
+    return React.createElement(
+        "div",
+        { className: "occurrence-categories" },
+        props.occurrences.map(function (occurrence, index) {
+            return React.createElement(
+                "div",
+                { key: occurrence.key, style: { display: "flex" } },
+                React.createElement(
+                    "div",
+                    { className: "occurrence-item" },
+                    React.createElement(
+                        "h3",
+                        null,
+                        Utils.getNodePropertyTitle(occurrence.key)
+                    ),
+                    React.createElement(
+                        "p",
+                        null,
+                        occurrence.indices.length
+                    )
+                ),
+                index < props.occurrences.length - 1 ? React.createElement("div", { className: "vertical-line" }) : null
+            );
+        })
+    );
+}
+
 /**
  * @return {null}
  */
-
-
 function ExpandedSearchResultData(props) {
     if (!props.display) return null;
 
@@ -1359,182 +1396,136 @@ var PageView = function (_React$Component9) {
 }(React.Component);
 
 // Bibliography export
+/**
+ * @return {null}
+ */
 
 
-var ExportView = function (_React$Component10) {
-    _inherits(ExportView, _React$Component10);
-
-    function ExportView(props) {
-        _classCallCheck(this, ExportView);
-
-        return _possibleConstructorReturn(this, (ExportView.__proto__ || Object.getPrototypeOf(ExportView)).call(this, props));
+function ExportView(props) {
+    if (props.shouldShow === false) {
+        return null;
     }
-
-    _createClass(ExportView, [{
-        key: "render",
-        value: function render() {
-            if (this.props.shouldShow === false) {
-                return null;
-            }
-            return React.createElement(
-                "div",
-                { className: "modal" },
-                React.createElement(
-                    "div",
-                    { className: "modal-content" },
-                    React.createElement(
-                        "button",
-                        { className: "close-modal button", id: "close-page-view",
-                            onClick: this.props.resetDisplayExport },
-                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
-                    ),
-                    React.createElement(
-                        "h1",
-                        null,
-                        "Export for Bibliography"
-                    ),
-                    React.createElement(
-                        "ul",
-                        null,
-                        this.props.bibliographyData.map(function (item) {
-                            return React.createElement(
-                                "li",
-                                { key: item.url },
-                                item.title,
-                                ", ",
-                                item.url
-                            );
-                        })
-                    )
-                )
-            );
-        }
-    }]);
-
-    return ExportView;
-}(React.Component);
+    return React.createElement(
+        "div",
+        { className: "modal" },
+        React.createElement(
+            "div",
+            { className: "modal-content" },
+            React.createElement(
+                "button",
+                { className: "close-modal button", id: "close-page-view",
+                    onClick: props.resetDisplayExport },
+                React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
+            ),
+            React.createElement(
+                "h1",
+                null,
+                "Export for Bibliography"
+            ),
+            React.createElement(
+                "ul",
+                null,
+                props.bibliographyData.map(function (item) {
+                    return React.createElement(
+                        "li",
+                        { key: item.url },
+                        item.title,
+                        ", ",
+                        item.url
+                    );
+                })
+            )
+        )
+    );
+}
 
 // List of URLs in the detailed page view
+/**
+ * @return {null}
+ */
+function ListURL(props) {
+    // Don't render if type is neither "prev" nor "next"
+    if (props.type !== "prev" && props.type !== "next") return null;
 
+    // Define the list to be used based on the type passed as props
+    var urlList = props.selectedNode.prevURLs;
+    if (props.type === "next") urlList = props.selectedNode.nextURLs;
 
-var ListURL = function (_React$Component11) {
-    _inherits(ListURL, _React$Component11);
-
-    function ListURL(props) {
-        _classCallCheck(this, ListURL);
-
-        return _possibleConstructorReturn(this, (ListURL.__proto__ || Object.getPrototypeOf(ListURL)).call(this, props));
-    }
-
-    _createClass(ListURL, [{
-        key: "render",
-        value: function render() {
-            var _this27 = this;
-
-            // Don't render if type is neither "prev" nor "next"
-            if (this.props.type !== "prev" && this.props.type !== "next") return null;
-
-            // Define the list to be used based on the type passed as props
-            var urlList = this.props.selectedNode.prevURLs;
-            if (this.props.type === "next") urlList = this.props.selectedNode.nextURLs;
-
-            return React.createElement(
-                "div",
-                { className: "url-column" },
-                React.createElement(
-                    "h2",
-                    { style: { textAlign: "center" } },
-                    this.props.type === "prev" ? "Previous Connections" : "Next Connections"
-                ),
-                React.createElement(
-                    "ul",
-                    null,
-                    urlList.map(function (url, index) {
-                        return React.createElement(
-                            "li",
-                            { key: index },
-                            React.createElement(
-                                "a",
-                                { href: "#",
-                                    onClick: function onClick() {
-                                        return _this27.props.setSelectedNode(url);
-                                    } },
-                                _this27.props.graph[url].title
-                            )
-                        );
-                    })
-                )
-            );
-        }
-    }]);
-
-    return ListURL;
-}(React.Component);
+    return React.createElement(
+        "div",
+        { className: "url-column" },
+        React.createElement(
+            "h2",
+            { style: { textAlign: "center" } },
+            props.type === "prev" ? "Previous Connections" : "Next Connections"
+        ),
+        React.createElement(
+            "ul",
+            null,
+            urlList.map(function (url, index) {
+                return React.createElement(
+                    "li",
+                    { key: index },
+                    React.createElement(
+                        "a",
+                        { href: "#",
+                            onClick: function onClick() {
+                                return props.setSelectedNode(url);
+                            } },
+                        props.graph[url].title
+                    )
+                );
+            })
+        )
+    );
+}
 
 // List of highlights in the detailed page view
-
-
-var HighlightsList = function (_React$Component12) {
-    _inherits(HighlightsList, _React$Component12);
-
-    function HighlightsList(props) {
-        _classCallCheck(this, HighlightsList);
-
-        return _possibleConstructorReturn(this, (HighlightsList.__proto__ || Object.getPrototypeOf(HighlightsList)).call(this, props));
-    }
-
-    _createClass(HighlightsList, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "div",
-                null,
-                React.createElement(
-                    "h2",
-                    null,
-                    this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
-                ),
-                React.createElement(
-                    "ul",
-                    null,
-                    this.props.highlights.map(function (highlight, index) {
-                        return React.createElement(
-                            "li",
-                            { key: index },
-                            highlight
-                        );
-                    })
-                )
-            );
-        }
-    }]);
-
-    return HighlightsList;
-}(React.Component);
+function HighlightsList(props) {
+    return React.createElement(
+        "div",
+        null,
+        React.createElement(
+            "h2",
+            null,
+            props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
+        ),
+        React.createElement(
+            "ul",
+            null,
+            props.highlights.map(function (highlight, index) {
+                return React.createElement(
+                    "li",
+                    { key: index },
+                    highlight
+                );
+            })
+        )
+    );
+}
 
 // List of notes in the detailed page view
 
-
-var NotesList = function (_React$Component13) {
-    _inherits(NotesList, _React$Component13);
+var NotesList = function (_React$Component10) {
+    _inherits(NotesList, _React$Component10);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this29 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this25 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this29.handleSubmit = _this29.handleSubmit.bind(_this29);
-        return _this29;
+        _this25.handleSubmit = _this25.handleSubmit.bind(_this25);
+        return _this25;
     }
 
     _createClass(NotesList, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this30 = this;
+            var _this26 = this;
 
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this30.props.refresh();
+                _this26.props.refresh();
             });
             this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
@@ -1622,52 +1613,84 @@ function RefreshGraphButton(props) {
     );
 }
 
-var SearchBar = function (_React$Component14) {
-    _inherits(SearchBar, _React$Component14);
+var SearchBar = function (_React$Component11) {
+    _inherits(SearchBar, _React$Component11);
 
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this31 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this27 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this31.submitSearch = _this31.submitSearch.bind(_this31);
-        _this31.searchButtonAction = _this31.searchButtonAction.bind(_this31);
-        return _this31;
+        _this27.state = {
+            activeFilters: props.filterList // Start with all filters active
+        };
+
+        _this27.submitSearch = _this27.submitSearch.bind(_this27);
+        _this27.searchButtonAction = _this27.searchButtonAction.bind(_this27);
+        return _this27;
     }
 
     _createClass(SearchBar, [{
         key: "searchButtonAction",
         value: function searchButtonAction() {
             var query = document.getElementById("search-text").value;
-            if (query !== "") this.props.fullSearch(query);
+            if (query !== "") this.props.fullSearch(query, this.state.activeFilters);
         }
     }, {
         key: "submitSearch",
         value: function submitSearch(searchInput) {
             if (searchInput.key === "Enter") {
-                if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value);
+                if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.state.activeFilters);
             } else {
-                this.props.basicSearch(searchInput.target.value);
+                this.props.basicSearch(searchInput.target.value, this.state.activeFilters);
             }
         }
     }, {
         key: "render",
         value: function render() {
-            var _this32 = this;
+            var _this28 = this;
 
             return React.createElement(
                 "div",
-                { id: "search-bar" },
-                React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                        return _this32.submitSearch(searchInput);
-                    },
-                    placeholder: "Search through your project" }),
-                React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
+                { style: { display: "flex" } },
+                React.createElement(
+                    "div",
+                    { id: "search-bar" },
+                    React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
+                            return _this28.submitSearch(searchInput);
+                        },
+                        placeholder: "Search through your project" }),
+                    React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
+                ),
+                React.createElement(FiltersButton, { filterList: this.props.filterList, activeFilters: this.state.activeFilters })
             );
         }
     }]);
 
     return SearchBar;
+}(React.Component);
+
+var FiltersButton = function (_React$Component12) {
+    _inherits(FiltersButton, _React$Component12);
+
+    function FiltersButton() {
+        _classCallCheck(this, FiltersButton);
+
+        return _possibleConstructorReturn(this, (FiltersButton.__proto__ || Object.getPrototypeOf(FiltersButton)).apply(this, arguments));
+    }
+
+    _createClass(FiltersButton, [{
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "button",
+                { className: "button", id: "search-filters-button" },
+                React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
+            );
+        }
+    }]);
+
+    return FiltersButton;
 }(React.Component);
 
 function ExportGraphButton(props) {
@@ -1678,82 +1701,52 @@ function ExportGraphButton(props) {
     );
 }
 
-var Header = function (_React$Component15) {
-    _inherits(Header, _React$Component15);
+function Header(props) {
+    return React.createElement(
+        "div",
+        { className: "header" },
+        React.createElement(
+            "div",
+            { className: "header-corner-wrapper logo-wrapper" },
+            React.createElement("img", { className: "logo", src: "../../images/horizontal_main.PNG", alt: "Knolist Logo" })
+        ),
+        React.createElement(
+            "div",
+            { id: "project-name-div" },
+            React.createElement(
+                "h5",
+                { id: "project-name" },
+                "Current Project: ",
+                props.projectName
+            )
+        ),
+        React.createElement(
+            "div",
+            { className: "header-corner-wrapper" },
+            React.createElement(ProjectsSidebarButton, { showSidebar: props.showProjectsSidebar,
+                openProjectsSidebar: props.openProjectsSidebar,
+                closeProjectsSidebar: props.closeProjectsSidebar })
+        )
+    );
+}
 
-    function Header(props) {
-        _classCallCheck(this, Header);
-
-        return _possibleConstructorReturn(this, (Header.__proto__ || Object.getPrototypeOf(Header)).call(this, props));
+function ProjectsSidebarButton(props) {
+    if (props.showSidebar) {
+        return React.createElement(
+            "button",
+            { id: "projects-sidebar-btn", onClick: props.closeProjectsSidebar },
+            React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close", id: "close-sidebar-btn" })
+        );
     }
-
-    _createClass(Header, [{
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "div",
-                { className: "header" },
-                React.createElement(
-                    "div",
-                    { className: "header-corner-wrapper logo-wrapper" },
-                    React.createElement("img", { className: "logo", src: "../../images/horizontal_main.PNG", alt: "Knolist Logo" })
-                ),
-                React.createElement(
-                    "div",
-                    { id: "project-name-div" },
-                    React.createElement(
-                        "h5",
-                        { id: "project-name" },
-                        "Current Project: ",
-                        this.props.projectName
-                    )
-                ),
-                React.createElement(
-                    "div",
-                    { className: "header-corner-wrapper" },
-                    React.createElement(ProjectsSidebarButton, { showSidebar: this.props.showProjectsSidebar,
-                        openProjectsSidebar: this.props.openProjectsSidebar,
-                        closeProjectsSidebar: this.props.closeProjectsSidebar })
-                )
-            );
-        }
-    }]);
-
-    return Header;
-}(React.Component);
-
-var ProjectsSidebarButton = function (_React$Component16) {
-    _inherits(ProjectsSidebarButton, _React$Component16);
-
-    function ProjectsSidebarButton(props) {
-        _classCallCheck(this, ProjectsSidebarButton);
-
-        return _possibleConstructorReturn(this, (ProjectsSidebarButton.__proto__ || Object.getPrototypeOf(ProjectsSidebarButton)).call(this, props));
-    }
-
-    _createClass(ProjectsSidebarButton, [{
-        key: "render",
-        value: function render() {
-            if (this.props.showSidebar) {
-                return React.createElement(
-                    "button",
-                    { id: "projects-sidebar-btn", onClick: this.props.closeProjectsSidebar },
-                    React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close", id: "close-sidebar-btn" })
-                );
-            }
-            return React.createElement(
-                "button",
-                { id: "projects-sidebar-btn", onClick: this.props.openProjectsSidebar },
-                React.createElement(
-                    "p",
-                    null,
-                    "Your projects"
-                )
-            );
-        }
-    }]);
-
-    return ProjectsSidebarButton;
-}(React.Component);
+    return React.createElement(
+        "button",
+        { id: "projects-sidebar-btn", onClick: props.openProjectsSidebar },
+        React.createElement(
+            "p",
+            null,
+            "Your projects"
+        )
+    );
+}
 
 ReactDOM.render(React.createElement(KnolistComponents, null), document.querySelector("#knolist-page"));
