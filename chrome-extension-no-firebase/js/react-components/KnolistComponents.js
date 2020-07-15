@@ -249,24 +249,6 @@ class KnolistComponents extends React.Component {
         this.setState({fullSearchResults: null});
     }
 
-    generateFilterList() {
-        // Get list of all filters
-        const curProject = this.state.graph.curProject;
-        const graph = this.state.graph[curProject];
-        const nodeList = Object.keys(graph);
-        if (nodeList.length === 0) return [];
-        let filterList = Object.keys(graph[nodeList[0]]);
-
-        // Remove unwanted properties from filter list
-        const propertiesToRemove = ["x", "y"];
-        propertiesToRemove.forEach(property => {
-            const index = filterList.indexOf(property);
-            filterList.splice(index, 1);
-        });
-
-        return filterList;
-    }
-
     /**
      * Visually highlights nodes by changing colors and opacity
      * @param nodesToHighlight an array of ids of the nodes to be highlighted
@@ -566,7 +548,7 @@ class KnolistComponents extends React.Component {
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
                         <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}
-                                   filterList={this.generateFilterList()}
+                                   graph={this.state.graph[curProject]}
                                    fullSearchResults={this.state.fullSearchResults}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
@@ -1188,31 +1170,82 @@ class SearchBar extends React.Component {
         super(props);
 
         this.state = {
-            activeFilters: props.filterList // Start with all filters active
+            filterList: this.generateFilterList(),
+            showFilterList: false
         };
 
         this.submitSearch = this.submitSearch.bind(this);
         this.searchButtonAction = this.searchButtonAction.bind(this);
-        this.setActiveFilters = this.setActiveFilters.bind(this);
+        this.setActiveFilter = this.setActiveFilter.bind(this);
+        this.switchShowFilterList = this.switchShowFilterList.bind(this);
+    }
+
+    switchShowFilterList() {
+        this.setState({showFilterList: !this.state.showFilterList});
+    }
+
+    closeFilterList() {
+        if (this.state.showFilterList) this.switchShowFilterList();
+    }
+
+    generateFilterList() {
+        // Get list of all filters
+        const nodeList = Object.keys(this.props.graph);
+        if (nodeList.length === 0) return [];
+        let filterNames = Object.keys(this.props.graph[nodeList[0]]);
+
+        // Remove unwanted properties from filter list
+        const propertiesToRemove = ["x", "y"];
+        propertiesToRemove.forEach(property => {
+            const index = filterNames.indexOf(property);
+            filterNames.splice(index, 1);
+        });
+
+        // Create filter objects
+        let filterList = {};
+        filterNames.forEach(name => {
+            filterList[name] = {active: true};
+        });
+
+        return filterList;
+    }
+
+    setActiveFilter(name, active) {
+        let filterList = this.state.filterList;
+        filterList[name].active = active;
+        this.setState({filterList: filterList}, () => {
+            // Call search with updated filter list
+            if (this.props.fullSearchResults !== null && this.props.fullSearchResults.query !== "") {
+                this.props.fullSearch(this.props.fullSearchResults.query, this.getActiveFilters());
+            } else {
+                const query = document.getElementById("search-text").value;
+                this.props.basicSearch(query, this.getActiveFilters());
+            }
+        });
+    }
+
+    getActiveFilters() {
+        let activeFilters = [];
+        Object.keys(this.state.filterList).forEach(filter => {
+            if (this.state.filterList[filter].active) activeFilters.push(filter);
+        });
+        return activeFilters;
     }
 
     searchButtonAction() {
         const query = document.getElementById("search-text").value;
-        if (query !== "") this.props.fullSearch(query, this.state.activeFilters);
-    }
-
-    setActiveFilters(filters) {
-        this.setState({activeFilters: filters}, () => {
-            if (this.props.fullSearchResults !== null)
-                this.props.fullSearch(this.props.fullSearchResults.query, this.state.activeFilters);
-        })
+        if (query !== "") {
+            this.props.fullSearch(query, this.getActiveFilters());
+            this.closeFilterList();
+        }
     }
 
     submitSearch(searchInput) {
+        this.closeFilterList();
         if (searchInput.key === "Enter" || this.props.fullSearchResults !== null) {
-            if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.state.activeFilters);
+            if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.getActiveFilters());
         } else {
-            this.props.basicSearch(searchInput.target.value, this.state.activeFilters);
+            this.props.basicSearch(searchInput.target.value, this.getActiveFilters());
         }
     }
 
@@ -1224,37 +1257,24 @@ class SearchBar extends React.Component {
                            placeholder="Search through your project"/>
                     <img onClick={this.searchButtonAction} src="../../images/search-icon-black.png" alt="Search"/>
                 </div>
-                <Filters filterList={this.props.filterList} activeFilters={this.state.activeFilters} setActiveFilters={this.setActiveFilters}/>
+                <Filters filterList={this.state.filterList} showFilterList={this.state.showFilterList}
+                         setActiveFilter={this.setActiveFilter}
+                         switchShowFilterList={this.switchShowFilterList}/>
             </div>
         );
     }
 }
 
-class Filters extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            showFilterList: false
-        };
-
-        this.switchShowFilterList = this.switchShowFilterList.bind(this);
-    }
-
-    switchShowFilterList() {
-        this.setState({showFilterList: !this.state.showFilterList});
-    }
-
-    render() {
-        return (
-            <div>
-                <button onClick={this.switchShowFilterList} className="button" id="search-filters-button">
-                    <img src="../../images/filter-icon-black.png" alt="Filter"/>
-                </button>
-                <FiltersDropdown showFilterList={this.state.showFilterList} setActiveFilters={this.props.setActiveFilters}/>
-            </div>
-        );
-    }
+function Filters(props) {
+    return (
+        <div>
+            <button onClick={props.switchShowFilterList} className="button" id="search-filters-button">
+                <img src="../../images/filter-icon-black.png" alt="Filter"/>
+            </button>
+            <FiltersDropdown showFilterList={props.showFilterList} filterList={props.filterList}
+                             setActiveFilter={props.setActiveFilter}/>
+        </div>
+    );
 }
 
 function FiltersDropdown(props) {
@@ -1263,9 +1283,35 @@ function FiltersDropdown(props) {
 
     return (
         <div className="dropdown" style={dropdownStyle}>
-            <p className="dropdown-content">Test</p>
+            <div className="dropdown-content filters-dropdown">
+                {Object.keys(props.filterList).map(filter => <FilterItem key={filter} filter={filter}
+                                                                         filterList={props.filterList}
+                                                                         setActiveFilter={props.setActiveFilter}/>)}
+            </div>
         </div>
     );
+}
+
+class FilterItem extends React.Component {
+    constructor(props) {
+        super(props);
+        this.filterClicked = this.filterClicked.bind(this);
+    }
+
+    filterClicked() {
+        this.props.setActiveFilter(this.props.filter, !this.props.filterList[this.props.filter].active);
+    }
+
+    render() {
+        return (
+            <div className="filter-item" onClick={this.filterClicked}>
+                <p>{Utils.getNodePropertyTitle(this.props.filter)}</p>
+                {this.props.filterList[this.props.filter].active ?
+                    <img src="../../images/checkmark-icon-green.png" alt="Active"/> :
+                    null}
+            </div>
+        );
+    }
 }
 
 function ExportGraphButton(props) {

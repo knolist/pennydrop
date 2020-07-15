@@ -351,3 +351,39 @@ li {
     text-align: center;
     margin: 0 7px;
 }
+
+.filters-dropdown {
+    width: 200px;
+    max-height: 300px;
+    right: 0;
+    top: 5px;
+}
+
+.filter-item {
+    width: 100%;
+    transition: 0.3s;
+    font-size: 16px;
+    padding: 2px 2px 2px 4px;
+    display: flex;
+    justify-content: space-between;
+    background-color: white;
+}
+
+.filter-item:hover {
+    background-color: #a6e3e3;
+    cursor: pointer;
+}
+
+.filter-item a {
+    width: auto;
+}
+
+.filter-item img {
+    height: 16px;
+    width: 16px;
+    margin-right: 10px;
+}
+
+.filter-item p {
+    margin: 0;
+}

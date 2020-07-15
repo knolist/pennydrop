@@ -314,25 +314,6 @@ var KnolistComponents = function (_React$Component) {
             this.highlightNodes(null); // Reset highlighted nodes
             this.setState({ fullSearchResults: null });
         }
-    }, {
-        key: "generateFilterList",
-        value: function generateFilterList() {
-            // Get list of all filters
-            var curProject = this.state.graph.curProject;
-            var graph = this.state.graph[curProject];
-            var nodeList = Object.keys(graph);
-            if (nodeList.length === 0) return [];
-            var filterList = Object.keys(graph[nodeList[0]]);
-
-            // Remove unwanted properties from filter list
-            var propertiesToRemove = ["x", "y"];
-            propertiesToRemove.forEach(function (property) {
-                var index = filterList.indexOf(property);
-                filterList.splice(index, 1);
-            });
-
-            return filterList;
-        }
 
         /**
          * Visually highlights nodes by changing colors and opacity
@@ -678,7 +659,7 @@ var KnolistComponents = function (_React$Component) {
                         { id: "buttons-bar" },
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
                         React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch,
-                            filterList: this.generateFilterList(),
+                            graph: this.state.graph[curProject],
                             fullSearchResults: this.state.fullSearchResults }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
@@ -1641,43 +1622,101 @@ var SearchBar = function (_React$Component11) {
         var _this30 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
         _this30.state = {
-            activeFilters: props.filterList // Start with all filters active
+            filterList: _this30.generateFilterList(),
+            showFilterList: false
         };
 
         _this30.submitSearch = _this30.submitSearch.bind(_this30);
         _this30.searchButtonAction = _this30.searchButtonAction.bind(_this30);
-        _this30.setActiveFilters = _this30.setActiveFilters.bind(_this30);
+        _this30.setActiveFilter = _this30.setActiveFilter.bind(_this30);
+        _this30.switchShowFilterList = _this30.switchShowFilterList.bind(_this30);
         return _this30;
     }
 
     _createClass(SearchBar, [{
+        key: "switchShowFilterList",
+        value: function switchShowFilterList() {
+            this.setState({ showFilterList: !this.state.showFilterList });
+        }
+    }, {
+        key: "closeFilterList",
+        value: function closeFilterList() {
+            if (this.state.showFilterList) this.switchShowFilterList();
+        }
+    }, {
+        key: "generateFilterList",
+        value: function generateFilterList() {
+            // Get list of all filters
+            var nodeList = Object.keys(this.props.graph);
+            if (nodeList.length === 0) return [];
+            var filterNames = Object.keys(this.props.graph[nodeList[0]]);
+
+            // Remove unwanted properties from filter list
+            var propertiesToRemove = ["x", "y"];
+            propertiesToRemove.forEach(function (property) {
+                var index = filterNames.indexOf(property);
+                filterNames.splice(index, 1);
+            });
+
+            // Create filter objects
+            var filterList = {};
+            filterNames.forEach(function (name) {
+                filterList[name] = { active: true };
+            });
+
+            return filterList;
+        }
+    }, {
+        key: "setActiveFilter",
+        value: function setActiveFilter(name, active) {
+            var _this31 = this;
+
+            var filterList = this.state.filterList;
+            filterList[name].active = active;
+            this.setState({ filterList: filterList }, function () {
+                // Call search with updated filter list
+                if (_this31.props.fullSearchResults !== null && _this31.props.fullSearchResults.query !== "") {
+                    _this31.props.fullSearch(_this31.props.fullSearchResults.query, _this31.getActiveFilters());
+                } else {
+                    var query = document.getElementById("search-text").value;
+                    _this31.props.basicSearch(query, _this31.getActiveFilters());
+                }
+            });
+        }
+    }, {
+        key: "getActiveFilters",
+        value: function getActiveFilters() {
+            var _this32 = this;
+
+            var activeFilters = [];
+            Object.keys(this.state.filterList).forEach(function (filter) {
+                if (_this32.state.filterList[filter].active) activeFilters.push(filter);
+            });
+            return activeFilters;
+        }
+    }, {
         key: "searchButtonAction",
         value: function searchButtonAction() {
             var query = document.getElementById("search-text").value;
-            if (query !== "") this.props.fullSearch(query, this.state.activeFilters);
-        }
-    }, {
-        key: "setActiveFilters",
-        value: function setActiveFilters(filters) {
-            var _this31 = this;
-
-            this.setState({ activeFilters: filters }, function () {
-                if (_this31.props.fullSearchResults !== null) _this31.props.fullSearch(_this31.props.fullSearchResults.query, _this31.state.activeFilters);
-            });
+            if (query !== "") {
+                this.props.fullSearch(query, this.getActiveFilters());
+                this.closeFilterList();
+            }
         }
     }, {
         key: "submitSearch",
         value: function submitSearch(searchInput) {
+            this.closeFilterList();
             if (searchInput.key === "Enter" || this.props.fullSearchResults !== null) {
-                if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.state.activeFilters);
+                if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.getActiveFilters());
             } else {
-                this.props.basicSearch(searchInput.target.value, this.state.activeFilters);
+                this.props.basicSearch(searchInput.target.value, this.getActiveFilters());
             }
         }
     }, {
         key: "render",
         value: function render() {
-            var _this32 = this;
+            var _this33 = this;
 
             return React.createElement(
                 "div",
@@ -1686,12 +1725,14 @@ var SearchBar = function (_React$Component11) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this32.submitSearch(searchInput);
+                            return _this33.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
                 ),
-                React.createElement(Filters, { filterList: this.props.filterList, activeFilters: this.state.activeFilters, setActiveFilters: this.setActiveFilters })
+                React.createElement(Filters, { filterList: this.state.filterList, showFilterList: this.state.showFilterList,
+                    setActiveFilter: this.setActiveFilter,
+                    switchShowFilterList: this.switchShowFilterList })
             );
         }
     }]);
@@ -1699,45 +1740,19 @@ var SearchBar = function (_React$Component11) {
     return SearchBar;
 }(React.Component);
 
-var Filters = function (_React$Component12) {
-    _inherits(Filters, _React$Component12);
-
-    function Filters(props) {
-        _classCallCheck(this, Filters);
-
-        var _this33 = _possibleConstructorReturn(this, (Filters.__proto__ || Object.getPrototypeOf(Filters)).call(this, props));
-
-        _this33.state = {
-            showFilterList: false
-        };
-
-        _this33.switchShowFilterList = _this33.switchShowFilterList.bind(_this33);
-        return _this33;
-    }
-
-    _createClass(Filters, [{
-        key: "switchShowFilterList",
-        value: function switchShowFilterList() {
-            this.setState({ showFilterList: !this.state.showFilterList });
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            return React.createElement(
-                "div",
-                null,
-                React.createElement(
-                    "button",
-                    { onClick: this.switchShowFilterList, className: "button", id: "search-filters-button" },
-                    React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
-                ),
-                React.createElement(FiltersDropdown, { showFilterList: this.state.showFilterList, setActiveFilters: this.props.setActiveFilters })
-            );
-        }
-    }]);
-
-    return Filters;
-}(React.Component);
+function Filters(props) {
+    return React.createElement(
+        "div",
+        null,
+        React.createElement(
+            "button",
+            { onClick: props.switchShowFilterList, className: "button", id: "search-filters-button" },
+            React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
+        ),
+        React.createElement(FiltersDropdown, { showFilterList: props.showFilterList, filterList: props.filterList,
+            setActiveFilter: props.setActiveFilter })
+    );
+}
 
 function FiltersDropdown(props) {
     var dropdownStyle = { display: "none" };
@@ -1747,12 +1762,52 @@ function FiltersDropdown(props) {
         "div",
         { className: "dropdown", style: dropdownStyle },
         React.createElement(
-            "p",
-            { className: "dropdown-content" },
-            "Test"
+            "div",
+            { className: "dropdown-content filters-dropdown" },
+            Object.keys(props.filterList).map(function (filter) {
+                return React.createElement(FilterItem, { key: filter, filter: filter,
+                    filterList: props.filterList,
+                    setActiveFilter: props.setActiveFilter });
+            })
         )
     );
 }
+
+var FilterItem = function (_React$Component12) {
+    _inherits(FilterItem, _React$Component12);
+
+    function FilterItem(props) {
+        _classCallCheck(this, FilterItem);
+
+        var _this34 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
+
+        _this34.filterClicked = _this34.filterClicked.bind(_this34);
+        return _this34;
+    }
+
+    _createClass(FilterItem, [{
+        key: "filterClicked",
+        value: function filterClicked() {
+            this.props.setActiveFilter(this.props.filter, !this.props.filterList[this.props.filter].active);
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "filter-item", onClick: this.filterClicked },
+                React.createElement(
+                    "p",
+                    null,
+                    Utils.getNodePropertyTitle(this.props.filter)
+                ),
+                this.props.filterList[this.props.filter].active ? React.createElement("img", { src: "../../images/checkmark-icon-green.png", alt: "Active" }) : null
+            );
+        }
+    }]);
+
+    return FilterItem;
+}(React.Component);
 
 function ExportGraphButton(props) {
     return React.createElement(
