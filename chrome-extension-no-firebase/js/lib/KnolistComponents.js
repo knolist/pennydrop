@@ -228,8 +228,8 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "addNode",
         value: function addNode(nodeData, callback) {
+            this.switchShowNewNodeForm();
             this.setState({
-                showNewNodeForm: !this.state.showNewNodeForm,
                 newNodeData: nodeData
             });
         }
@@ -260,15 +260,33 @@ var KnolistComponents = function (_React$Component) {
             }
         }
     }, {
+        key: "closeNewNodeForm",
+        value: function closeNewNodeForm() {
+            document.getElementById("new-node-form").reset();
+            this.switchShowNewNodeForm();
+        }
+    }, {
         key: "switchShowNewNodeForm",
         value: function switchShowNewNodeForm() {
-            this.setState({ showNewNodeForm: !this.state.showNewNodeForm });
+            var _this7 = this;
+
+            this.setState({ showNewNodeForm: !this.state.showNewNodeForm }, function () {
+                // Set focus to the input field
+                if (_this7.state.showNewNodeForm) {
+                    document.getElementById("url").focus();
+                }
+            });
         }
     }, {
         key: "switchShowNewNotesForm",
         value: function switchShowNewNotesForm() {
+            var _this8 = this;
+
             document.getElementById("new-notes-form").reset();
-            this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
+            this.setState({ showNewNotesForm: !this.state.showNewNotesForm }, function () {
+                // Set focus to the input field if the notes form is open
+                if (_this8.state.showNewNotesForm) document.getElementById("notes").focus();
+            });
         }
     }, {
         key: "openProjectsSidebar",
@@ -283,12 +301,6 @@ var KnolistComponents = function (_React$Component) {
             this.setState({ showProjectsSidebar: false });
             document.getElementById("projects-sidebar").style.width = "0";
             document.getElementById("projects-sidebar-btn").style.right = "0";
-        }
-    }, {
-        key: "closeNewNodeForm",
-        value: function closeNewNodeForm() {
-            document.getElementById("new-node-form").reset();
-            this.switchShowNewNodeForm();
         }
     }, {
         key: "setFullSearchResults",
@@ -329,7 +341,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "highlightNodes",
         value: function highlightNodes(nodesToHighlight) {
-            var _this7 = this;
+            var _this9 = this;
 
             // If the list is null, reset all nodes to the default
             if (nodesToHighlight === null) {
@@ -338,7 +350,7 @@ var KnolistComponents = function (_React$Component) {
                     node.color = {
                         background: nodeBackgroundDefaultColor
                     };
-                    _this7.state.visNodes.update(node);
+                    _this9.state.visNodes.update(node);
                 });
                 return;
             }
@@ -353,7 +365,7 @@ var KnolistComponents = function (_React$Component) {
                         background: nodeHighlightDefaultColor
                     };
                 }
-                _this7.state.visNodes.update(node);
+                _this9.state.visNodes.update(node);
             });
         }
 
@@ -523,7 +535,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "setupVisGraph",
         value: function setupVisGraph() {
-            var _this8 = this;
+            var _this10 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -585,7 +597,7 @@ var KnolistComponents = function (_React$Component) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this8.handleClickedNode(nodeId);
+                    _this10.handleClickedNode(nodeId);
                 }
             });
 
@@ -613,7 +625,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this9 = this;
+            var _this11 = this;
 
             this.getDataFromServer();
             this.checkIfLocalServer();
@@ -622,7 +634,7 @@ var KnolistComponents = function (_React$Component) {
                 chrome.tabs.get(activeInfo.tabId, function (tab) {
                     if (tab.title === "Knolist") {
                         // Update data
-                        _this9.getDataFromServer();
+                        _this11.getDataFromServer();
                     }
                 });
             });
@@ -705,10 +717,10 @@ var FullSearchResults = function (_React$Component2) {
         //
         // this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
         // this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
-        var _this10 = _possibleConstructorReturn(this, (FullSearchResults.__proto__ || Object.getPrototypeOf(FullSearchResults)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (FullSearchResults.__proto__ || Object.getPrototypeOf(FullSearchResults)).call(this, props));
 
-        _this10.closeSearch = _this10.closeSearch.bind(_this10);
-        return _this10;
+        _this12.closeSearch = _this12.closeSearch.bind(_this12);
+        return _this12;
     }
 
     // setExpandedSearchResult(url) {
@@ -728,7 +740,7 @@ var FullSearchResults = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this11 = this;
+            var _this13 = this;
 
             if (this.props.fullSearchResults === null) return null;
 
@@ -755,12 +767,12 @@ var FullSearchResults = function (_React$Component2) {
                 ),
                 this.props.fullSearchResults.results.map(function (result) {
                     return React.createElement(SearchResultItem, { key: result.url,
-                        item: _this11.props.graph[result.url]
+                        item: _this13.props.graph[result.url]
                         // expandedSearchResult={this.state.expandedSearchResult}
                         // setExpandedSearchResult={this.setExpandedSearchResult}
                         // resetExpandedSearchResult={this.resetExpandedSearchResult}
                         , result: result,
-                        setSelectedNode: _this11.props.setSelectedNode });
+                        setSelectedNode: _this13.props.setSelectedNode });
                 })
             );
         }
@@ -775,10 +787,10 @@ var SearchResultItem = function (_React$Component3) {
     function SearchResultItem(props) {
         _classCallCheck(this, SearchResultItem);
 
-        var _this12 = _possibleConstructorReturn(this, (SearchResultItem.__proto__ || Object.getPrototypeOf(SearchResultItem)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (SearchResultItem.__proto__ || Object.getPrototypeOf(SearchResultItem)).call(this, props));
 
-        _this12.itemAction = _this12.itemAction.bind(_this12);
-        return _this12;
+        _this14.itemAction = _this14.itemAction.bind(_this14);
+        return _this14;
     }
 
     _createClass(SearchResultItem, [{
@@ -868,21 +880,21 @@ var ProjectsSidebar = function (_React$Component4) {
     function ProjectsSidebar(props) {
         _classCallCheck(this, ProjectsSidebar);
 
-        var _this13 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
+        var _this15 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
 
-        _this13.state = {
+        _this15.state = {
             showNewProjectForm: false,
             projectForDeletion: null,
             alertMessage: null,
             invalidTitle: null
         };
 
-        _this13.switchShowNewProjectForm = _this13.switchShowNewProjectForm.bind(_this13);
-        _this13.setProjectForDeletion = _this13.setProjectForDeletion.bind(_this13);
-        _this13.resetProjectForDeletion = _this13.resetProjectForDeletion.bind(_this13);
-        _this13.setAlertMessage = _this13.setAlertMessage.bind(_this13);
-        _this13.setInvalidTitle = _this13.setInvalidTitle.bind(_this13);
-        return _this13;
+        _this15.switchShowNewProjectForm = _this15.switchShowNewProjectForm.bind(_this15);
+        _this15.setProjectForDeletion = _this15.setProjectForDeletion.bind(_this15);
+        _this15.resetProjectForDeletion = _this15.resetProjectForDeletion.bind(_this15);
+        _this15.setAlertMessage = _this15.setAlertMessage.bind(_this15);
+        _this15.setInvalidTitle = _this15.setInvalidTitle.bind(_this15);
+        return _this15;
     }
 
     _createClass(ProjectsSidebar, [{
@@ -908,17 +920,22 @@ var ProjectsSidebar = function (_React$Component4) {
     }, {
         key: "switchShowNewProjectForm",
         value: function switchShowNewProjectForm() {
+            var _this16 = this;
+
             document.getElementById("new-project-form").reset();
             this.setState({
                 showNewProjectForm: !this.state.showNewProjectForm,
                 alertMessage: null,
                 invalidTitle: null
+            }, function () {
+                // Set focus to the input field
+                if (_this16.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this14 = this;
+            var _this17 = this;
 
             return React.createElement(
                 "div",
@@ -938,10 +955,10 @@ var ProjectsSidebar = function (_React$Component4) {
                     "div",
                     { id: "sidebar-content" },
                     Object.keys(this.props.graph).map(function (project) {
-                        return React.createElement(ProjectItem, { key: project, graph: _this14.props.graph,
+                        return React.createElement(ProjectItem, { key: project, graph: _this17.props.graph,
                             project: project,
-                            refresh: _this14.props.refresh,
-                            setForDeletion: _this14.setProjectForDeletion });
+                            refresh: _this17.props.refresh,
+                            setForDeletion: _this17.setProjectForDeletion });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
@@ -970,20 +987,20 @@ var ConfirmProjectDeletionWindow = function (_React$Component5) {
     function ConfirmProjectDeletionWindow(props) {
         _classCallCheck(this, ConfirmProjectDeletionWindow);
 
-        var _this15 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
+        var _this18 = _possibleConstructorReturn(this, (ConfirmProjectDeletionWindow.__proto__ || Object.getPrototypeOf(ConfirmProjectDeletionWindow)).call(this, props));
 
-        _this15.deleteProject = _this15.deleteProject.bind(_this15);
-        return _this15;
+        _this18.deleteProject = _this18.deleteProject.bind(_this18);
+        return _this18;
     }
 
     _createClass(ConfirmProjectDeletionWindow, [{
         key: "deleteProject",
         value: function deleteProject() {
-            var _this16 = this;
+            var _this19 = this;
 
             this.props.resetForDeletion();
             deleteProjectFromGraph(this.props.project).then(function () {
-                return _this16.props.refresh();
+                return _this19.props.refresh();
             });
         }
     }, {
@@ -1064,16 +1081,16 @@ var NewProjectForm = function (_React$Component6) {
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this17 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this17.handleSubmit = _this17.handleSubmit.bind(_this17);
-        return _this17;
+        _this20.handleSubmit = _this20.handleSubmit.bind(_this20);
+        return _this20;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this18 = this;
+            var _this21 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -1091,7 +1108,7 @@ var NewProjectForm = function (_React$Component6) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this18.props.refresh();
+                    return _this21.props.refresh();
                 });
 
                 // Reset entry and close form
@@ -1168,22 +1185,22 @@ var ProjectItem = function (_React$Component7) {
     function ProjectItem(props) {
         _classCallCheck(this, ProjectItem);
 
-        var _this19 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+        var _this22 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
-        _this19.switchProject = _this19.switchProject.bind(_this19);
-        _this19.deleteProject = _this19.deleteProject.bind(_this19);
-        return _this19;
+        _this22.switchProject = _this22.switchProject.bind(_this22);
+        _this22.deleteProject = _this22.deleteProject.bind(_this22);
+        return _this22;
     }
 
     _createClass(ProjectItem, [{
         key: "switchProject",
         value: function switchProject(data) {
-            var _this20 = this;
+            var _this23 = this;
 
             // Only switch if the click was on the item, not on the delete button
             if (data.target.className === "project-item" || data.target.tagName === "H2") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
-                    return _this20.props.refresh();
+                    return _this23.props.refresh();
                 });
             }
         }
@@ -1231,16 +1248,16 @@ var NewNodeForm = function (_React$Component8) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this21 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this24 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this21.handleSubmit = _this21.handleSubmit.bind(_this21);
-        return _this21;
+        _this24.handleSubmit = _this24.handleSubmit.bind(_this24);
+        return _this24;
     }
 
     _createClass(NewNodeForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this22 = this;
+            var _this25 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
@@ -1252,9 +1269,9 @@ var NewNodeForm = function (_React$Component8) {
             var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contentExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this22.props.nodeData.x, _this22.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this25.props.nodeData.x, _this25.props.nodeData.y);
                 }).then(function () {
-                    return _this22.props.refresh();
+                    return _this25.props.refresh();
                 });
             });
 
@@ -1312,22 +1329,22 @@ var PageView = function (_React$Component9) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this23 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this26 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this23.deleteNode = _this23.deleteNode.bind(_this23);
-        return _this23;
+        _this26.deleteNode = _this26.deleteNode.bind(_this26);
+        return _this26;
     }
 
     _createClass(PageView, [{
         key: "deleteNode",
         value: function deleteNode() {
-            var _this24 = this;
+            var _this27 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this24.props.resetSelectedNode();
-                _this24.props.refresh();
+                _this27.props.resetSelectedNode();
+                _this27.props.refresh();
             });
         }
     }, {
@@ -1512,20 +1529,20 @@ var NotesList = function (_React$Component10) {
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this25 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this28 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this25.handleSubmit = _this25.handleSubmit.bind(_this25);
-        return _this25;
+        _this28.handleSubmit = _this28.handleSubmit.bind(_this28);
+        return _this28;
     }
 
     _createClass(NotesList, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this26 = this;
+            var _this29 = this;
 
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this26.props.refresh();
+                _this29.props.refresh();
             });
             this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
@@ -1619,15 +1636,15 @@ var SearchBar = function (_React$Component11) {
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this27 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this30 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this27.state = {
+        _this30.state = {
             activeFilters: props.filterList // Start with all filters active
         };
 
-        _this27.submitSearch = _this27.submitSearch.bind(_this27);
-        _this27.searchButtonAction = _this27.searchButtonAction.bind(_this27);
-        return _this27;
+        _this30.submitSearch = _this30.submitSearch.bind(_this30);
+        _this30.searchButtonAction = _this30.searchButtonAction.bind(_this30);
+        return _this30;
     }
 
     _createClass(SearchBar, [{
@@ -1648,7 +1665,7 @@ var SearchBar = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this28 = this;
+            var _this31 = this;
 
             return React.createElement(
                 "div",
@@ -1657,7 +1674,7 @@ var SearchBar = function (_React$Component11) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this28.submitSearch(searchInput);
+                            return _this31.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })

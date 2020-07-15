@@ -180,9 +180,8 @@ class KnolistComponents extends React.Component {
     }
 
     addNode(nodeData, callback) {
-        this.setState(
-            {
-                showNewNodeForm: !this.state.showNewNodeForm,
+        this.switchShowNewNodeForm();
+        this.setState({
                 newNodeData: nodeData
             });
     }
@@ -206,13 +205,26 @@ class KnolistComponents extends React.Component {
         }
     }
 
+    closeNewNodeForm() {
+        document.getElementById("new-node-form").reset();
+        this.switchShowNewNodeForm();
+    }
+
     switchShowNewNodeForm() {
-        this.setState({showNewNodeForm: !this.state.showNewNodeForm});
+        this.setState({showNewNodeForm: !this.state.showNewNodeForm}, () => {
+            // Set focus to the input field
+            if (this.state.showNewNodeForm) {
+                document.getElementById("url").focus();
+            }
+        });
     }
 
     switchShowNewNotesForm() {
         document.getElementById("new-notes-form").reset();
-        this.setState({showNewNotesForm: !this.state.showNewNotesForm});
+        this.setState({showNewNotesForm: !this.state.showNewNotesForm}, () => {
+            // Set focus to the input field if the notes form is open
+            if (this.state.showNewNotesForm) document.getElementById("notes").focus();
+        });
     }
 
     openProjectsSidebar() {
@@ -225,11 +237,6 @@ class KnolistComponents extends React.Component {
         this.setState({showProjectsSidebar: false});
         document.getElementById("projects-sidebar").style.width = "0";
         document.getElementById("projects-sidebar-btn").style.right = "0";
-    }
-
-    closeNewNodeForm() {
-        document.getElementById("new-node-form").reset();
-        this.switchShowNewNodeForm();
     }
 
     setFullSearchResults(results) {
@@ -734,6 +741,9 @@ class ProjectsSidebar extends React.Component {
             showNewProjectForm: !this.state.showNewProjectForm,
             alertMessage: null,
             invalidTitle: null
+        }, () => {
+            // Set focus to the input field
+            if (this.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
         });
     }
 

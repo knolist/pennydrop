@@ -36,7 +36,9 @@ class PopupComponents extends React.Component {
 
     switchShowNewNotesForm() {
         document.getElementById("new-notes-form").reset();
-        this.setState({showNewNotesForm: !this.state.showNewNotesForm});
+        this.setState({showNewNotesForm: !this.state.showNewNotesForm}, () => {
+            if (this.state.showNewNotesForm) document.getElementById("notes").focus();
+        });
     }
 
     getDataFromServer() {
@@ -141,6 +143,9 @@ class ProjectList extends React.Component {
             showNewProjectForm: !this.state.showNewProjectForm,
             alertMessage: null,
             invalidTitle: null
+        }, () => {
+            // Set focus to input field
+            if (this.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
         });
     }
 
