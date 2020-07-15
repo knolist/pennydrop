@@ -321,6 +321,7 @@ var KnolistComponents = function (_React$Component) {
             var curProject = this.state.graph.curProject;
             var graph = this.state.graph[curProject];
             var nodeList = Object.keys(graph);
+            if (nodeList.length === 0) return [];
             var filterList = Object.keys(graph[nodeList[0]]);
 
             // Remove unwanted properties from filter list
@@ -677,7 +678,8 @@ var KnolistComponents = function (_React$Component) {
                         { id: "buttons-bar" },
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
                         React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch,
-                            filterList: this.generateFilterList() }),
+                            filterList: this.generateFilterList(),
+                            fullSearchResults: this.state.fullSearchResults }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
                     React.createElement("div", { id: "graph", style: graphStyle }),
@@ -1644,6 +1646,7 @@ var SearchBar = function (_React$Component11) {
 
         _this30.submitSearch = _this30.submitSearch.bind(_this30);
         _this30.searchButtonAction = _this30.searchButtonAction.bind(_this30);
+        _this30.setActiveFilters = _this30.setActiveFilters.bind(_this30);
         return _this30;
     }
 
@@ -1654,9 +1657,18 @@ var SearchBar = function (_React$Component11) {
             if (query !== "") this.props.fullSearch(query, this.state.activeFilters);
         }
     }, {
+        key: "setActiveFilters",
+        value: function setActiveFilters(filters) {
+            var _this31 = this;
+
+            this.setState({ activeFilters: filters }, function () {
+                if (_this31.props.fullSearchResults !== null) _this31.props.fullSearch(_this31.props.fullSearchResults.query, _this31.state.activeFilters);
+            });
+        }
+    }, {
         key: "submitSearch",
         value: function submitSearch(searchInput) {
-            if (searchInput.key === "Enter") {
+            if (searchInput.key === "Enter" || this.props.fullSearchResults !== null) {
                 if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.state.activeFilters);
             } else {
                 this.props.basicSearch(searchInput.target.value, this.state.activeFilters);
@@ -1665,7 +1677,7 @@ var SearchBar = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this31 = this;
+            var _this32 = this;
 
             return React.createElement(
                 "div",
@@ -1674,12 +1686,12 @@ var SearchBar = function (_React$Component11) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this31.submitSearch(searchInput);
+                            return _this32.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
                 ),
-                React.createElement(FiltersButton, { filterList: this.props.filterList, activeFilters: this.state.activeFilters })
+                React.createElement(Filters, { filterList: this.props.filterList, activeFilters: this.state.activeFilters, setActiveFilters: this.setActiveFilters })
             );
         }
     }]);
@@ -1687,28 +1699,60 @@ var SearchBar = function (_React$Component11) {
     return SearchBar;
 }(React.Component);
 
-var FiltersButton = function (_React$Component12) {
-    _inherits(FiltersButton, _React$Component12);
+var Filters = function (_React$Component12) {
+    _inherits(Filters, _React$Component12);
 
-    function FiltersButton() {
-        _classCallCheck(this, FiltersButton);
+    function Filters(props) {
+        _classCallCheck(this, Filters);
 
-        return _possibleConstructorReturn(this, (FiltersButton.__proto__ || Object.getPrototypeOf(FiltersButton)).apply(this, arguments));
+        var _this33 = _possibleConstructorReturn(this, (Filters.__proto__ || Object.getPrototypeOf(Filters)).call(this, props));
+
+        _this33.state = {
+            showFilterList: false
+        };
+
+        _this33.switchShowFilterList = _this33.switchShowFilterList.bind(_this33);
+        return _this33;
     }
 
-    _createClass(FiltersButton, [{
+    _createClass(Filters, [{
+        key: "switchShowFilterList",
+        value: function switchShowFilterList() {
+            this.setState({ showFilterList: !this.state.showFilterList });
+        }
+    }, {
         key: "render",
         value: function render() {
             return React.createElement(
-                "button",
-                { className: "button", id: "search-filters-button" },
-                React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
+                "div",
+                null,
+                React.createElement(
+                    "button",
+                    { onClick: this.switchShowFilterList, className: "button", id: "search-filters-button" },
+                    React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
+                ),
+                React.createElement(FiltersDropdown, { showFilterList: this.state.showFilterList, setActiveFilters: this.props.setActiveFilters })
             );
         }
     }]);
 
-    return FiltersButton;
+    return Filters;
 }(React.Component);
+
+function FiltersDropdown(props) {
+    var dropdownStyle = { display: "none" };
+    if (props.showFilterList) dropdownStyle = { display: "block" };
+
+    return React.createElement(
+        "div",
+        { className: "dropdown", style: dropdownStyle },
+        React.createElement(
+            "p",
+            { className: "dropdown-content" },
+            "Test"
+        )
+    );
+}
 
 function ExportGraphButton(props) {
     return React.createElement(

@@ -182,8 +182,8 @@ class KnolistComponents extends React.Component {
     addNode(nodeData, callback) {
         this.switchShowNewNodeForm();
         this.setState({
-                newNodeData: nodeData
-            });
+            newNodeData: nodeData
+        });
     }
 
     deleteEdge(data, callback) {
@@ -254,6 +254,7 @@ class KnolistComponents extends React.Component {
         const curProject = this.state.graph.curProject;
         const graph = this.state.graph[curProject];
         const nodeList = Object.keys(graph);
+        if (nodeList.length === 0) return [];
         let filterList = Object.keys(graph[nodeList[0]]);
 
         // Remove unwanted properties from filter list
@@ -565,7 +566,8 @@ class KnolistComponents extends React.Component {
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
                         <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}
-                                   filterList={this.generateFilterList()}/>
+                                   filterList={this.generateFilterList()}
+                                   fullSearchResults={this.state.fullSearchResults}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph" style={graphStyle}/>
@@ -1191,6 +1193,7 @@ class SearchBar extends React.Component {
 
         this.submitSearch = this.submitSearch.bind(this);
         this.searchButtonAction = this.searchButtonAction.bind(this);
+        this.setActiveFilters = this.setActiveFilters.bind(this);
     }
 
     searchButtonAction() {
@@ -1198,8 +1201,15 @@ class SearchBar extends React.Component {
         if (query !== "") this.props.fullSearch(query, this.state.activeFilters);
     }
 
+    setActiveFilters(filters) {
+        this.setState({activeFilters: filters}, () => {
+            if (this.props.fullSearchResults !== null)
+                this.props.fullSearch(this.props.fullSearchResults.query, this.state.activeFilters);
+        })
+    }
+
     submitSearch(searchInput) {
-        if (searchInput.key === "Enter") {
+        if (searchInput.key === "Enter" || this.props.fullSearchResults !== null) {
             if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.state.activeFilters);
         } else {
             this.props.basicSearch(searchInput.target.value, this.state.activeFilters);
@@ -1214,20 +1224,48 @@ class SearchBar extends React.Component {
                            placeholder="Search through your project"/>
                     <img onClick={this.searchButtonAction} src="../../images/search-icon-black.png" alt="Search"/>
                 </div>
-                <FiltersButton filterList={this.props.filterList} activeFilters={this.state.activeFilters}/>
+                <Filters filterList={this.props.filterList} activeFilters={this.state.activeFilters} setActiveFilters={this.setActiveFilters}/>
             </div>
         );
     }
 }
 
-class FiltersButton extends React.Component {
+class Filters extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            showFilterList: false
+        };
+
+        this.switchShowFilterList = this.switchShowFilterList.bind(this);
+    }
+
+    switchShowFilterList() {
+        this.setState({showFilterList: !this.state.showFilterList});
+    }
+
     render() {
         return (
-            <button className="button" id="search-filters-button">
-                <img src="../../images/filter-icon-black.png" alt="Filter"/>
-            </button>
+            <div>
+                <button onClick={this.switchShowFilterList} className="button" id="search-filters-button">
+                    <img src="../../images/filter-icon-black.png" alt="Filter"/>
+                </button>
+                <FiltersDropdown showFilterList={this.state.showFilterList} setActiveFilters={this.props.setActiveFilters}/>
+            </div>
         );
     }
+}
+
+function FiltersDropdown(props) {
+    let dropdownStyle = {display: "none"};
+    if (props.showFilterList) dropdownStyle = {display: "block"};
+
+    return (
+        <div className="dropdown" style={dropdownStyle}>
+            <p className="dropdown-content">Test</p>
+        </div>
+    );
 }
 
 function ExportGraphButton(props) {
