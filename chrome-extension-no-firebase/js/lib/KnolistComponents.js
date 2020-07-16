@@ -541,12 +541,15 @@ var KnolistComponents = function (_React$Component) {
                     size: 16,
                     margin: 10,
                     physics: false,
-                    chosen: true,
+                    chosen: false,
                     font: {
                         face: "Product Sans"
                     },
                     color: {
                         background: nodeBackgroundDefaultColor
+                    },
+                    widthConstraint: {
+                        maximum: 500
                     }
                 },
                 edges: {
