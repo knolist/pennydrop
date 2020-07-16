@@ -31,7 +31,6 @@ class KnolistComponents extends React.Component {
             showProjectsSidebar: false, // Whether or not to show the projects sidebar
             localServer: false, // Set to true if the server is being run locally
             fullSearchResults: null, // Null when no search was made, search result object when searching (will hide the mind map)
-            closeFilterDropdown: false
         };
 
         // Bind functions that need to be passed as parameters
@@ -57,18 +56,14 @@ class KnolistComponents extends React.Component {
         this.resetFullSearchResults = this.resetFullSearchResults.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
-        window.onclick = (event) => {
+        document.body.addEventListener("click", (event) => {
             if (event.target.classList.contains("modal")) {
-                // Close modal when clicking outside
                 this.closeModals();
-            } else if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) &&
-                !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
-                this.closeFilterDropdown();
             }
-        };
+        });
 
         // Set up listener to close different elements by pressing Escape
-        window.onkeyup = (event) => {
+        document.body.addEventListener("keyup", (event) => {
             if (event.key === "Escape") {
                 if (!this.closeModals()) { // Prioritize closing modals
                     if (this.state.fullSearchResults !== null) {
@@ -76,11 +71,7 @@ class KnolistComponents extends React.Component {
                     }
                 }
             }
-        };
-    }
-
-    closeFilterDropdown() {
-        this.setState({closeFilterDropdown: !this.state.closeFilterDropdown});
+        });
     }
 
     // Return true if a modal was closed. Used to prioritize modal closing
@@ -279,6 +270,9 @@ class KnolistComponents extends React.Component {
         this.state.visNodes.forEach(node => {
             if (!nodesToHighlight.includes(node.id)) {
                 node.opacity = 0.3;
+                node.color = {
+                    background: nodeBackgroundDefaultColor
+                }
             } else {
                 node.opacity = 1;
                 node.color = {
@@ -558,8 +552,7 @@ class KnolistComponents extends React.Component {
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
                         <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}
                                    graph={this.state.graph[curProject]}
-                                   fullSearchResults={this.state.fullSearchResults}
-                                   closeFilterDropdown={this.state.closeFilterDropdown}/>
+                                   fullSearchResults={this.state.fullSearchResults}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
                     <div id="graph" style={graphStyle}/>
@@ -1189,6 +1182,14 @@ class SearchBar extends React.Component {
         this.setActiveFilter = this.setActiveFilter.bind(this);
         this.switchShowFilterList = this.switchShowFilterList.bind(this);
         this.setAllFilters = this.setAllFilters.bind(this);
+
+        // Add listener to close filter when clicking outside
+        document.body.addEventListener("click", (event) => {
+            if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) &&
+                !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
+                this.closeFilterList();
+            }
+        })
     }
 
     switchShowFilterList() {
@@ -1270,10 +1271,6 @@ class SearchBar extends React.Component {
         } else {
             this.props.basicSearch(searchInput.target.value, this.getActiveFilters());
         }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.closeFilterDropdown !== this.props.closeFilterDropdown) this.closeFilterList();
     }
 
     render() {

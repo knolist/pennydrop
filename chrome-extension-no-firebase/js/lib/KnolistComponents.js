@@ -46,8 +46,7 @@ var KnolistComponents = function (_React$Component) {
             bibliographyData: null, // The data to be exported as bibliography
             showProjectsSidebar: false, // Whether or not to show the projects sidebar
             localServer: false, // Set to true if the server is being run locally
-            fullSearchResults: null, // Null when no search was made, search result object when searching (will hide the mind map)
-            closeFilterDropdown: false
+            fullSearchResults: null // Null when no search was made, search result object when searching (will hide the mind map)
         };
 
         // Bind functions that need to be passed as parameters
@@ -73,17 +72,14 @@ var KnolistComponents = function (_React$Component) {
         _this.resetFullSearchResults = _this.resetFullSearchResults.bind(_this);
 
         // Set up listener to close modals when user clicks outside of them
-        window.onclick = function (event) {
+        document.body.addEventListener("click", function (event) {
             if (event.target.classList.contains("modal")) {
-                // Close modal when clicking outside
                 _this.closeModals();
-            } else if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
-                _this.closeFilterDropdown();
             }
-        };
+        });
 
         // Set up listener to close different elements by pressing Escape
-        window.onkeyup = function (event) {
+        document.body.addEventListener("keyup", function (event) {
             if (event.key === "Escape") {
                 if (!_this.closeModals()) {
                     // Prioritize closing modals
@@ -92,19 +88,14 @@ var KnolistComponents = function (_React$Component) {
                     }
                 }
             }
-        };
+        });
         return _this;
     }
 
+    // Return true if a modal was closed. Used to prioritize modal closing
+
+
     _createClass(KnolistComponents, [{
-        key: "closeFilterDropdown",
-        value: function closeFilterDropdown() {
-            this.setState({ closeFilterDropdown: !this.state.closeFilterDropdown });
-        }
-
-        // Return true if a modal was closed. Used to prioritize modal closing
-
-    }, {
         key: "closeModals",
         value: function closeModals() {
             if (this.state.selectedNode !== null) {
@@ -350,6 +341,9 @@ var KnolistComponents = function (_React$Component) {
             this.state.visNodes.forEach(function (node) {
                 if (!nodesToHighlight.includes(node.id)) {
                     node.opacity = 0.3;
+                    node.color = {
+                        background: nodeBackgroundDefaultColor
+                    };
                 } else {
                     node.opacity = 1;
                     node.color = {
@@ -669,8 +663,7 @@ var KnolistComponents = function (_React$Component) {
                         React.createElement(RefreshGraphButton, { refresh: this.getDataFromServer }),
                         React.createElement(SearchBar, { basicSearch: this.basicSearch, fullSearch: this.fullSearch,
                             graph: this.state.graph[curProject],
-                            fullSearchResults: this.state.fullSearchResults,
-                            closeFilterDropdown: this.state.closeFilterDropdown }),
+                            fullSearchResults: this.state.fullSearchResults }),
                         React.createElement(ExportGraphButton, { "export": this.exportData })
                     ),
                     React.createElement("div", { id: "graph", style: graphStyle }),
@@ -1641,6 +1634,13 @@ var SearchBar = function (_React$Component11) {
         _this30.setActiveFilter = _this30.setActiveFilter.bind(_this30);
         _this30.switchShowFilterList = _this30.switchShowFilterList.bind(_this30);
         _this30.setAllFilters = _this30.setAllFilters.bind(_this30);
+
+        // Add listener to close filter when clicking outside
+        document.body.addEventListener("click", function (event) {
+            if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
+                _this30.closeFilterList();
+            }
+        });
         return _this30;
     }
 
@@ -1737,11 +1737,6 @@ var SearchBar = function (_React$Component11) {
             } else {
                 this.props.basicSearch(searchInput.target.value, this.getActiveFilters());
             }
-        }
-    }, {
-        key: "componentDidUpdate",
-        value: function componentDidUpdate(prevProps) {
-            if (prevProps.closeFilterDropdown !== this.props.closeFilterDropdown) this.closeFilterList();
         }
     }, {
         key: "render",
