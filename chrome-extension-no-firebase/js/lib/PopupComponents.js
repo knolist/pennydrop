@@ -12,6 +12,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
  * are in the README
  */
+import Utils from "../utils.js";
 
 // Global variables
 var localServerURL = "http://127.0.0.1:5000/";
@@ -55,16 +56,20 @@ var PopupComponents = function (_React$Component) {
     }, {
         key: "switchShowNewNotesForm",
         value: function switchShowNewNotesForm() {
+            var _this3 = this;
+
             document.getElementById("new-notes-form").reset();
-            this.setState({ showNewNotesForm: !this.state.showNewNotesForm });
+            this.setState({ showNewNotesForm: !this.state.showNewNotesForm }, function () {
+                if (_this3.state.showNewNotesForm) document.getElementById("notes").focus();
+            });
         }
     }, {
         key: "getDataFromServer",
         value: function getDataFromServer() {
-            var _this3 = this;
+            var _this4 = this;
 
             getGraphFromDisk().then(function (graph) {
-                _this3.setState({ graph: graph });
+                _this4.setState({ graph: graph });
             });
         }
     }, {
@@ -136,7 +141,7 @@ var Header = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this5 = this;
+            var _this6 = this;
 
             return React.createElement(
                 "div",
@@ -149,7 +154,7 @@ var Header = function (_React$Component2) {
                     React.createElement(
                         "a",
                         { onClick: function onClick() {
-                                return _this5.openHomePage();
+                                return _this6.openHomePage();
                             }, id: "home-button" },
                         React.createElement("img", { src: "../../images/home-icon-black.png", alt: "Home", style: { height: "100%", margin: "1px" } })
                     )
@@ -170,20 +175,26 @@ var ProjectList = function (_React$Component3) {
     function ProjectList(props) {
         _classCallCheck(this, ProjectList);
 
-        var _this6 = _possibleConstructorReturn(this, (ProjectList.__proto__ || Object.getPrototypeOf(ProjectList)).call(this, props));
+        var _this7 = _possibleConstructorReturn(this, (ProjectList.__proto__ || Object.getPrototypeOf(ProjectList)).call(this, props));
 
-        _this6.state = {
+        _this7.state = {
             dropdownOpen: false,
             showNewProjectForm: false,
             alertMessage: null, // null for no issue, "invalid-title", or "repeated-title"
             invalidTitle: null
         };
 
-        _this6.switchDropdown = _this6.switchDropdown.bind(_this6);
-        _this6.switchShowNewProjectForm = _this6.switchShowNewProjectForm.bind(_this6);
-        _this6.setAlertMessage = _this6.setAlertMessage.bind(_this6);
-        _this6.setInvalidTitle = _this6.setInvalidTitle.bind(_this6);
-        return _this6;
+        _this7.switchDropdown = _this7.switchDropdown.bind(_this7);
+        _this7.switchShowNewProjectForm = _this7.switchShowNewProjectForm.bind(_this7);
+        _this7.setAlertMessage = _this7.setAlertMessage.bind(_this7);
+        _this7.setInvalidTitle = _this7.setInvalidTitle.bind(_this7);
+
+        document.body.addEventListener("click", function (event) {
+            if (!Utils.isDescendant(document.getElementById("projects-dropdown"), event.target)) {
+                _this7.closeDropdown();
+            }
+        });
+        return _this7;
     }
 
     _createClass(ProjectList, [{
@@ -202,29 +213,29 @@ var ProjectList = function (_React$Component3) {
             this.setState({ dropdownOpen: !this.state.dropdownOpen });
         }
     }, {
+        key: "closeDropdown",
+        value: function closeDropdown() {
+            if (this.state.dropdownOpen) this.switchDropdown();
+        }
+    }, {
         key: "switchShowNewProjectForm",
         value: function switchShowNewProjectForm() {
+            var _this8 = this;
+
             document.getElementById("new-project-form").reset();
             this.setState({
                 showNewProjectForm: !this.state.showNewProjectForm,
                 alertMessage: null,
                 invalidTitle: null
+            }, function () {
+                // Set focus to input field
+                if (_this8.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this7 = this;
-
             if (this.props.graph === null) return null;
-
-            // Define arrow icon to use based on whether dropdown is active
-            var arrowIconURL = "../../images/down-chevron-icon-black.png";
-            if (this.state.dropdownOpen) arrowIconURL = "../../images/up-chevron-icon-black.png";
-
-            // Hide or display the dropdown content
-            var dropdownStyle = { display: "none" };
-            if (this.state.dropdownOpen) dropdownStyle = { display: "block" };
 
             return React.createElement(
                 "div",
@@ -247,35 +258,8 @@ var ProjectList = function (_React$Component3) {
                     alertMessage: this.state.alertMessage,
                     invalidTitle: this.state.invalidTitle,
                     projects: Object.keys(this.props.graph) }),
-                React.createElement(
-                    "div",
-                    { className: "dropdown" },
-                    React.createElement(
-                        "div",
-                        { onClick: this.switchDropdown, id: "current-project-area" },
-                        React.createElement(
-                            "p",
-                            null,
-                            this.props.graph.curProject
-                        ),
-                        React.createElement(
-                            "button",
-                            { className: "dropdown-button" },
-                            React.createElement("img", { src: arrowIconURL, alt: "Dropdown" })
-                        )
-                    ),
-                    React.createElement(
-                        "div",
-                        { id: "myDropdown", className: "dropdown-content", style: dropdownStyle },
-                        Object.keys(this.props.graph).map(function (project) {
-                            return React.createElement(DropdownItem, { key: project,
-                                projectName: project,
-                                curProject: _this7.props.graph.curProject,
-                                refresh: _this7.props.refresh,
-                                switchDropdown: _this7.switchDropdown });
-                        })
-                    )
-                )
+                React.createElement(ProjectsDropdown, { dropdownOpen: this.state.dropdownOpen, switchDropdown: this.switchDropdown,
+                    graph: this.props.graph, refresh: this.props.refresh })
             );
         }
     }]);
@@ -313,16 +297,16 @@ var NewProjectForm = function (_React$Component4) {
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this8 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this9 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this8.handleSubmit = _this8.handleSubmit.bind(_this8);
-        return _this8;
+        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
+        return _this9;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this9 = this;
+            var _this10 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -340,7 +324,7 @@ var NewProjectForm = function (_React$Component4) {
             } else {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this9.props.refresh();
+                    return _this10.props.refresh();
                 });
 
                 // Activate tracking
@@ -412,6 +396,47 @@ function AlertMessage(props) {
     return null;
 }
 
+function ProjectsDropdown(props) {
+    // Define arrow icon to use based on whether dropdown is active
+    // Hide or display the dropdown content
+    var arrowIconURL = "../../images/down-chevron-icon-black.png";
+    var dropdownStyle = { display: "none" };
+    if (props.dropdownOpen) {
+        arrowIconURL = "../../images/up-chevron-icon-black.png";
+        dropdownStyle = { display: "block" };
+    }
+
+    return React.createElement(
+        "div",
+        { className: "dropdown", id: "projects-dropdown" },
+        React.createElement(
+            "div",
+            { onClick: props.switchDropdown, id: "current-project-area" },
+            React.createElement(
+                "p",
+                null,
+                props.graph.curProject
+            ),
+            React.createElement(
+                "button",
+                { className: "dropdown-button" },
+                React.createElement("img", { src: arrowIconURL, alt: "Dropdown" })
+            )
+        ),
+        React.createElement(
+            "div",
+            { className: "dropdown-content", style: dropdownStyle },
+            Object.keys(props.graph).map(function (project) {
+                return React.createElement(DropdownItem, { key: project,
+                    projectName: project,
+                    curProject: props.graph.curProject,
+                    refresh: props.refresh,
+                    switchDropdown: props.switchDropdown });
+            })
+        )
+    );
+}
+
 // Each item in the project dropdown
 
 var DropdownItem = function (_React$Component5) {
@@ -420,20 +445,20 @@ var DropdownItem = function (_React$Component5) {
     function DropdownItem(props) {
         _classCallCheck(this, DropdownItem);
 
-        var _this10 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
+        var _this11 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
 
-        _this10.activateProject = _this10.activateProject.bind(_this10);
-        return _this10;
+        _this11.activateProject = _this11.activateProject.bind(_this11);
+        return _this11;
     }
 
     _createClass(DropdownItem, [{
         key: "activateProject",
         value: function activateProject() {
-            var _this11 = this;
+            var _this12 = this;
 
             this.props.switchDropdown();
             setCurrentProjectInGraph(this.props.projectName).then(function () {
-                return _this11.props.refresh();
+                return _this12.props.refresh();
             });
         }
     }, {
@@ -462,10 +487,10 @@ var ActivateProjectSwitch = function (_React$Component6) {
     function ActivateProjectSwitch(props) {
         _classCallCheck(this, ActivateProjectSwitch);
 
-        var _this12 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
+        var _this13 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
 
-        _this12.switchTracking = _this12.switchTracking.bind(_this12);
-        return _this12;
+        _this13.switchTracking = _this13.switchTracking.bind(_this13);
+        return _this13;
     }
 
     _createClass(ActivateProjectSwitch, [{
@@ -520,16 +545,16 @@ var NewNotesForm = function (_React$Component7) {
     function NewNotesForm(props) {
         _classCallCheck(this, NewNotesForm);
 
-        var _this13 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
 
-        _this13.handleSubmit = _this13.handleSubmit.bind(_this13);
-        return _this13;
+        _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
+        return _this14;
     }
 
     _createClass(NewNotesForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this14 = this;
+            var _this15 = this;
 
             event.preventDefault();
 
@@ -545,7 +570,7 @@ var NewNotesForm = function (_React$Component7) {
                 var currentURL = tabs[0].url;
                 // Call from server
                 var baseServerURL = deployedServerURL;
-                if (_this14.props.localServer) {
+                if (_this15.props.localServer) {
                     // Use local server if it's active
                     baseServerURL = localServerURL;
                 }

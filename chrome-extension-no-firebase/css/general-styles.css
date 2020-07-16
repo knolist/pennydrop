@@ -13,13 +13,15 @@
     --sidebar-background: #326697;
     --active-project-background: #3e87cc;
     --main-green: #93c42d;
+    --node-default-color: #7dc2ff;
+    --node-highlight-color: #d2e5ff
 }
 
 .button {
     background-color: var(--bright-turquoise);
     height: 40px;
     width: 40px;
-    border: 2px solid var(--java-color);
+    border: 1px solid var(--java-color);
     transition: 0.3s;
     border-radius: 4px;
     outline: none;
@@ -30,6 +32,10 @@
 .button:hover {
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
     cursor: pointer;
+}
+
+.button img {
+    width: 100%;
 }
 
 /* Style inputs */
@@ -54,4 +60,77 @@ input[type="text"] {
     border-bottom-color: gray;
     border-width: 1px;
     outline: none;
+}
+
+.vertical-line {
+    border-left: 1px solid black;
+    height: 100%;
+}
+
+/* Dropdown styles */
+.dropdown-button {
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-style: none none none solid;
+    border-color: var(--dark-blue);
+    outline: none;
+    border-radius: 0 5px 5px 0;
+    border-width: 1px;
+    transition: 0.3s;
+}
+
+.dropdown-button img {
+    height: 100%;
+}
+.dropdown-button:hover {
+    background-color: #a6e3e3;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    max-height: 80px;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    position: absolute;
+    border-radius: 5px;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.dropdown-content a {
+    display: block;
+    width: 100%;
+    background-color: white;
+    transition: 0.3s;
+    font-size: 16px;
+    padding: 2px 2px 2px 4px;
+}
+
+.dropdown-content a:hover {
+    background-color: #a6e3e3;
+    cursor: pointer;
+}
+
+.dropdown-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px var(--java-color);
+    background-color: #a6e3e3;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+    background-color: var(--bright-turquoise);
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
+    border-radius: 10px;
 }

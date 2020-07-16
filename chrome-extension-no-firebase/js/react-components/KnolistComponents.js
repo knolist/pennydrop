@@ -4,26 +4,20 @@
  * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
  * are in the README
  */
+import Utils from "../utils.js"
 
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
 const deployedServerURL = "https://knolist.herokuapp.com/";
-
-// Helper global function for title case
-function titleCase(str) {
-    str = str.toLowerCase().split(' ');
-    for (let i = 0; i < str.length; i++) {
-        str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
-    }
-    return str.join(' ');
-}
+const nodeBackgroundDefaultColor = "#7dc2ff";
+const nodeHighlightDefaultColor = "#d2e5ff";
 
 // Wrapper for all the components in the page
 class KnolistComponents extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph: createNewGraph(), // All the graph data
+            graph: null, // All the graph data
             selectedNode: null, // Node that's clicked for the detailed view
             displayExport: false,
             showNewNodeForm: false,
@@ -31,9 +25,12 @@ class KnolistComponents extends React.Component {
             // autoRefresh: true, // Will be set to false on drag
             newNodeData: null, // Used when creating a new node
             visNetwork: null, // The vis-network object
+            visNodes: null, // The vis DataSet of nodes
+            visEdges: null, // The vis DataSet of edges
             bibliographyData: null, // The data to be exported as bibliography
-            showProjectsSidebar: false,
-            localServer: false // Set to true if the server is being run locally
+            showProjectsSidebar: false, // Whether or not to show the projects sidebar
+            localServer: false, // Set to true if the server is being run locally
+            fullSearchResults: null, // Null when no search was made, search result object when searching (will hide the mind map)
         };
 
         // Bind functions that need to be passed as parameters
@@ -53,21 +50,45 @@ class KnolistComponents extends React.Component {
         this.closePageView = this.closePageView.bind(this);
         this.closeNewNodeForm = this.closeNewNodeForm.bind(this);
         this.setSelectedNode = this.setSelectedNode.bind(this);
+        this.basicSearch = this.basicSearch.bind(this);
+        this.fullSearch = this.fullSearch.bind(this);
+        this.setFullSearchResults = this.setFullSearchResults.bind(this);
+        this.resetFullSearchResults = this.resetFullSearchResults.bind(this);
 
         // Set up listener to close modals when user clicks outside of them
-        window.onclick = (event) => {
+        document.body.addEventListener("click", (event) => {
             if (event.target.classList.contains("modal")) {
-                if (this.state.selectedNode !== null) {
-                    this.closePageView();
-                }
-                if (this.state.displayExport) {
-                    this.resetDisplayExport();
-                }
-                if (this.state.showNewNodeForm) {
-                    this.closeNewNodeForm();
+                this.closeModals();
+            }
+        });
+
+        // Set up listener to close different elements by pressing Escape
+        document.body.addEventListener("keyup", (event) => {
+            if (event.key === "Escape") {
+                if (!this.closeModals()) { // Prioritize closing modals
+                    if (this.state.fullSearchResults !== null) {
+                        this.resetFullSearchResults();
+                    }
                 }
             }
+        });
+    }
+
+    // Return true if a modal was closed. Used to prioritize modal closing
+    closeModals() {
+        if (this.state.selectedNode !== null) {
+            this.closePageView();
+            return true;
         }
+        if (this.state.displayExport) {
+            this.resetDisplayExport();
+            return true;
+        }
+        if (this.state.showNewNodeForm) {
+            this.closeNewNodeForm();
+            return true;
+        }
+        return false;
     }
 
     // Verifies if the local server is being run
@@ -94,6 +115,12 @@ class KnolistComponents extends React.Component {
                 const curProject = graph.curProject;
                 const updatedSelectedNode = graph[curProject][url];
                 this.setState({selectedNode: updatedSelectedNode});
+            }
+
+            // Redo search if search mode is active
+            if (this.state.fullSearchResults !== null) {
+                const resultObject = this.state.fullSearchResults;
+                this.fullSearch(resultObject.query, resultObject.filterList);
             }
         });
 
@@ -153,11 +180,10 @@ class KnolistComponents extends React.Component {
     }
 
     addNode(nodeData, callback) {
-        this.setState(
-            {
-                showNewNodeForm: !this.state.showNewNodeForm,
-                newNodeData: nodeData
-            });
+        this.switchShowNewNodeForm();
+        this.setState({
+            newNodeData: nodeData
+        });
     }
 
     deleteEdge(data, callback) {
@@ -179,13 +205,26 @@ class KnolistComponents extends React.Component {
         }
     }
 
+    closeNewNodeForm() {
+        document.getElementById("new-node-form").reset();
+        this.switchShowNewNodeForm();
+    }
+
     switchShowNewNodeForm() {
-        this.setState({showNewNodeForm: !this.state.showNewNodeForm});
+        this.setState({showNewNodeForm: !this.state.showNewNodeForm}, () => {
+            // Set focus to the input field
+            if (this.state.showNewNodeForm) {
+                document.getElementById("url").focus();
+            }
+        });
     }
 
     switchShowNewNotesForm() {
         document.getElementById("new-notes-form").reset();
-        this.setState({showNewNotesForm: !this.state.showNewNotesForm});
+        this.setState({showNewNotesForm: !this.state.showNewNotesForm}, () => {
+            // Set focus to the input field if the notes form is open
+            if (this.state.showNewNotesForm) document.getElementById("notes").focus();
+        });
     }
 
     openProjectsSidebar() {
@@ -200,9 +239,134 @@ class KnolistComponents extends React.Component {
         document.getElementById("projects-sidebar-btn").style.right = "0";
     }
 
-    closeNewNodeForm() {
-        document.getElementById("new-node-form").reset();
-        this.switchShowNewNodeForm();
+    setFullSearchResults(results) {
+        this.setState({fullSearchResults: results});
+    }
+
+    resetFullSearchResults() {
+        document.getElementById("search-text").value = ""; // Reset the search bar
+        this.highlightNodes(null); // Reset highlighted nodes
+        this.setState({fullSearchResults: null});
+    }
+
+    /**
+     * Visually highlights nodes by changing colors and opacity
+     * @param nodesToHighlight an array of ids of the nodes to be highlighted
+     */
+    highlightNodes(nodesToHighlight) {
+        // If the list is null, reset all nodes to the default
+        if (nodesToHighlight === null) {
+            this.state.visNodes.forEach(node => {
+                node.opacity = 1;
+                node.color = {
+                    background: nodeBackgroundDefaultColor
+                };
+                this.state.visNodes.update(node);
+            });
+            return;
+        }
+
+        // If list is not null, highlight based on the list
+        this.state.visNodes.forEach(node => {
+            if (!nodesToHighlight.includes(node.id)) {
+                node.opacity = 0.3;
+                node.color = {
+                    background: nodeBackgroundDefaultColor
+                }
+            } else {
+                node.opacity = 1;
+                node.color = {
+                    background: nodeHighlightDefaultColor
+                };
+            }
+            this.state.visNodes.update(node);
+        });
+    }
+
+    /**
+     * Given a text query, this function searches the current project for occurrences of that query. The function returns
+     * a "result object", which contains the query, filterList, and an array of results grouped by node. If the query is empty,
+     * the results array is set to null.
+     * @param query the query to be searched
+     * @param filterList a list of node keys that whose contents will be included in the search
+     * @returns {{query: *, filterList: *, results: []}} the result object. The results array is null is the query is empty
+     */
+    getSearchResults(query, filterList) {
+        // Return object with null results for empty queries
+        if (query === "") {
+            return {
+                query: query,
+                filterList: filterList,
+                results: null
+            };
+        }
+
+        const curProject = this.state.graph.curProject;
+        const graph = this.state.graph[curProject];
+
+        let resultObject = {
+            query: query,
+            filterList: filterList,
+            results: []
+        };
+        query = Utils.trimString(query); // trim it
+        query = query.toLowerCase();
+        for (let graphKey in graph) {
+            const node = graph[graphKey];
+            let occurrences = [];
+            let occurrencesCount = 0;
+            // Iterate through the keys inside the node
+            for (let nodeKey in node) {
+                // Act depending on the type of node[key]
+                let elem = node[nodeKey];
+                if (typeof (elem) === "number") break; // Ignore pure numbers
+                if (Array.isArray(elem)) elem = elem.toString(); // Serialize arrays for search (notes, highlights, ...)
+                elem = elem.toLowerCase(); // Lower case for case-insensitive search
+
+                if (filterList.includes(nodeKey)) { // Check if query is present
+                    const indices = Utils.getIndicesOf(query, elem);
+                    // Only add if results were found
+                    if (indices.length > 0) {
+                        occurrences.push({
+                            key: nodeKey,
+                            indices: indices
+                        });
+                        occurrencesCount += indices.length;
+                    }
+                }
+            }
+            // If occurrences were found, include the current node in results
+            if (occurrences.length > 0) {
+                resultObject.results.push({
+                    url: node.source,
+                    occurrences: occurrences,
+                    occurrencesCount: occurrencesCount
+                })
+            }
+        }
+        return resultObject;
+    }
+
+    basicSearch(query, filterList) {
+        const resultObject = this.getSearchResults(query, filterList);
+        if (resultObject.results === null) {
+            // If results are null, the query was empty
+            this.highlightNodes(null);
+        } else {
+            // Construct array of IDs based on the results
+            let resultIDs = [];
+            resultObject.results.forEach(result => resultIDs.push(result.url));
+            // Highlight results
+            this.highlightNodes(resultIDs);
+        }
+    }
+
+    fullSearch(query, filterList) {
+        const resultObject = this.getSearchResults(query, filterList);
+        // Sort so that results with the most occurrences are at the top
+        resultObject.results.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
+        this.setFullSearchResults(resultObject);
+        console.log(resultObject);
     }
 
     /* Helper function to generate position for nodes
@@ -235,8 +399,8 @@ class KnolistComponents extends React.Component {
 
     // Helper function to setup the nodes and edges for the graph
     createNodesAndEdges() {
-        let nodes = [];
-        let edges = [];
+        let nodes = new vis.DataSet();
+        let edges = new vis.DataSet();
         const curProject = this.state.graph.curProject;
         // Iterate through each node in the graph and build the arrays of nodes and edges
         for (let index in this.state.graph[curProject]) {
@@ -245,17 +409,18 @@ class KnolistComponents extends React.Component {
             if (node.x === null || node.y === null || node.x === undefined || node.y === undefined) {
                 // If position is still undefined, generate random x and y in interval [-300, 300]
                 const [x, y] = this.generateNodePositions(node);
-                nodes.push({id: node.source, label: node.title, x: x, y: y});
+                nodes.add({id: node.source, label: node.title, x: x, y: y});
             } else {
-                nodes.push({id: node.source, label: node.title, x: node.x, y: node.y});
+                nodes.add({id: node.source, label: node.title, x: node.x, y: node.y});
             }
             // Deal with edges
             for (let nextIndex in node.nextURLs) {
-                edges.push({from: node.source, to: node.nextURLs[nextIndex]})
+                edges.add({from: node.source, to: node.nextURLs[nextIndex]})
             }
         }
         // console.log(nodes);
         // console.log(edges);
+        this.setState({visNodes: nodes, visEdges: edges});
         return [nodes, edges];
     }
 
@@ -275,7 +440,13 @@ class KnolistComponents extends React.Component {
                 size: 16,
                 margin: 10,
                 physics: false,
-                chosen: true
+                chosen: true,
+                font: {
+                    face: "Product Sans"
+                },
+                color: {
+                    background: nodeBackgroundDefaultColor
+                }
             },
             edges: {
                 arrows: {
@@ -363,9 +534,11 @@ class KnolistComponents extends React.Component {
     // }
 
     render() {
-        if (this.state.graph === null) {
-            return null;
-        }
+        if (this.state.graph === null) return null;
+
+        // Only show mind map outside of full search mode
+        let graphStyle = {display: "block"};
+        if (this.state.fullSearchResults !== null) graphStyle = {display: "none"};
 
         const curProject = this.state.graph.curProject;
         return (
@@ -377,24 +550,141 @@ class KnolistComponents extends React.Component {
                 <div className="main-body">
                     <div id="buttons-bar">
                         <RefreshGraphButton refresh={this.getDataFromServer}/>
+                        <SearchBar basicSearch={this.basicSearch} fullSearch={this.fullSearch}
+                                   graph={this.state.graph[curProject]}
+                                   fullSearchResults={this.state.fullSearchResults}/>
                         <ExportGraphButton export={this.exportData}/>
                     </div>
-                    <div id="graph"/>
+                    <div id="graph" style={graphStyle}/>
+                    <FullSearchResults fullSearchResults={this.state.fullSearchResults}
+                                       graph={this.state.graph[curProject]}
+                                       resetFullSearchResults={this.resetFullSearchResults}
+                                       setSelectedNode={this.setSelectedNode}/>
                     <ProjectsSidebar graph={this.state.graph} refresh={this.getDataFromServer}/>
                     <NewNodeForm showNewNodeForm={this.state.showNewNodeForm} nodeData={this.state.newNodeData}
-                                 graph={this.state.graph} localServer={this.state.localServer}
-                                 closeForm={this.closeNewNodeForm} refresh={this.getDataFromServer}/>
+                                 localServer={this.state.localServer} closeForm={this.closeNewNodeForm}
+                                 refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
-                              showNewNotesForm={this.state.showNewNotesForm}
-                              switchShowNewNotesForm={this.switchShowNewNotesForm}/>
+                              switchShowNewNotesForm={this.switchShowNewNotesForm}
+                              fullSearchResults={this.state.fullSearchResults}
+                              showNewNotesForm={this.state.showNewNotesForm}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
             </div>
         );
     }
+}
+
+class FullSearchResults extends React.Component {
+    constructor(props) {
+        super(props);
+
+        // this.state = {
+        //     expandedSearchResult: null,
+        // };
+        //
+        // this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
+        // this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
+        this.closeSearch = this.closeSearch.bind(this);
+    }
+
+    // setExpandedSearchResult(url) {
+    //     this.setState({expandedSearchResult: url});
+    // }
+    //
+    // resetExpandedSearchResult() {
+    //     this.setState({expandedSearchResult: null});
+    // }
+
+    closeSearch() {
+        // this.resetExpandedSearchResult();
+        this.props.resetFullSearchResults();
+    }
+
+    render() {
+        if (this.props.fullSearchResults === null) return null;
+
+        const noResultsMessage = "Sorry, we couldn't find any results for your search.";
+        const searchResultsMessage = "Search results";
+
+        return (
+            <div id="full-search-results-area">
+                <div id="search-results-header">
+                    <button className="button" onClick={this.closeSearch}>
+                        <img src="../../images/back-icon-black.png" alt="Return"/>
+                    </button>
+                    <h2>{this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
+                    <div style={{width: "40px"}}/>
+                </div>
+                {/* List of results */}
+                {this.props.fullSearchResults.results.map((result) => <SearchResultItem key={result.url}
+                                                                                        item={this.props.graph[result.url]}
+                    // expandedSearchResult={this.state.expandedSearchResult}
+                    // setExpandedSearchResult={this.setExpandedSearchResult}
+                    // resetExpandedSearchResult={this.resetExpandedSearchResult}
+                                                                                        result={result}
+                                                                                        setSelectedNode={this.props.setSelectedNode}/>)}
+            </div>
+        );
+    }
+}
+
+class SearchResultItem extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.itemAction = this.itemAction.bind(this);
+    }
+
+    itemAction() {
+        this.props.setSelectedNode(this.props.item.source);
+        // if (this.props.expandedSearchResult === this.props.result.url) this.props.resetExpandedSearchResult();
+        // else this.props.setExpandedSearchResult(this.props.result.url);
+    }
+
+    render() {
+        if (this.props.item === undefined) return null;
+        return (
+            <div onClick={this.itemAction} className="search-result-item">
+                <div>
+                    <h3>{this.props.item.title}</h3>
+                    <p>{this.props.result.occurrencesCount} {this.props.result.occurrencesCount > 1 ? "occurrences" : "occurrence"}</p>
+                </div>
+                <OccurrenceCategories occurrences={this.props.result.occurrences}/>
+                {/*<ExpandedSearchResultData display={this.props.expandedSearchResult === this.props.result.url}/>*/}
+            </div>
+        );
+    }
+}
+
+function OccurrenceCategories(props) {
+    return (
+        <div className="occurrence-categories">
+            {props.occurrences.map((occurrence, index) => {
+                return (
+                    <div key={occurrence.key} style={{display: "flex"}}>
+                        <div className="occurrence-item">
+                            <h3>{Utils.getNodePropertyTitle(occurrence.key)}</h3>
+                            <p>{occurrence.indices.length}</p>
+                        </div>
+                        {index < props.occurrences.length - 1 ? <div className="vertical-line"/> : null}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+/**
+ * @return {null}
+ */
+function ExpandedSearchResultData(props) {
+    if (!props.display) return null;
+
+    return <p>Expanded!</p>
 }
 
 // Sidebar to switch between projects
@@ -438,6 +728,9 @@ class ProjectsSidebar extends React.Component {
             showNewProjectForm: !this.state.showNewProjectForm,
             alertMessage: null,
             invalidTitle: null
+        }, () => {
+            // Set focus to the input field
+            if (this.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
         });
     }
 
@@ -520,7 +813,7 @@ function NewProjectButton(props) {
     }
     return (
         <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-white.png" alt="New"/>
         </button>
     );
 }
@@ -624,23 +917,13 @@ class ProjectItem extends React.Component {
         if (project === "version" || project === "curProject") {
             return null;
         }
-        // Display the active project in a different color and show more info
-        if (project === this.props.graph.curProject) {
-            return (
-                <div className="project-item active-project" onClick={this.switchProject}>
-                    <h2>{this.props.project}</h2>
-                    <button className="button delete-project-button" onClick={this.deleteProject}>
-                        <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
-                    </button>
-                </div>
-            );
-        }
-        // Display other projects
+
         return (
-            <div className="project-item" onClick={this.switchProject}>
+            <div className={project === this.props.graph.curProject ? "project-item active-project" : "project-item"}
+                 onClick={this.switchProject}>
                 <h2>{this.props.project}</h2>
                 <button className="button delete-project-button" onClick={this.deleteProject}>
-                    <img src="../../images/delete-icon-white.png" alt="Delete node" style={{width: "100%"}}/>
+                    <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                 </button>
             </div>
         );
@@ -682,7 +965,7 @@ class NewNodeForm extends React.Component {
             <div className="modal" style={style}>
                 <div className="modal-content">
                     <button className="close-modal button" onClick={this.props.closeForm}>
-                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                        <img src="../../images/close-icon-black.png" alt="Close"/>
                     </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
@@ -717,7 +1000,8 @@ class PageView extends React.Component {
             return null;
         }
 
-        // Don't render if selectedNode doesn't belong to curProject (to allow for CU-96hk2k)
+        // Don't render if selectedNode doesn't belong to curProject
+        // (To allow for data update when the page is focused - CU-96hk2k)
         if (!this.props.graph.hasOwnProperty(this.props.selectedNode.source)) {
             return null;
         }
@@ -727,14 +1011,15 @@ class PageView extends React.Component {
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.closePageView}>
-                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
+                        <img src="../../images/close-icon-black.png" alt="Close"/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
-                               selectedNode={this.props.selectedNode} refresh={this.props.refresh}/>
+                               selectedNode={this.props.selectedNode}
+                               refresh={this.props.refresh}/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
@@ -743,7 +1028,7 @@ class PageView extends React.Component {
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-black.png" alt="Delete node" style={{width: "100%"}}/>
+                            <img src="../../images/delete-icon-black.png" alt="Delete node"/>
                         </button>
                     </div>
                 </div>
@@ -753,82 +1038,62 @@ class PageView extends React.Component {
 }
 
 // Bibliography export
-class ExportView extends React.Component {
-    constructor(props) {
-        super(props);
+/**
+ * @return {null}
+ */
+function ExportView(props) {
+    if (props.shouldShow === false) {
+        return null;
     }
-
-    render() {
-        if (this.props.shouldShow === false) {
-            return null;
-        }
-        return (
-            <div className="modal">
-                <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.resetDisplayExport}>
-                        <img src="../../images/close-icon-black.png" alt="Close" style={{width: "100%"}}/>
-                    </button>
-                    <h1>Export for Bibliography</h1>
-                    <ul>{this.props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
-                </div>
+    return (
+        <div className="modal">
+            <div className="modal-content">
+                <button className="close-modal button" id="close-page-view"
+                        onClick={props.resetDisplayExport}>
+                    <img src="../../images/close-icon-black.png" alt="Close"/>
+                </button>
+                <h1>Export for Bibliography</h1>
+                <ul>{props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 // List of URLs in the detailed page view
-class ListURL extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+/**
+ * @return {null}
+ */
+function ListURL(props) {
+    // Don't render if type is neither "prev" nor "next"
+    if (props.type !== "prev" && props.type !== "next") return null;
 
-    render() {
-        if (this.props.type === "prev") {
-            return (
-                <div className="url-column">
-                    <h2 style={{textAlign: "center"}}>Previous Connections</h2>
-                    <ul>{this.props.selectedNode.prevURLs.map((url, index) =>
-                        <li key={index}><a href="#"
-                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
-                        </li>)}
-                    </ul>
-                </div>
-            );
-        } else if (this.props.type === "next") {
-            return (
-                <div className="url-column">
-                    <h2 style={{textAlign: "center"}}>Next Connections</h2>
-                    <ul>{this.props.selectedNode.nextURLs.map((url, index) =>
-                        <li key={index}><a href="#"
-                                           onClick={() => this.props.setSelectedNode(url)}>{this.props.graph[url].title}</a>
-                        </li>)}
-                    </ul>
-                </div>
-            );
-        } else return null;
-    }
+    // Define the list to be used based on the type passed as props
+    let urlList = props.selectedNode.prevURLs;
+    if (props.type === "next") urlList = props.selectedNode.nextURLs;
+
+    return (
+        <div className="url-column">
+            <h2 style={{textAlign: "center"}}>
+                {props.type === "prev" ? "Previous Connections" : "Next Connections"}
+            </h2>
+            <ul>{urlList.map((url, index) =>
+                <li key={index}><a href="#"
+                                   onClick={() => props.setSelectedNode(url)}>{props.graph[url].title}</a>
+                </li>)}
+            </ul>
+        </div>
+    );
 }
 
 // List of highlights in the detailed page view
-class HighlightsList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+function HighlightsList(props) {
+    return (
+        <div>
+            <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+            <ul>{props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
+        </div>
+    );
 
-    render() {
-        if (this.props.highlights.length !== 0) {
-            return (
-                <div>
-                    <h2>My Highlights</h2>
-                    <ul>{this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
-                </div>
-            );
-        }
-        return (
-            <h2>You haven't added any highlights yet.</h2>
-        );
-    }
 }
 
 // List of notes in the detailed page view
@@ -849,26 +1114,14 @@ class NotesList extends React.Component {
     }
 
     render() {
-        if (this.props.selectedNode.notes.length !== 0) {
-            return (
-                <div>
-                    <div style={{display: "flex"}}>
-                        <h2>My Notes</h2>
-                        <NewNotesButton showForm={this.props.showNewNotesForm}
-                                        switchShowForm={this.props.switchShowNewNotesForm}/>
-                    </div>
-                    <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
-                    <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
-                </div>
-            );
-        }
         return (
             <div>
                 <div style={{display: "flex"}}>
-                    <h2>You haven't added any notes yet.</h2>
+                    <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
                 </div>
+                <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
                 <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
             </div>
         );
@@ -902,7 +1155,7 @@ function NewNotesButton(props) {
     }
     return (
         <button className="button add-note-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-black.png" alt="New"/>
         </button>
     );
 }
@@ -910,58 +1163,223 @@ function NewNotesButton(props) {
 function RefreshGraphButton(props) {
     return (
         <button onClick={props.refresh} className="button">
-            <img src="../../images/refresh-icon.png" alt="Refresh Button" style={{width: "100%"}}/>
+            <img src="../../images/refresh-icon.png" alt="Refresh Button"/>
         </button>
     );
 }
 
-function ExportGraphButton(props) {
-    return (
-        <button onClick={props.export} className="button">
-            <img src="../../images/share-icon.webp" alt="Refresh Button" style={{width: "100%"}}/>
-        </button>
-    );
-}
-
-class Header extends React.Component {
+class SearchBar extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            filterList: this.generateFilterList(),
+            showFilterList: false
+        };
+
+        this.submitSearch = this.submitSearch.bind(this);
+        this.searchButtonAction = this.searchButtonAction.bind(this);
+        this.setActiveFilter = this.setActiveFilter.bind(this);
+        this.switchShowFilterList = this.switchShowFilterList.bind(this);
+        this.setAllFilters = this.setAllFilters.bind(this);
+
+        // Add listener to close filter when clicking outside
+        document.body.addEventListener("click", (event) => {
+            if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) &&
+                !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
+                this.closeFilterList();
+            }
+        })
+    }
+
+    switchShowFilterList() {
+        this.setState({showFilterList: !this.state.showFilterList});
+    }
+
+    closeFilterList() {
+        if (this.state.showFilterList) this.switchShowFilterList();
+    }
+
+    generateFilterList() {
+        // Get list of all filters
+        const nodeList = Object.keys(this.props.graph);
+        if (nodeList.length === 0) return [];
+        let filterNames = Object.keys(this.props.graph[nodeList[0]]);
+
+        // Remove unwanted properties from filter list
+        const propertiesToRemove = ["x", "y"];
+        propertiesToRemove.forEach(property => {
+            const index = filterNames.indexOf(property);
+            filterNames.splice(index, 1);
+        });
+
+        // Create filter objects
+        let filterList = {};
+        filterNames.forEach(name => {
+            filterList[name] = {active: true};
+        });
+
+        return filterList;
+    }
+
+    setFilterList(filterList) {
+        this.setState({filterList: filterList}, () => {
+            // Call search with updated filter list
+            if (this.props.fullSearchResults !== null && this.props.fullSearchResults.query !== "") {
+                this.props.fullSearch(this.props.fullSearchResults.query, this.getActiveFilters());
+            } else {
+                const query = document.getElementById("search-text").value;
+                this.props.basicSearch(query, this.getActiveFilters());
+            }
+        });
+    }
+
+    setActiveFilter(name, active) {
+        let filterList = this.state.filterList;
+        filterList[name].active = active;
+        this.setFilterList(filterList);
+    }
+
+    setAllFilters(active) {
+        let filterList = this.state.filterList;
+        Object.keys(filterList).forEach((filter) => {
+            filterList[filter].active = active;
+        });
+        this.setFilterList(filterList);
+    }
+
+    getActiveFilters() {
+        let activeFilters = [];
+        Object.keys(this.state.filterList).forEach(filter => {
+            if (this.state.filterList[filter].active) activeFilters.push(filter);
+        });
+        return activeFilters;
+    }
+
+    searchButtonAction() {
+        const query = document.getElementById("search-text").value;
+        if (query !== "") {
+            this.props.fullSearch(query, this.getActiveFilters());
+            this.closeFilterList();
+        }
+    }
+
+    submitSearch(searchInput) {
+        this.closeFilterList();
+        if (searchInput.key === "Enter" || this.props.fullSearchResults !== null) {
+            if (searchInput.target.value !== "") this.props.fullSearch(searchInput.target.value, this.getActiveFilters());
+        } else {
+            this.props.basicSearch(searchInput.target.value, this.getActiveFilters());
+        }
     }
 
     render() {
         return (
-            <div className="header">
-                <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
-                <div>
-                    <h5 id="project-name">Current Project: {this.props.projectName}</h5>
+            <div style={{display: "flex"}}>
+                <div id="search-bar">
+                    <input id="search-text" type="text" onKeyUp={(searchInput) => this.submitSearch(searchInput)}
+                           placeholder="Search through your project"/>
+                    <img onClick={this.searchButtonAction} src="../../images/search-icon-black.png" alt="Search"/>
                 </div>
-                <div style={{width: "70px"}}>
-                    <ProjectsSidebarButton showSidebar={this.props.showProjectsSidebar}
-                                           openProjectsSidebar={this.props.openProjectsSidebar}
-                                           closeProjectsSidebar={this.props.closeProjectsSidebar}/>
-                </div>
+                <Filters filterList={this.state.filterList} showFilterList={this.state.showFilterList}
+                         setActiveFilter={this.setActiveFilter}
+                         switchShowFilterList={this.switchShowFilterList}
+                         setAllFilters={this.setAllFilters}/>
             </div>
         );
     }
 }
 
-class ProjectsSidebarButton extends React.Component {
+function Filters(props) {
+    return (
+        <div>
+            <button onClick={props.switchShowFilterList} className="button" id="search-filters-button">
+                <img src="../../images/filter-icon-black.png" alt="Filter"/>
+            </button>
+            <FiltersDropdown showFilterList={props.showFilterList} filterList={props.filterList}
+                             setActiveFilter={props.setActiveFilter} setAllFilters={props.setAllFilters}/>
+        </div>
+    );
+}
+
+function FiltersDropdown(props) {
+    let dropdownStyle = {display: "none"};
+    if (props.showFilterList) dropdownStyle = {display: "block"};
+
+    return (
+        <div className="dropdown" style={dropdownStyle}>
+            <div className="dropdown-content filters-dropdown" id="filter-dropdown">
+                <div id="filter-dropdown-buttons">
+                    <a onClick={() => props.setAllFilters(true)} id="filter-dropdown-left-button">Select all</a>
+                    <a onClick={() => props.setAllFilters(false)}>Clear all</a>
+                </div>
+                {Object.keys(props.filterList).map(filter => <FilterItem key={filter} filter={filter}
+                                                                         filterList={props.filterList}
+                                                                         setActiveFilter={props.setActiveFilter}/>)}
+            </div>
+        </div>
+    );
+}
+
+class FilterItem extends React.Component {
     constructor(props) {
         super(props);
+        this.filterClicked = this.filterClicked.bind(this);
+    }
+
+    filterClicked() {
+        this.props.setActiveFilter(this.props.filter, !this.props.filterList[this.props.filter].active);
     }
 
     render() {
-        if (this.props.showSidebar) {
-            return <button id="projects-sidebar-btn" onClick={this.props.closeProjectsSidebar}>
-                <img src="../../images/close-icon-white.png" alt="Close" id="close-sidebar-btn"/>
-            </button>
-        }
         return (
-            <button id="projects-sidebar-btn" onClick={this.props.openProjectsSidebar}>
-                <p>Your projects</p>
-            </button>
+            <div className="filter-item" onClick={this.filterClicked}>
+                <p>{Utils.getNodePropertyTitle(this.props.filter)}</p>
+                {this.props.filterList[this.props.filter].active ?
+                    <img src="../../images/checkmark-icon-green.png" alt="Active"/> :
+                    null}
+            </div>
         );
     }
+}
+
+function ExportGraphButton(props) {
+    return (
+        <button onClick={props.export} className="button">
+            <img src="../../images/share-icon.webp" alt="Refresh Button"/>
+        </button>
+    );
+}
+
+function Header(props) {
+    return (
+        <div className="header">
+            <div className="header-corner-wrapper logo-wrapper">
+                <img className="logo" src="../../images/horizontal_main.PNG" alt="Knolist Logo"/>
+            </div>
+            <div id="project-name-div">
+                <h5 id="project-name">Current Project: {props.projectName}</h5>
+            </div>
+            <div className="header-corner-wrapper">
+                <ProjectsSidebarButton showSidebar={props.showProjectsSidebar}
+                                       openProjectsSidebar={props.openProjectsSidebar}
+                                       closeProjectsSidebar={props.closeProjectsSidebar}/>
+            </div>
+        </div>
+    );
+}
+
+function ProjectsSidebarButton(props) {
+    if (props.showSidebar) {
+        return <button id="projects-sidebar-btn" onClick={props.closeProjectsSidebar}>
+            <img src="../../images/close-icon-white.png" alt="Close" id="close-sidebar-btn"/>
+        </button>
+    }
+    return (
+        <button id="projects-sidebar-btn" onClick={props.openProjectsSidebar}>
+            <p>Your projects</p>
+        </button>
+    );
 }
 
 ReactDOM.render(<KnolistComponents/>, document.querySelector("#knolist-page"));
