@@ -1199,7 +1199,7 @@ class SearchBar extends React.Component {
             if (event.ctrlKey && event.key === 'f') {
                 event.preventDefault();
                 document.getElementById("search-text").focus();
-                $("#search-bar").effect("highlight", {}, 1500);
+                $("#search-bar").effect("highlight", {color: "#fffaa6"}, 1500);
             }
         });
     }
