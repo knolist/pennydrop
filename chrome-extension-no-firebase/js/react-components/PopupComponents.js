@@ -4,6 +4,7 @@
  * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
  * are in the README
  */
+import Utils from "../utils.js"
 
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
@@ -123,6 +124,12 @@ class ProjectList extends React.Component {
         this.switchShowNewProjectForm = this.switchShowNewProjectForm.bind(this);
         this.setAlertMessage = this.setAlertMessage.bind(this);
         this.setInvalidTitle = this.setInvalidTitle.bind(this);
+
+        document.body.addEventListener("click", (event) => {
+            if (!Utils.isDescendant(document.getElementById("projects-dropdown"), event.target)) {
+                this.closeDropdown();
+            }
+        })
     }
 
     setAlertMessage(value) {
@@ -135,6 +142,10 @@ class ProjectList extends React.Component {
 
     switchDropdown() {
         this.setState({dropdownOpen: !this.state.dropdownOpen});
+    }
+
+    closeDropdown() {
+        if (this.state.dropdownOpen) this.switchDropdown();
     }
 
     switchShowNewProjectForm() {
@@ -276,7 +287,7 @@ function ProjectsDropdown(props) {
     }
 
     return (
-        <div className="dropdown">
+        <div className="dropdown" id="projects-dropdown">
             <div onClick={props.switchDropdown} id="current-project-area">
                 <p>{props.graph.curProject}</p>
                 <button className="dropdown-button">

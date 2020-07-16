@@ -12,6 +12,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
  * This file uses JSX, so it's necessary to compile the code into plain JS using Babel. Instructions on how to do this
  * are in the README
  */
+import Utils from "../utils.js";
 
 // Global variables
 var localServerURL = "http://127.0.0.1:5000/";
@@ -187,6 +188,12 @@ var ProjectList = function (_React$Component3) {
         _this7.switchShowNewProjectForm = _this7.switchShowNewProjectForm.bind(_this7);
         _this7.setAlertMessage = _this7.setAlertMessage.bind(_this7);
         _this7.setInvalidTitle = _this7.setInvalidTitle.bind(_this7);
+
+        document.body.addEventListener("click", function (event) {
+            if (!Utils.isDescendant(document.getElementById("projects-dropdown"), event.target)) {
+                _this7.closeDropdown();
+            }
+        });
         return _this7;
     }
 
@@ -204,6 +211,11 @@ var ProjectList = function (_React$Component3) {
         key: "switchDropdown",
         value: function switchDropdown() {
             this.setState({ dropdownOpen: !this.state.dropdownOpen });
+        }
+    }, {
+        key: "closeDropdown",
+        value: function closeDropdown() {
+            if (this.state.dropdownOpen) this.switchDropdown();
         }
     }, {
         key: "switchShowNewProjectForm",
@@ -396,7 +408,7 @@ function ProjectsDropdown(props) {
 
     return React.createElement(
         "div",
-        { className: "dropdown" },
+        { className: "dropdown", id: "projects-dropdown" },
         React.createElement(
             "div",
             { onClick: props.switchDropdown, id: "current-project-area" },
