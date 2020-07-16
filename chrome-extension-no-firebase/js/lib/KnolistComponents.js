@@ -1644,6 +1644,15 @@ var SearchBar = function (_React$Component11) {
                 _this30.closeFilterList();
             }
         });
+
+        // Remap CTRL+F to focus the search bar
+        document.addEventListener('keydown', function (event) {
+            if (event.ctrlKey && event.key === 'f') {
+                event.preventDefault();
+                document.getElementById("search-text").focus();
+                $("#search-bar").effect("highlight", {}, 1500);
+            }
+        });
         return _this30;
     }
 

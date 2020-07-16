@@ -1192,7 +1192,16 @@ class SearchBar extends React.Component {
                 !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
                 this.closeFilterList();
             }
-        })
+        });
+
+        // Remap CTRL+F to focus the search bar
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey && event.key === 'f') {
+                event.preventDefault();
+                document.getElementById("search-text").focus();
+                $("#search-bar").effect("highlight", {}, 1500);
+            }
+        });
     }
 
     switchShowFilterList() {
