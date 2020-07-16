@@ -15,8 +15,8 @@ const CUR_VERSION_NUM = 1;
  */
 createNewGraph = () => {
     return {
-        "default": {},
-        "curProject": "default",
+        "Default": {},
+        "curProject": "Default",
         "version": CUR_VERSION_NUM
     };
 };
