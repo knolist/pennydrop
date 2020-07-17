@@ -1054,8 +1054,7 @@ function ExportView(props) {
     return (
         <div className="modal">
             <div className="modal-content">
-                <button className="close-modal button" id="close-page-view"
-                        onClick={props.resetDisplayExport}>
+                <button className="close-modal button" id="close-page-view" onClick={props.resetDisplayExport}>
                     <img src="../../images/close-icon-white.png" alt="Close"/>
                 </button>
                 <h1>Export for Bibliography</h1>
@@ -1168,7 +1167,7 @@ function NewNotesButton(props) {
 
 function RefreshGraphButton(props) {
     return (
-        <button onClick={props.refresh} className="button">
+        <button onClick={props.refresh} className="button" data-tooltip="Refresh" data-tooltip-location="right">
             <img src="../../images/refresh-icon-white.png" alt="Refresh Button"/>
         </button>
     );
@@ -1313,7 +1312,8 @@ class SearchBar extends React.Component {
 function Filters(props) {
     return (
         <div>
-            <button onClick={props.switchShowFilterList} className="button" id="search-filters-button">
+            <button onClick={props.switchShowFilterList} className="button" id="search-filters-button"
+                    data-tooltip="Search Filters" data-tooltip-location="top">
                 <img src="../../images/filter-icon-black.png" alt="Filter"/>
             </button>
             <FiltersDropdown showFilterList={props.showFilterList} filterList={props.filterList}
@@ -1365,7 +1365,8 @@ class FilterItem extends React.Component {
 
 function ExportGraphButton(props) {
     return (
-        <button onClick={props.export} className="button">
+        <button onClick={props.export} className="button" data-tooltip="Export for Bibliography"
+                data-tooltip-location="left">
             <img src="../../images/export-icon-white.png" alt="Refresh Button"/>
         </button>
     );

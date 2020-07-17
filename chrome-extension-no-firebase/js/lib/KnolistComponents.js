@@ -1424,8 +1424,7 @@ function ExportView(props) {
             { className: "modal-content" },
             React.createElement(
                 "button",
-                { className: "close-modal button", id: "close-page-view",
-                    onClick: props.resetDisplayExport },
+                { className: "close-modal button", id: "close-page-view", onClick: props.resetDisplayExport },
                 React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
             ),
             React.createElement(
@@ -1619,7 +1618,7 @@ function NewNotesButton(props) {
 function RefreshGraphButton(props) {
     return React.createElement(
         "button",
-        { onClick: props.refresh, className: "button" },
+        { onClick: props.refresh, className: "button", "data-tooltip": "Refresh", "data-tooltip-location": "right" },
         React.createElement("img", { src: "../../images/refresh-icon-white.png", alt: "Refresh Button" })
     );
 }
@@ -1794,7 +1793,8 @@ function Filters(props) {
         null,
         React.createElement(
             "button",
-            { onClick: props.switchShowFilterList, className: "button", id: "search-filters-button" },
+            { onClick: props.switchShowFilterList, className: "button", id: "search-filters-button",
+                "data-tooltip": "Search Filters", "data-tooltip-location": "top" },
             React.createElement("img", { src: "../../images/filter-icon-black.png", alt: "Filter" })
         ),
         React.createElement(FiltersDropdown, { showFilterList: props.showFilterList, filterList: props.filterList,
@@ -1878,7 +1878,8 @@ var FilterItem = function (_React$Component12) {
 function ExportGraphButton(props) {
     return React.createElement(
         "button",
-        { onClick: props.export, className: "button" },
+        { onClick: props.export, className: "button", "data-tooltip": "Export for Bibliography",
+            "data-tooltip-location": "left" },
         React.createElement("img", { src: "../../images/export-icon-white.png", alt: "Refresh Button" })
     );
 }
