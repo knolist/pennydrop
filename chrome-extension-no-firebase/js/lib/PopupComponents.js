@@ -285,7 +285,7 @@ function NewProjectButton(props) {
     return React.createElement(
         "button",
         { className: "button new-project-button", onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New", style: { width: "100%" } })
+        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New", style: { width: "100%" } })
     );
 }
 

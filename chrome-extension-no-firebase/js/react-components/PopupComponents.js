@@ -195,7 +195,7 @@ function NewProjectButton(props) {
     }
     return (
         <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
         </button>
     );
 }

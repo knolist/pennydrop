@@ -9,8 +9,8 @@ import Utils from "../utils.js"
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
 const deployedServerURL = "https://knolist.herokuapp.com/";
-const nodeBackgroundDefaultColor = "#7dc2ff";
-const nodeHighlightDefaultColor = "#d2e5ff";
+const nodeBackgroundDefaultColor = Utils.getDefaultNodeColor();
+const nodeHighlightDefaultColor = Utils.getHighlightNodeColor();
 
 // Wrapper for all the components in the page
 class KnolistComponents extends React.Component {
@@ -617,7 +617,7 @@ class FullSearchResults extends React.Component {
             <div id="full-search-results-area">
                 <div id="search-results-header">
                     <button className="button" onClick={this.closeSearch}>
-                        <img src="../../images/back-icon-black.png" alt="Return"/>
+                        <img src="../../images/back-icon-white.png" alt="Return"/>
                     </button>
                     <h2>{this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
                     <div style={{width: "40px"}}/>
@@ -968,7 +968,7 @@ class NewNodeForm extends React.Component {
             <div className="modal" style={style}>
                 <div className="modal-content">
                     <button className="close-modal button" onClick={this.props.closeForm}>
-                        <img src="../../images/close-icon-black.png" alt="Close"/>
+                        <img src="../../images/close-icon-white.png" alt="Close"/>
                     </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
@@ -1014,7 +1014,7 @@ class PageView extends React.Component {
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.closePageView}>
-                        <img src="../../images/close-icon-black.png" alt="Close"/>
+                        <img src="../../images/close-icon-white.png" alt="Close"/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
@@ -1031,7 +1031,7 @@ class PageView extends React.Component {
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-black.png" alt="Delete node"/>
+                            <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                         </button>
                     </div>
                 </div>
@@ -1053,7 +1053,7 @@ function ExportView(props) {
             <div className="modal-content">
                 <button className="close-modal button" id="close-page-view"
                         onClick={props.resetDisplayExport}>
-                    <img src="../../images/close-icon-black.png" alt="Close"/>
+                    <img src="../../images/close-icon-white.png" alt="Close"/>
                 </button>
                 <h1>Export for Bibliography</h1>
                 <ul>{props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
@@ -1158,7 +1158,7 @@ function NewNotesButton(props) {
     }
     return (
         <button className="button add-note-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-black.png" alt="New"/>
+            <img src="../../images/add-icon-white.png" alt="New"/>
         </button>
     );
 }
@@ -1166,7 +1166,7 @@ function NewNotesButton(props) {
 function RefreshGraphButton(props) {
     return (
         <button onClick={props.refresh} className="button">
-            <img src="../../images/refresh-icon.png" alt="Refresh Button"/>
+            <img src="../../images/refresh-icon-white.png" alt="Refresh Button"/>
         </button>
     );
 }
@@ -1199,7 +1199,12 @@ class SearchBar extends React.Component {
             if (event.ctrlKey && event.key === 'f') {
                 event.preventDefault();
                 document.getElementById("search-text").focus();
-                $("#search-bar").effect("highlight", {color: "#fffaa6"}, 1500);
+                $("#search-bar").effect({
+                    effect: "highlight",
+                    color: "#fffaa6",
+                    duration: 1500,
+                    queue: false
+                });
             }
         });
     }
@@ -1358,7 +1363,7 @@ class FilterItem extends React.Component {
 function ExportGraphButton(props) {
     return (
         <button onClick={props.export} className="button">
-            <img src="../../images/share-icon.webp" alt="Refresh Button"/>
+            <img src="../../images/export-icon-white.png" alt="Refresh Button"/>
         </button>
     );
 }

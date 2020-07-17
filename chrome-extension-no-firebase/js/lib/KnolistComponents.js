@@ -19,8 +19,8 @@ import Utils from "../utils.js";
 // Global variables
 var localServerURL = "http://127.0.0.1:5000/";
 var deployedServerURL = "https://knolist.herokuapp.com/";
-var nodeBackgroundDefaultColor = "#7dc2ff";
-var nodeHighlightDefaultColor = "#d2e5ff";
+var nodeBackgroundDefaultColor = Utils.getDefaultNodeColor();
+var nodeHighlightDefaultColor = Utils.getHighlightNodeColor();
 
 // Wrapper for all the components in the page
 
@@ -745,7 +745,7 @@ var FullSearchResults = function (_React$Component2) {
                     React.createElement(
                         "button",
                         { className: "button", onClick: this.closeSearch },
-                        React.createElement("img", { src: "../../images/back-icon-black.png", alt: "Return" })
+                        React.createElement("img", { src: "../../images/back-icon-white.png", alt: "Return" })
                     ),
                     React.createElement(
                         "h2",
@@ -1283,7 +1283,7 @@ var NewNodeForm = function (_React$Component8) {
                     React.createElement(
                         "button",
                         { className: "close-modal button", onClick: this.props.closeForm },
-                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
+                        React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
                     ),
                     React.createElement(
                         "h1",
@@ -1360,7 +1360,7 @@ var PageView = function (_React$Component9) {
                         "button",
                         { className: "close-modal button", id: "close-page-view",
                             onClick: this.props.closePageView },
-                        React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
+                        React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
                     ),
                     React.createElement(
                         "a",
@@ -1390,7 +1390,7 @@ var PageView = function (_React$Component9) {
                         React.createElement(
                             "button",
                             { className: "button", onClick: this.deleteNode },
-                            React.createElement("img", { src: "../../images/delete-icon-black.png", alt: "Delete node" })
+                            React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
                         )
                     )
                 )
@@ -1421,7 +1421,7 @@ function ExportView(props) {
                 "button",
                 { className: "close-modal button", id: "close-page-view",
                     onClick: props.resetDisplayExport },
-                React.createElement("img", { src: "../../images/close-icon-black.png", alt: "Close" })
+                React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
             ),
             React.createElement(
                 "h1",
@@ -1607,7 +1607,7 @@ function NewNotesButton(props) {
     return React.createElement(
         "button",
         { className: "button add-note-button", onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New" })
+        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
     );
 }
 
@@ -1615,7 +1615,7 @@ function RefreshGraphButton(props) {
     return React.createElement(
         "button",
         { onClick: props.refresh, className: "button" },
-        React.createElement("img", { src: "../../images/refresh-icon.png", alt: "Refresh Button" })
+        React.createElement("img", { src: "../../images/refresh-icon-white.png", alt: "Refresh Button" })
     );
 }
 
@@ -1650,7 +1650,12 @@ var SearchBar = function (_React$Component11) {
             if (event.ctrlKey && event.key === 'f') {
                 event.preventDefault();
                 document.getElementById("search-text").focus();
-                $("#search-bar").effect("highlight", { color: "#fffaa6" }, 1500);
+                $("#search-bar").effect({
+                    effect: "highlight",
+                    color: "#fffaa6",
+                    duration: 1500,
+                    queue: false
+                });
             }
         });
         return _this30;
@@ -1869,7 +1874,7 @@ function ExportGraphButton(props) {
     return React.createElement(
         "button",
         { onClick: props.export, className: "button" },
-        React.createElement("img", { src: "../../images/share-icon.webp", alt: "Refresh Button" })
+        React.createElement("img", { src: "../../images/export-icon-white.png", alt: "Refresh Button" })
     );
 }
 

@@ -86,6 +86,7 @@ body {
 /* The Close Button */
 .close-modal {
     float: right;
+    padding: 8px;
 }
 
 ul {
@@ -279,6 +280,7 @@ li {
 
 .confirmation-button {
     width: 45%;
+    font-size: 16px;
 }
 
 #search-bar {
