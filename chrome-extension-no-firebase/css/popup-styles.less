@@ -1,0 +1,173 @@
+body {
+    /*background-image: url("../images/background.jpg");*/
+    background-color: var(--light-blue);
+    font-family: "Product Sans", sans-serif;
+    height: 230px;
+    width: 300px;
+    margin: 0;
+}
+
+.header {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px;
+    border-style: none none solid none;
+    border-bottom-color: var(--dark-blue);
+    display: flex;
+    justify-content: space-between;
+}
+
+#popup-body {
+    padding: 10px;
+}
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    right: 0;
+
+    /* Hide default HTML checkbox */
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+/* The slider */
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+
+    &:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+}
+
+input:checked + .switch-slider {
+    background-color: var(--main-green);
+}
+
+input:focus + .switch-slider {
+    box-shadow: 0 0 1px var(--main-green);
+}
+
+input:checked + .switch-slider:before {
+    -webkit-transform: translateX(25px);
+    -ms-transform: translateX(25px);
+    transform: translateX(25px);
+}
+
+/* Rounded sliders */
+.switch-slider.round {
+    border-radius: 34px;
+
+    &:before {
+        border-radius: 50%;
+    }
+}
+
+#home-button {
+    cursor: pointer;
+    transition: 0.3s;
+    padding: 3px;
+    width: 31px;
+    border-radius: 5px;
+    margin-left: 4px;
+
+    &:hover {
+        background-color: #a6e3e3;
+    }
+}
+
+#projects-list {
+    h4 {
+        margin: 0;
+        font-size: 20px;
+    }
+}
+
+#current-project-area {
+    display: flex;
+    justify-content: space-between;
+    height: 24px;
+    width: 100%;
+    background-color: white;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: var(--dark-blue);
+    margin: 2px 0 0 0;
+    cursor: pointer;
+
+    p {
+        margin: 2px;
+        font-size: 18px;
+    }
+}
+
+.new-project-button {
+    height: 30px;
+    width: 30px;
+    margin-bottom: 5px;
+}
+
+.cancel-new-project {
+    width: auto;
+
+    p {
+        margin: 0;
+    }
+}
+
+.create-project-button {
+    width: auto;
+    height: 30px;
+}
+
+#new-project-form {
+    display: flex;
+    justify-content: space-between;
+}
+
+#new-project-form-area {
+    margin-bottom: 5px;
+
+    p {
+        color: red;
+        font-size: 11px;
+    }
+}
+
+.add-note-button {
+    width: auto;
+    height: 30px;
+
+    p {
+        margin: 0;
+    }
+}
+
+#new-notes-form {
+    justify-content: space-between;
+
+    input[type="text"] {
+        width: 80%;
+    }
+}

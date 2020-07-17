@@ -72,6 +72,9 @@ class KnolistComponents extends React.Component {
                 }
             }
         });
+
+        // Set timeout and update graph to get the correct font
+        setTimeout(() => this.getDataFromServer(), 1000);
     }
 
     // Return true if a modal was closed. Used to prioritize modal closing

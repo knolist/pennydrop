@@ -89,6 +89,11 @@ var KnolistComponents = function (_React$Component) {
                 }
             }
         });
+
+        // Set timeout and update graph to get the correct font
+        setTimeout(function () {
+            return _this.getDataFromServer();
+        }, 1000);
         return _this;
     }
 
