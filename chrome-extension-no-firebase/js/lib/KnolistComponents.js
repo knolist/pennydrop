@@ -297,8 +297,9 @@ var KnolistComponents = function (_React$Component) {
         key: "openProjectsSidebar",
         value: function openProjectsSidebar() {
             this.setState({ showProjectsSidebar: true });
-            document.getElementById("projects-sidebar").style.width = "400px";
-            document.getElementById("projects-sidebar-btn").style.right = "400px";
+            var sidebarWidth = getComputedStyle(document.documentElement).getPropertyValue("--sidebar-width");
+            document.getElementById("projects-sidebar").style.width = sidebarWidth;
+            document.getElementById("projects-sidebar-btn").style.right = sidebarWidth;
         }
     }, {
         key: "closeProjectsSidebar",

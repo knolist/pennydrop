@@ -359,6 +359,20 @@ getHighlightsFromURL = async (url) => {
 };
 
 /**
+ * Updates the name of a project in the graph.
+ * @param oldTitle the old title of the project
+ * @param newTitle the new title of the project
+ * @returns {Promise<void>} ignored
+ */
+updateProjectTitle = async (oldTitle, newTitle) => {
+    let graph = await getGraphFromDisk();
+    if (graph.hasOwnProperty(oldTitle) && !graph.hasOwnProperty(newTitle)) {
+        graph[newTitle] = graph[oldTitle];
+        delete graph[oldTitle];
+    }
+};
+
+/**
  * Returns a list of al notes associated with a certain url in the current project.
  * @param url the url to extract notes from
  * @returns {Promise<*>} a promise that resolves to the list of notes

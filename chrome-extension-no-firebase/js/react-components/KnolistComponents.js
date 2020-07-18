@@ -232,8 +232,9 @@ class KnolistComponents extends React.Component {
 
     openProjectsSidebar() {
         this.setState({showProjectsSidebar: true});
-        document.getElementById("projects-sidebar").style.width = "400px";
-        document.getElementById("projects-sidebar-btn").style.right = "400px";
+        const sidebarWidth = getComputedStyle(document.documentElement).getPropertyValue("--sidebar-width");
+        document.getElementById("projects-sidebar").style.width = sidebarWidth;
+        document.getElementById("projects-sidebar-btn").style.right = sidebarWidth;
     }
 
     closeProjectsSidebar() {

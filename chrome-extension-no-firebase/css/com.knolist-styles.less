@@ -1,3 +1,7 @@
+:root {
+    --sidebar-width: @sidebar-width;
+}
+
 #graph {
     /*width: 900px;*/
     width: 100%;
@@ -102,6 +106,7 @@ li {
 }
 
 /* Sidebar selectors. Adapted from https://www.w3schools.com/howto/howto_js_collapse_sidebar.asp" */
+@sidebar-width: 400px;
 .sidebar {
     height: 100%; /* 100% Full-height */
     width: 0; /* 0 width - change this with JavaScript */
@@ -126,7 +131,7 @@ li {
     text-align: center;
     position: fixed;
     z-index: 2;
-    width: 400px;
+    width: @sidebar-width;
     border-style: none none solid none;
     border-bottom-color: black;
     background-color: var(--dark-blue);
@@ -183,9 +188,10 @@ li {
 }
 
 .project-item {
-    height: 50px;
-    width: 400px;
+    min-height: 50px;
+    width: @sidebar-width;
     position: relative;
+    justify-content: space-between;
     display: flex;
     /*border-style: none none solid none;*/
     /*border-bottom-color: black;*/
@@ -198,6 +204,7 @@ li {
     h2 {
         margin: 0;
         padding: 14px;
+        width: 0.75 * @sidebar-width;
     }
 }
 
