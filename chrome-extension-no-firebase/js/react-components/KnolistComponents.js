@@ -903,8 +903,19 @@ class ProjectItem extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            projectEditMode: false
+        };
+
         this.switchProject = this.switchProject.bind(this);
         this.deleteProject = this.deleteProject.bind(this);
+        this.switchProjectEditMode = this.switchProjectEditMode.bind(this);
+        this.editProjectName = this.editProjectName.bind(this);
+
+        // Add listener to submit form on enter
+        document.body.addEventListener("keyup", (event) => {
+            if (event.key === "Enter" && this.state.projectEditMode) this.editProjectName(event);
+        })
     }
 
     switchProject(data) {
@@ -918,6 +929,22 @@ class ProjectItem extends React.Component {
         this.props.setForDeletion(this.props.project);
     }
 
+    switchProjectEditMode() {
+        this.setState({projectEditMode: !this.state.projectEditMode}, () => {
+            if (this.state.projectEditMode) {
+                document.getElementById("editProjectName").focus();
+            }
+        });
+    };
+
+    editProjectName(event) {
+        event.preventDefault();
+        // TODO: verify that input is valid (use alert message function)
+        // Change curProject if the project updated is current
+        this.switchProjectEditMode();
+        updateProjectTitle(this.props.project, event.target.value).then(() => this.props.refresh());
+    }
+
     render() {
         const project = this.props.project;
         // Ignore properties that are not project names
@@ -928,15 +955,37 @@ class ProjectItem extends React.Component {
         return (
             <div className={project === this.props.graph.curProject ? "project-item active-project" : "project-item"}
                  onClick={this.switchProject}>
-                <h2>{this.props.project}</h2>
-                <button className="button delete-project-button" onClick={this.deleteProject}>
-                    <img src="../../images/delete-icon-white.png" alt="Delete node"/>
-                </button>
+                {
+                    this.state.projectEditMode ?
+                        <input id="editProjectName" name="editProjectName" type="text" defaultValue={this.props.project}
+                               onSubmit={this.editProjectName} onBlur={this.editProjectName} required/> :
+                        <h2>{this.props.project}</h2>
+                }
+                <SidebarButtons deleteProject={this.deleteProject} switchProjectEditMode={this.switchProjectEditMode}
+                                projectEditMode={this.state.projectEditMode}/>
             </div>
         );
     }
 }
 
+function SidebarButtons(props) {
+    return (
+        <div>
+            <button
+                className={props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button"}
+                onClick={props.switchProjectEditMode}>
+                {
+                    props.projectEditMode ?
+                        <p>Cancel</p> :
+                        <img src="../../images/edit-icon-white.png" alt="Edit project"/>
+                }
+            </button>
+            <button className="button delete-project-button" onClick={props.deleteProject}>
+                <img src="../../images/delete-icon-white.png" alt="Delete project"/>
+            </button>
+        </div>
+    );
+}
 
 // Form that allows the user to manually add nodes
 class NewNodeForm extends React.Component {

@@ -1182,8 +1182,19 @@ var ProjectItem = function (_React$Component7) {
 
         var _this22 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
+        _this22.state = {
+            projectEditMode: false
+        };
+
         _this22.switchProject = _this22.switchProject.bind(_this22);
         _this22.deleteProject = _this22.deleteProject.bind(_this22);
+        _this22.switchProjectEditMode = _this22.switchProjectEditMode.bind(_this22);
+        _this22.editProjectName = _this22.editProjectName.bind(_this22);
+
+        // Add listener to submit form on enter
+        document.body.addEventListener("keyup", function (event) {
+            if (event.key === "Enter" && _this22.state.projectEditMode) _this22.editProjectName(event);
+        });
         return _this22;
     }
 
@@ -1205,6 +1216,29 @@ var ProjectItem = function (_React$Component7) {
             this.props.setForDeletion(this.props.project);
         }
     }, {
+        key: "switchProjectEditMode",
+        value: function switchProjectEditMode() {
+            var _this24 = this;
+
+            this.setState({ projectEditMode: !this.state.projectEditMode }, function () {
+                if (_this24.state.projectEditMode) {
+                    document.getElementById("editProjectName").focus();
+                }
+            });
+        }
+    }, {
+        key: "editProjectName",
+        value: function editProjectName(event) {
+            var _this25 = this;
+
+            event.preventDefault();
+            // TODO: verify that input is valid (use alert message function)
+            this.switchProjectEditMode();
+            updateProjectTitle(this.props.project, event.target.value).then(function () {
+                return _this25.props.refresh();
+            });
+        }
+    }, {
         key: "render",
         value: function render() {
             var project = this.props.project;
@@ -1217,16 +1251,14 @@ var ProjectItem = function (_React$Component7) {
                 "div",
                 { className: project === this.props.graph.curProject ? "project-item active-project" : "project-item",
                     onClick: this.switchProject },
-                React.createElement(
+                this.state.projectEditMode ? React.createElement("input", { id: "editProjectName", name: "editProjectName", type: "text", defaultValue: this.props.project,
+                    onSubmit: this.editProjectName, onBlur: this.editProjectName, required: true }) : React.createElement(
                     "h2",
                     null,
                     this.props.project
                 ),
-                React.createElement(
-                    "button",
-                    { className: "button delete-project-button", onClick: this.deleteProject },
-                    React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
-                )
+                React.createElement(SidebarButtons, { deleteProject: this.deleteProject, switchProjectEditMode: this.switchProjectEditMode,
+                    projectEditMode: this.state.projectEditMode })
             );
         }
     }]);
@@ -1234,8 +1266,30 @@ var ProjectItem = function (_React$Component7) {
     return ProjectItem;
 }(React.Component);
 
-// Form that allows the user to manually add nodes
+function SidebarButtons(props) {
+    return React.createElement(
+        "div",
+        null,
+        React.createElement(
+            "button",
+            {
+                className: props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button",
+                onClick: props.switchProjectEditMode },
+            props.projectEditMode ? React.createElement(
+                "p",
+                null,
+                "Cancel"
+            ) : React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit project" })
+        ),
+        React.createElement(
+            "button",
+            { className: "button delete-project-button", onClick: props.deleteProject },
+            React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete project" })
+        )
+    );
+}
 
+// Form that allows the user to manually add nodes
 
 var NewNodeForm = function (_React$Component8) {
     _inherits(NewNodeForm, _React$Component8);
@@ -1243,16 +1297,16 @@ var NewNodeForm = function (_React$Component8) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this24 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this26 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this24.handleSubmit = _this24.handleSubmit.bind(_this24);
-        return _this24;
+        _this26.handleSubmit = _this26.handleSubmit.bind(_this26);
+        return _this26;
     }
 
     _createClass(NewNodeForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this25 = this;
+            var _this27 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
@@ -1264,9 +1318,9 @@ var NewNodeForm = function (_React$Component8) {
             var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contentExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this25.props.nodeData.x, _this25.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this27.props.nodeData.x, _this27.props.nodeData.y);
                 }).then(function () {
-                    return _this25.props.refresh();
+                    return _this27.props.refresh();
                 });
             });
 
@@ -1324,22 +1378,22 @@ var PageView = function (_React$Component9) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this26 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this28 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this26.deleteNode = _this26.deleteNode.bind(_this26);
-        return _this26;
+        _this28.deleteNode = _this28.deleteNode.bind(_this28);
+        return _this28;
     }
 
     _createClass(PageView, [{
         key: "deleteNode",
         value: function deleteNode() {
-            var _this27 = this;
+            var _this29 = this;
 
             // Remove from the graph
             removeItemFromGraph(this.props.selectedNode.source).then(function () {
                 // Reset the selected node
-                _this27.props.resetSelectedNode();
-                _this27.props.refresh();
+                _this29.props.resetSelectedNode();
+                _this29.props.refresh();
             });
         }
     }, {
@@ -1523,20 +1577,20 @@ var NotesList = function (_React$Component10) {
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this28 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this30 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this28.handleSubmit = _this28.handleSubmit.bind(_this28);
-        return _this28;
+        _this30.handleSubmit = _this30.handleSubmit.bind(_this30);
+        return _this30;
     }
 
     _createClass(NotesList, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this29 = this;
+            var _this31 = this;
 
             event.preventDefault();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this29.props.refresh();
+                _this31.props.refresh();
             });
             this.props.switchShowNewNotesForm();
             event.target.reset(); // Clear the form entries
@@ -1630,23 +1684,23 @@ var SearchBar = function (_React$Component11) {
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this30 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this32 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this30.state = {
-            filterList: _this30.generateFilterList(),
+        _this32.state = {
+            filterList: _this32.generateFilterList(),
             showFilterList: false
         };
 
-        _this30.submitSearch = _this30.submitSearch.bind(_this30);
-        _this30.searchButtonAction = _this30.searchButtonAction.bind(_this30);
-        _this30.setActiveFilter = _this30.setActiveFilter.bind(_this30);
-        _this30.switchShowFilterList = _this30.switchShowFilterList.bind(_this30);
-        _this30.setAllFilters = _this30.setAllFilters.bind(_this30);
+        _this32.submitSearch = _this32.submitSearch.bind(_this32);
+        _this32.searchButtonAction = _this32.searchButtonAction.bind(_this32);
+        _this32.setActiveFilter = _this32.setActiveFilter.bind(_this32);
+        _this32.switchShowFilterList = _this32.switchShowFilterList.bind(_this32);
+        _this32.setAllFilters = _this32.setAllFilters.bind(_this32);
 
         // Add listener to close filter when clicking outside
         document.body.addEventListener("click", function (event) {
             if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
-                _this30.closeFilterList();
+                _this32.closeFilterList();
             }
         });
 
@@ -1663,7 +1717,7 @@ var SearchBar = function (_React$Component11) {
                 });
             }
         });
-        return _this30;
+        return _this32;
     }
 
     _createClass(SearchBar, [{
@@ -1702,15 +1756,15 @@ var SearchBar = function (_React$Component11) {
     }, {
         key: "setFilterList",
         value: function setFilterList(filterList) {
-            var _this31 = this;
+            var _this33 = this;
 
             this.setState({ filterList: filterList }, function () {
                 // Call search with updated filter list
-                if (_this31.props.fullSearchResults !== null && _this31.props.fullSearchResults.query !== "") {
-                    _this31.props.fullSearch(_this31.props.fullSearchResults.query, _this31.getActiveFilters());
+                if (_this33.props.fullSearchResults !== null && _this33.props.fullSearchResults.query !== "") {
+                    _this33.props.fullSearch(_this33.props.fullSearchResults.query, _this33.getActiveFilters());
                 } else {
                     var query = document.getElementById("search-text").value;
-                    _this31.props.basicSearch(query, _this31.getActiveFilters());
+                    _this33.props.basicSearch(query, _this33.getActiveFilters());
                 }
             });
         }
@@ -1733,11 +1787,11 @@ var SearchBar = function (_React$Component11) {
     }, {
         key: "getActiveFilters",
         value: function getActiveFilters() {
-            var _this32 = this;
+            var _this34 = this;
 
             var activeFilters = [];
             Object.keys(this.state.filterList).forEach(function (filter) {
-                if (_this32.state.filterList[filter].active) activeFilters.push(filter);
+                if (_this34.state.filterList[filter].active) activeFilters.push(filter);
             });
             return activeFilters;
         }
@@ -1763,7 +1817,7 @@ var SearchBar = function (_React$Component11) {
     }, {
         key: "render",
         value: function render() {
-            var _this33 = this;
+            var _this35 = this;
 
             return React.createElement(
                 "div",
@@ -1772,7 +1826,7 @@ var SearchBar = function (_React$Component11) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this33.submitSearch(searchInput);
+                            return _this35.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
@@ -1846,10 +1900,10 @@ var FilterItem = function (_React$Component12) {
     function FilterItem(props) {
         _classCallCheck(this, FilterItem);
 
-        var _this34 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
+        var _this36 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
 
-        _this34.filterClicked = _this34.filterClicked.bind(_this34);
-        return _this34;
+        _this36.filterClicked = _this36.filterClicked.bind(_this36);
+        return _this36;
     }
 
     _createClass(FilterItem, [{

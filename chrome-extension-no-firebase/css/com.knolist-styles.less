@@ -206,17 +206,31 @@ li {
     cursor: pointer;
   }
 
-  h2 {
-    margin: 0;
-    padding: 14px;
-    width: 0.75 * @sidebar-width;
+  h2, input[type="text"] {
+    color: white;
+    font-size: 18px;
+    font-weight: normal;
+    margin: 14px;
+    width: @sidebar-width - (6.5 * @sidebar-button-position);
   }
 }
 
-.delete-project-button {
+@sidebar-button-position: 23px;
+
+.sidebar-button {
   margin: 5px 0;
   position: absolute;
-  right: 23px;
+  background-color: transparent;
+}
+
+.delete-project-button {
+  .sidebar-button();
+  right: @sidebar-button-position;
+}
+
+.edit-project-button {
+  .sidebar-button();
+  right: @sidebar-button-position + 45px;
 }
 
 .active-project {
@@ -238,6 +252,7 @@ li {
   p {
     color: orange;
     font-size: 12px;
+    margin: 0;
   }
 
   /* Avoid color change for the new project form */
@@ -249,8 +264,9 @@ li {
   input[type="text"] {
     color: white;
     font-size: 18px;
-    font-weight: bolder;
-    padding: 10px;
+    font-weight: normal;
+    margin-left: 0;
+    //padding: 10px;
   }
 }
 
@@ -259,7 +275,7 @@ li {
   color: white;
   width: auto;
   position: absolute;
-  right: 23px;
+  right: @sidebar-button-position;
 }
 
 .add-note-button {
