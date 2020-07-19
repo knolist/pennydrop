@@ -838,26 +838,23 @@ class NewProjectForm extends React.Component {
         event.preventDefault();
 
         // Data validation
-        const title = event.target.newProjectTitle.value;
-        if (title === "curProject" || title === "version") {
-            // Invalid options (reserved words for the graph structure)
-            this.props.setInvalidTitle(title);
-            this.props.setAlertMessage("invalid-title");
-        } else if (this.props.projects.includes(title)) {
-            // Don't allow repeated project names
-            this.props.setInvalidTitle(title);
-            this.props.setAlertMessage("repeated-title");
-        } else {
-            // Valid name
-            createNewProjectInGraph(title).then(() => this.props.refresh());
-
+        const title = Utils.trimString(event.target.newProjectTitle.value);
+        const alertMessage = Utils.validateProjectTitle(title, this.props.projects);
+        this.props.setAlertMessage(alertMessage);
+        if (alertMessage == null) { // Valid entry
             // Reset entry and close form
             event.target.reset();
-            // Close the form
-            this.props.switchForm();
-            // Hide alert message if there was one
-            this.props.setAlertMessage(null);
-            this.props.setInvalidTitle(null);
+
+            // Create project
+            createNewProjectInGraph(title).then(() => {
+                this.props.refresh();
+                // Close the form
+                this.props.switchForm();
+                // Hide alert message if there was one
+                this.props.setInvalidTitle(null);
+            });
+        } else {
+            this.props.setInvalidTitle(title);
         }
     }
 
@@ -868,7 +865,7 @@ class NewProjectForm extends React.Component {
         }
         return (
             <div style={style} className="project-item new-project-form-area">
-                <form id="new-project-form" onSubmit={this.handleSubmit}>
+                <form id="new-project-form" onSubmit={this.handleSubmit} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
                     <button className="button create-project-button">Create</button>
                 </form>
@@ -885,13 +882,13 @@ class NewProjectForm extends React.Component {
 function ProjectTitleAlertMessage(props) {
     if (props.alertMessage === "invalid-title") {
         return (
-            <p>{props.projectTitle} is not a valid title.</p>
+            <p className="alert-message">{props.projectTitle} is not a valid title.</p>
         );
     }
 
     if (props.alertMessage === "repeated-title") {
         return (
-            <p>You already have a project called {props.projectTitle}.</p>
+            <p className="alert-message">You already have a project called {props.projectTitle}.</p>
         );
     }
 
@@ -904,17 +901,21 @@ class ProjectItem extends React.Component {
         super(props);
 
         this.state = {
-            projectEditMode: false
+            projectEditMode: false,
+            alertMessage: null,
+            invalidTitle: null
         };
 
         this.switchProject = this.switchProject.bind(this);
         this.deleteProject = this.deleteProject.bind(this);
         this.switchProjectEditMode = this.switchProjectEditMode.bind(this);
         this.editProjectName = this.editProjectName.bind(this);
+        this.setAlertMessage = this.setAlertMessage.bind(this);
+        this.setInvalidTitle = this.setInvalidTitle.bind(this);
 
         // Add listener to submit form on enter
         document.body.addEventListener("keyup", (event) => {
-            if (event.key === "Enter" && this.state.projectEditMode) this.editProjectName(event);
+            if (event.key === "Enter" && this.props.projectEditMode) this.editProjectName(event);
         })
     }
 
@@ -929,21 +930,57 @@ class ProjectItem extends React.Component {
         this.props.setForDeletion(this.props.project);
     }
 
+    setAlertMessage(value) {
+        this.setState({alertMessage: value});
+    }
+
+    setInvalidTitle(value) {
+        this.setState({invalidTitle: value});
+    }
+
+
+    editProjectName(event, title) {
+        event.preventDefault();
+        // Prevent user from inputting empty title name
+        if (title == null || title.length === 0) {
+            this.switchProjectEditMode();
+            return;
+        }
+
+        title = Utils.trimString(title);
+        // Check if submitted title is equal to the current
+        if (title === this.props.project) {
+            this.switchProjectEditMode();
+            return;
+        }
+
+        const projects = Object.keys(this.props.graph);
+        const alertMessage = Utils.validateProjectTitle(title, projects);
+        this.setAlertMessage(alertMessage);
+        if (alertMessage == null) {
+            // Valid name
+            updateProjectTitle(this.props.project, title).then(() => {
+                this.props.refresh();
+                this.switchProjectEditMode();
+
+                // Hide alert message if there was one
+                this.setInvalidTitle(null);
+            });
+        } else {
+            this.setInvalidTitle(title);
+        }
+    }
+
     switchProjectEditMode() {
         this.setState({projectEditMode: !this.state.projectEditMode}, () => {
             if (this.state.projectEditMode) {
                 document.getElementById("editProjectName").focus();
+            } else {
+                this.setAlertMessage(null);
+                this.setInvalidTitle(null);
             }
         });
     };
-
-    editProjectName(event) {
-        event.preventDefault();
-        // TODO: verify that input is valid (use alert message function)
-        // Change curProject if the project updated is current
-        this.switchProjectEditMode();
-        updateProjectTitle(this.props.project, event.target.value).then(() => this.props.refresh());
-    }
 
     render() {
         const project = this.props.project;
@@ -957,8 +994,16 @@ class ProjectItem extends React.Component {
                  onClick={this.switchProject}>
                 {
                     this.state.projectEditMode ?
-                        <input id="editProjectName" name="editProjectName" type="text" defaultValue={this.props.project}
-                               onSubmit={this.editProjectName} onBlur={this.editProjectName} required/> :
+                        <div>
+                            <form onSubmit={(event) => this.editProjectName(event, event.target.editProjectName.value)}
+                                  onBlur={(event) => this.editProjectName(event, event.target.value)}
+                                  autoComplete="off">
+                                <input id="editProjectName" name="editProjectName" type="text"
+                                       defaultValue={this.props.project} required/>
+                            </form>
+                            <ProjectTitleAlertMessage alertMessage={this.state.alertMessage}
+                                                      projectTitle={this.state.invalidTitle}/>
+                        </div> :
                         <h2>{this.props.project}</h2>
                 }
                 <SidebarButtons deleteProject={this.deleteProject} switchProjectEditMode={this.switchProjectEditMode}

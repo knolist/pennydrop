@@ -123,6 +123,12 @@ li {
     color: white;
     font-family: "Product Sans", sans-serif;
   }
+
+  .alert-message {
+    color: orange;
+    font-size: 12px;
+    margin: 0;
+  }
 }
 
 #sidebar-header {
@@ -198,6 +204,7 @@ li {
   position: relative;
   justify-content: space-between;
   display: flex;
+  padding-left: 14px;
   /*border-style: none none solid none;*/
   /*border-bottom-color: black;*/
 
@@ -210,12 +217,12 @@ li {
     color: white;
     font-size: 18px;
     font-weight: normal;
-    margin: 14px;
-    width: @sidebar-width - (6.5 * @sidebar-button-position);
+    margin: 14px 14px 14px 0;
+    width: @sidebar-width - (4 * @sidebar-button-position);
   }
 }
 
-@sidebar-button-position: 23px;
+@sidebar-button-position: 36px;
 
 .sidebar-button {
   margin: 5px 0;
@@ -248,12 +255,6 @@ li {
   padding: 0 0 0 14px;
   position: absolute;
   width: 386px;
-
-  p {
-    color: orange;
-    font-size: 12px;
-    margin: 0;
-  }
 
   /* Avoid color change for the new project form */
   &:hover {

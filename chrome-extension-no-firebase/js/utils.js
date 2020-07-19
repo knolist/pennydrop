@@ -50,6 +50,24 @@ export default class Utils {
         return Utils.titleCase(title);
     };
 
+    // Helper to validate a project title
+    // Returns null if title is valid, or an alert message if not
+    static validateProjectTitle = (title, projectList) => {
+        if (title == null || title.length === 0) {
+            // Don't allow empty title
+            return "invalid-title";
+        } else if (title === "curProject" || title === "version") {
+            // Invalid options (reserved words for the graph structure)
+            return "invalid-title";
+        } else if (projectList.includes(title)) {
+            // Don't allow repeated project names
+            return "repeated-title";
+        } else {
+            // Valid name
+            return null;
+        }
+    };
+
     static isDescendant = (parent, child) => {
         let node = child;
         while (node != null) {
@@ -70,37 +88,4 @@ export default class Utils {
         const color = getComputedStyle(document.documentElement).getPropertyValue("--node-highlight-color");
         return Utils.trimString(color);
     };
-
-    static hexToRGB = (color) => {
-        const j = {};
-
-        const s = color.replace(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/, function(_, r, g, b) {
-            j.red = parseInt(r, 16);
-            j.green = parseInt(g, 16);
-            j.blue = parseInt(b, 16);
-            return "";
-        });
-
-        if(s.length === 0) {
-            return j;
-        }
-    };
-
-    static rgbToHex = (color) => {
-        return "#" + color.red.toString(16) + "" + color.green.toString(16) + "" + color.blue.toString(16);
-    };
-
-    static colorDifference = (a, b) => {
-        a = Utils.hexToRGB(a);
-        b = Utils.hexToRGB(b);
-
-        if(typeof(a) !== 'undefined' && typeof(b) !== 'undefined') {
-            return "#" + (a.red - b.red).toString(16) + (a.green - b.green).toString(16) + (a.blue - b.blue).toString(16);
-        }
-    };
-
-    static colorBrightness = (color) => {
-        color = Utils.hexToRGB(color);
-        return (color.red * 299 + color.green * 587 + color.blue * 114) / 1000;
-    }
 }

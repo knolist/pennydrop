@@ -273,9 +273,9 @@ deleteProjectFromGraph = async (projectName) => {
             }
         }
     }
-    // If there are no more available options, create a new project called default and set it to curProject
+    // If there are no more available options, create a new project called Default and set it to curProject
     if (graph["curProject"] === projectName) {
-        await createNewProjectInGraph("default");
+        await createNewProjectInGraph("Default");
     }
 
     // Save to disk
@@ -371,6 +371,9 @@ updateProjectTitle = async (oldTitle, newTitle) => {
     if (graph.hasOwnProperty(oldTitle) && !graph.hasOwnProperty(newTitle)) {
         graph[newTitle] = graph[oldTitle];
         delete graph[oldTitle];
+
+        // Update curProject if necessary
+        if (graph["curProject"] === oldTitle) graph["curProject"] = newTitle;
     }
 
     saveGraphToDisk(graph);
