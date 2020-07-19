@@ -949,8 +949,9 @@ var ProjectsSidebar = function (_React$Component4) {
                 React.createElement(
                     "div",
                     { id: "sidebar-content" },
-                    Object.keys(this.props.graph).map(function (project) {
-                        return React.createElement(ProjectItem, { key: project, graph: _this17.props.graph,
+                    Object.keys(this.props.graph).map(function (project, index) {
+                        return React.createElement(ProjectItem, { key: index, index: index,
+                            graph: _this17.props.graph,
                             project: project,
                             refresh: _this17.props.refresh,
                             setForDeletion: _this17.setProjectForDeletion });
@@ -1190,15 +1191,16 @@ var ProjectItem = function (_React$Component7) {
         _this22.editProjectName = _this22.editProjectName.bind(_this22);
         _this22.setAlertMessage = _this22.setAlertMessage.bind(_this22);
         _this22.setInvalidTitle = _this22.setInvalidTitle.bind(_this22);
-
-        // Add listener to submit form on enter
-        document.body.addEventListener("keyup", function (event) {
-            if (event.key === "Enter" && _this22.props.projectEditMode) _this22.editProjectName(event);
-        });
         return _this22;
     }
 
     _createClass(ProjectItem, [{
+        key: "getInputFieldId",
+        value: function getInputFieldId() {
+            // Generate unique id
+            return "edit-project-title" + this.props.index;
+        }
+    }, {
         key: "switchProject",
         value: function switchProject(data) {
             var _this23 = this;
@@ -1226,11 +1228,16 @@ var ProjectItem = function (_React$Component7) {
             this.setState({ invalidTitle: value });
         }
     }, {
+        key: "submitOnEnter",
+        value: function submitOnEnter(event) {
+            event.preventDefault();
+            this.editProjectName(event.target[this.getInputFieldId()].value);
+        }
+    }, {
         key: "editProjectName",
-        value: function editProjectName(event, title) {
+        value: function editProjectName(title) {
             var _this24 = this;
 
-            event.preventDefault();
             // Prevent user from inputting empty title name
             if (title == null || title.length === 0) {
                 this.switchProjectEditMode();
@@ -1267,7 +1274,7 @@ var ProjectItem = function (_React$Component7) {
 
             this.setState({ projectEditMode: !this.state.projectEditMode }, function () {
                 if (_this25.state.projectEditMode) {
-                    document.getElementById("editProjectName").focus();
+                    document.getElementById(_this25.getInputFieldId()).focus();
                 } else {
                     _this25.setAlertMessage(null);
                     _this25.setInvalidTitle(null);
@@ -1285,6 +1292,9 @@ var ProjectItem = function (_React$Component7) {
                 return null;
             }
 
+            // Generate unique id
+            var projectId = this.getInputFieldId();
+
             return React.createElement(
                 "div",
                 { className: project === this.props.graph.curProject ? "project-item active-project" : "project-item",
@@ -1295,13 +1305,13 @@ var ProjectItem = function (_React$Component7) {
                     React.createElement(
                         "form",
                         { onSubmit: function onSubmit(event) {
-                                return _this26.editProjectName(event, event.target.editProjectName.value);
+                                return _this26.submitOnEnter(event);
                             },
                             onBlur: function onBlur(event) {
-                                return _this26.editProjectName(event, event.target.value);
+                                return _this26.editProjectName(event.target.value);
                             },
                             autoComplete: "off" },
-                        React.createElement("input", { id: "editProjectName", name: "editProjectName", type: "text",
+                        React.createElement("input", { id: projectId, type: "text",
                             defaultValue: this.props.project, required: true })
                     ),
                     React.createElement(ProjectTitleAlertMessage, { alertMessage: this.state.alertMessage,
@@ -1328,7 +1338,10 @@ function SidebarButtons(props) {
             "button",
             {
                 className: props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button",
-                onClick: props.switchProjectEditMode },
+                onMouseDown: function onMouseDown(event) {
+                    event.preventDefault();
+                    props.switchProjectEditMode();
+                } },
             props.projectEditMode ? React.createElement(
                 "p",
                 null,

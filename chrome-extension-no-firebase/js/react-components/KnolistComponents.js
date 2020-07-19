@@ -750,10 +750,11 @@ class ProjectsSidebar extends React.Component {
                                       switchShowForm={this.switchShowNewProjectForm}/>
                 </div>
                 <div id="sidebar-content">
-                    {Object.keys(this.props.graph).map(project => <ProjectItem key={project} graph={this.props.graph}
-                                                                               project={project}
-                                                                               refresh={this.props.refresh}
-                                                                               setForDeletion={this.setProjectForDeletion}/>)}
+                    {Object.keys(this.props.graph).map((project, index) => <ProjectItem key={index} index={index}
+                                                                                        graph={this.props.graph}
+                                                                                        project={project}
+                                                                                        refresh={this.props.refresh}
+                                                                                        setForDeletion={this.setProjectForDeletion}/>)}
                     <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
                                     switchForm={this.switchShowNewProjectForm}
                                     setAlertMessage={this.setAlertMessage}
@@ -912,11 +913,11 @@ class ProjectItem extends React.Component {
         this.editProjectName = this.editProjectName.bind(this);
         this.setAlertMessage = this.setAlertMessage.bind(this);
         this.setInvalidTitle = this.setInvalidTitle.bind(this);
+    }
 
-        // Add listener to submit form on enter
-        document.body.addEventListener("keyup", (event) => {
-            if (event.key === "Enter" && this.props.projectEditMode) this.editProjectName(event);
-        })
+    getInputFieldId() {
+        // Generate unique id
+        return "edit-project-title" + this.props.index;
     }
 
     switchProject(data) {
@@ -938,9 +939,12 @@ class ProjectItem extends React.Component {
         this.setState({invalidTitle: value});
     }
 
-
-    editProjectName(event, title) {
+    submitOnEnter(event) {
         event.preventDefault();
+        this.editProjectName(event.target[this.getInputFieldId()].value);
+    }
+
+    editProjectName(title) {
         // Prevent user from inputting empty title name
         if (title == null || title.length === 0) {
             this.switchProjectEditMode();
@@ -974,7 +978,7 @@ class ProjectItem extends React.Component {
     switchProjectEditMode() {
         this.setState({projectEditMode: !this.state.projectEditMode}, () => {
             if (this.state.projectEditMode) {
-                document.getElementById("editProjectName").focus();
+                document.getElementById(this.getInputFieldId()).focus();
             } else {
                 this.setAlertMessage(null);
                 this.setInvalidTitle(null);
@@ -989,16 +993,19 @@ class ProjectItem extends React.Component {
             return null;
         }
 
+        // Generate unique id
+        const projectId = this.getInputFieldId();
+
         return (
             <div className={project === this.props.graph.curProject ? "project-item active-project" : "project-item"}
                  onClick={this.switchProject}>
                 {
                     this.state.projectEditMode ?
                         <div>
-                            <form onSubmit={(event) => this.editProjectName(event, event.target.editProjectName.value)}
-                                  onBlur={(event) => this.editProjectName(event, event.target.value)}
+                            <form onSubmit={(event) => this.submitOnEnter(event)}
+                                  onBlur={(event) => this.editProjectName(event.target.value)}
                                   autoComplete="off">
-                                <input id="editProjectName" name="editProjectName" type="text"
+                                <input id={projectId} type="text"
                                        defaultValue={this.props.project} required/>
                             </form>
                             <ProjectTitleAlertMessage alertMessage={this.state.alertMessage}
@@ -1018,7 +1025,10 @@ function SidebarButtons(props) {
         <div>
             <button
                 className={props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button"}
-                onClick={props.switchProjectEditMode}>
+                onMouseDown={(event) => {
+                    event.preventDefault();
+                    props.switchProjectEditMode();
+                }}>
                 {
                     props.projectEditMode ?
                         <p>Cancel</p> :

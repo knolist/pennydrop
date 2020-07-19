@@ -365,8 +365,6 @@ getHighlightsFromURL = async (url) => {
  * @returns {Promise<void>} ignored
  */
 updateProjectTitle = async (oldTitle, newTitle) => {
-    console.log(oldTitle);
-    console.log(newTitle);
     let graph = await getGraphFromDisk();
     if (graph.hasOwnProperty(oldTitle) && !graph.hasOwnProperty(newTitle)) {
         graph[newTitle] = graph[oldTitle];
