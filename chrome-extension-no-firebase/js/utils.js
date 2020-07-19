@@ -5,7 +5,7 @@ export default class Utils {
      * @param s
      * @returns {string}
      */
-    static trimString = s => {
+    static trimString = (s) => {
         let l=0, r=s.length -1;
         while(l < s.length && s[l] === ' ') l++;
         while(r > l && s[r] === ' ') r-=1;
@@ -50,6 +50,24 @@ export default class Utils {
         return Utils.titleCase(title);
     };
 
+    // Helper to validate a project title
+    // Returns null if title is valid, or an alert message if not
+    static validateProjectTitle = (title, projectList) => {
+        if (title == null || title.length === 0) {
+            // Don't allow empty title
+            return "invalid-title";
+        } else if (title === "curProject" || title === "version") {
+            // Invalid options (reserved words for the graph structure)
+            return "invalid-title";
+        } else if (projectList.includes(title)) {
+            // Don't allow repeated project names
+            return "repeated-title";
+        } else {
+            // Valid name
+            return null;
+        }
+    };
+
     static isDescendant = (parent, child) => {
         let node = child;
         while (node != null) {
@@ -59,5 +77,15 @@ export default class Utils {
             node = node.parentNode;
         }
         return false;
+    };
+
+    static getDefaultNodeColor = () => {
+        const color = getComputedStyle(document.documentElement).getPropertyValue("--node-default-color");
+        return Utils.trimString(color);
+    };
+
+    static getHighlightNodeColor = () => {
+        const color = getComputedStyle(document.documentElement).getPropertyValue("--node-highlight-color");
+        return Utils.trimString(color);
     };
 }

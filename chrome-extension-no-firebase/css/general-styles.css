@@ -14,14 +14,19 @@
     --active-project-background: #3e87cc;
     --main-green: #93c42d;
     --node-default-color: #7dc2ff;
-    --node-highlight-color: #d2e5ff
+    --node-highlight-color: #d2e5ff;
 }
 
 .button {
-    background-color: var(--bright-turquoise);
+    /*background-color: var(--bright-turquoise);*/
+    /*background-color: rgba(255, 255, 255, 0.5);*/
+    /*color: black;*/
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
     height: 40px;
     width: 40px;
-    border: 1px solid var(--java-color);
+    /*border: 1px solid var(--java-color);*/
+    border: none;
     transition: 0.3s;
     border-radius: 4px;
     outline: none;
@@ -36,6 +41,7 @@
 
 .button img {
     width: 100%;
+    user-select: none;
 }
 
 /* Style inputs */

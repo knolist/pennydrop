@@ -195,7 +195,7 @@ function NewProjectButton(props) {
     }
     return (
         <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-black.png" alt="New" style={{width: "100%"}}/>
+            <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
         </button>
     );
 }
@@ -213,16 +213,10 @@ class NewProjectForm extends React.Component {
         event.preventDefault();
 
         // Data validation
-        const title = event.target.newProjectTitle.value;
-        if (title === "curProject" || title === "version") {
-            // Invalid options (reserved words for the graph structure)
-            this.props.setInvalidTitle(title);
-            this.props.setAlertMessage("invalid-title");
-        } else if (this.props.projects.includes(title)) {
-            // Don't allow repeated project names
-            this.props.setInvalidTitle(title);
-            this.props.setAlertMessage("repeated-title");
-        } else {
+        const title = Utils.trimString(event.target.newProjectTitle.value);
+        const alertMessage = Utils.validateProjectTitle(title, this.props.projects);
+        this.props.setAlertMessage(alertMessage);
+        if (alertMessage == null) {
             // Valid name
             createNewProjectInGraph(title).then(() => this.props.refresh());
 
@@ -235,8 +229,9 @@ class NewProjectForm extends React.Component {
             // Close the form
             this.props.switchForm();
             // Hide alert message if there was one
-            this.props.setAlertMessage(null);
             this.props.setInvalidTitle(null);
+        } else {
+            this.props.setInvalidTitle(title);
         }
     }
 
@@ -247,7 +242,7 @@ class NewProjectForm extends React.Component {
         }
         return (
             <div style={style} id="new-project-form-area">
-                <form id="new-project-form" onSubmit={this.handleSubmit}>
+                <form id="new-project-form" onSubmit={this.handleSubmit} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
                     <button className="button create-project-button">Create</button>
                 </form>

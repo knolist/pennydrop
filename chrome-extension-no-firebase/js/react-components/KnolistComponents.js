@@ -9,8 +9,8 @@ import Utils from "../utils.js"
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
 const deployedServerURL = "https://knolist.herokuapp.com/";
-const nodeBackgroundDefaultColor = "#7dc2ff";
-const nodeHighlightDefaultColor = "#d2e5ff";
+const nodeBackgroundDefaultColor = Utils.getDefaultNodeColor();
+const nodeHighlightDefaultColor = Utils.getHighlightNodeColor();
 
 // Wrapper for all the components in the page
 class KnolistComponents extends React.Component {
@@ -72,6 +72,9 @@ class KnolistComponents extends React.Component {
                 }
             }
         });
+
+        // Set timeout and update graph to get the correct font
+        setTimeout(() => this.getDataFromServer(), 1000);
     }
 
     // Return true if a modal was closed. Used to prioritize modal closing
@@ -229,8 +232,9 @@ class KnolistComponents extends React.Component {
 
     openProjectsSidebar() {
         this.setState({showProjectsSidebar: true});
-        document.getElementById("projects-sidebar").style.width = "400px";
-        document.getElementById("projects-sidebar-btn").style.right = "400px";
+        const sidebarWidth = getComputedStyle(document.documentElement).getPropertyValue("--sidebar-width");
+        document.getElementById("projects-sidebar").style.width = sidebarWidth;
+        document.getElementById("projects-sidebar-btn").style.right = sidebarWidth;
     }
 
     closeProjectsSidebar() {
@@ -440,12 +444,15 @@ class KnolistComponents extends React.Component {
                 size: 16,
                 margin: 10,
                 physics: false,
-                chosen: true,
+                chosen: false,
                 font: {
                     face: "Product Sans"
                 },
                 color: {
                     background: nodeBackgroundDefaultColor
+                },
+                widthConstraint: {
+                    maximum: 500
                 }
             },
             edges: {
@@ -614,7 +621,7 @@ class FullSearchResults extends React.Component {
             <div id="full-search-results-area">
                 <div id="search-results-header">
                     <button className="button" onClick={this.closeSearch}>
-                        <img src="../../images/back-icon-black.png" alt="Return"/>
+                        <img src="../../images/back-icon-white.png" alt="Return"/>
                     </button>
                     <h2>{this.props.fullSearchResults.results.length === 0 ? noResultsMessage : searchResultsMessage}</h2>
                     <div style={{width: "40px"}}/>
@@ -743,10 +750,11 @@ class ProjectsSidebar extends React.Component {
                                       switchShowForm={this.switchShowNewProjectForm}/>
                 </div>
                 <div id="sidebar-content">
-                    {Object.keys(this.props.graph).map(project => <ProjectItem key={project} graph={this.props.graph}
-                                                                               project={project}
-                                                                               refresh={this.props.refresh}
-                                                                               setForDeletion={this.setProjectForDeletion}/>)}
+                    {Object.keys(this.props.graph).map((project, index) => <ProjectItem key={index} index={index}
+                                                                                        graph={this.props.graph}
+                                                                                        project={project}
+                                                                                        refresh={this.props.refresh}
+                                                                                        setForDeletion={this.setProjectForDeletion}/>)}
                     <NewProjectForm showNewProjectForm={this.state.showNewProjectForm} refresh={this.props.refresh}
                                     switchForm={this.switchShowNewProjectForm}
                                     setAlertMessage={this.setAlertMessage}
@@ -831,26 +839,23 @@ class NewProjectForm extends React.Component {
         event.preventDefault();
 
         // Data validation
-        const title = event.target.newProjectTitle.value;
-        if (title === "curProject" || title === "version") {
-            // Invalid options (reserved words for the graph structure)
-            this.props.setInvalidTitle(title);
-            this.props.setAlertMessage("invalid-title");
-        } else if (this.props.projects.includes(title)) {
-            // Don't allow repeated project names
-            this.props.setInvalidTitle(title);
-            this.props.setAlertMessage("repeated-title");
-        } else {
-            // Valid name
-            createNewProjectInGraph(title).then(() => this.props.refresh());
-
+        const title = Utils.trimString(event.target.newProjectTitle.value);
+        const alertMessage = Utils.validateProjectTitle(title, this.props.projects);
+        this.props.setAlertMessage(alertMessage);
+        if (alertMessage == null) { // Valid entry
             // Reset entry and close form
             event.target.reset();
-            // Close the form
-            this.props.switchForm();
-            // Hide alert message if there was one
-            this.props.setAlertMessage(null);
-            this.props.setInvalidTitle(null);
+
+            // Create project
+            createNewProjectInGraph(title).then(() => {
+                this.props.refresh();
+                // Close the form
+                this.props.switchForm();
+                // Hide alert message if there was one
+                this.props.setInvalidTitle(null);
+            });
+        } else {
+            this.props.setInvalidTitle(title);
         }
     }
 
@@ -861,7 +866,7 @@ class NewProjectForm extends React.Component {
         }
         return (
             <div style={style} className="project-item new-project-form-area">
-                <form id="new-project-form" onSubmit={this.handleSubmit}>
+                <form id="new-project-form" onSubmit={this.handleSubmit} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
                     <button className="button create-project-button">Create</button>
                 </form>
@@ -878,13 +883,13 @@ class NewProjectForm extends React.Component {
 function ProjectTitleAlertMessage(props) {
     if (props.alertMessage === "invalid-title") {
         return (
-            <p>{props.projectTitle} is not a valid title.</p>
+            <p className="alert-message">{props.projectTitle} is not a valid title.</p>
         );
     }
 
     if (props.alertMessage === "repeated-title") {
         return (
-            <p>You already have a project called {props.projectTitle}.</p>
+            <p className="alert-message">You already have a project called {props.projectTitle}.</p>
         );
     }
 
@@ -896,8 +901,23 @@ class ProjectItem extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            projectEditMode: false,
+            alertMessage: null,
+            invalidTitle: null
+        };
+
         this.switchProject = this.switchProject.bind(this);
         this.deleteProject = this.deleteProject.bind(this);
+        this.switchProjectEditMode = this.switchProjectEditMode.bind(this);
+        this.editProjectName = this.editProjectName.bind(this);
+        this.setAlertMessage = this.setAlertMessage.bind(this);
+        this.setInvalidTitle = this.setInvalidTitle.bind(this);
+    }
+
+    getInputFieldId() {
+        // Generate unique id
+        return "edit-project-title" + this.props.index;
     }
 
     switchProject(data) {
@@ -911,6 +931,61 @@ class ProjectItem extends React.Component {
         this.props.setForDeletion(this.props.project);
     }
 
+    setAlertMessage(value) {
+        this.setState({alertMessage: value});
+    }
+
+    setInvalidTitle(value) {
+        this.setState({invalidTitle: value});
+    }
+
+    submitOnEnter(event) {
+        event.preventDefault();
+        this.editProjectName(event.target[this.getInputFieldId()].value);
+    }
+
+    editProjectName(title) {
+        // Prevent user from inputting empty title name
+        if (title == null || title.length === 0) {
+            this.switchProjectEditMode();
+            return;
+        }
+
+        title = Utils.trimString(title);
+        // Check if submitted title is equal to the current
+        if (title === this.props.project) {
+            this.switchProjectEditMode();
+            return;
+        }
+
+        const projects = Object.keys(this.props.graph);
+        const alertMessage = Utils.validateProjectTitle(title, projects);
+        this.setAlertMessage(alertMessage);
+        if (alertMessage == null) {
+            // Valid name
+            updateProjectTitle(this.props.project, title).then(() => {
+                this.props.refresh();
+                this.switchProjectEditMode();
+
+                // Hide alert message if there was one
+                this.setInvalidTitle(null);
+            });
+        } else {
+            this.setInvalidTitle(title);
+        }
+    }
+
+    switchProjectEditMode() {
+        this.setState({projectEditMode: !this.state.projectEditMode}, () => {
+            if (this.state.projectEditMode) {
+                document.getElementById(this.getInputFieldId()).focus();
+            } else {
+                this.setAlertMessage(null);
+                this.setInvalidTitle(null);
+            }
+        });
+    };
+
     render() {
         const project = this.props.project;
         // Ignore properties that are not project names
@@ -918,18 +993,54 @@ class ProjectItem extends React.Component {
             return null;
         }
 
+        // Generate unique id
+        const projectId = this.getInputFieldId();
+
         return (
             <div className={project === this.props.graph.curProject ? "project-item active-project" : "project-item"}
                  onClick={this.switchProject}>
-                <h2>{this.props.project}</h2>
-                <button className="button delete-project-button" onClick={this.deleteProject}>
-                    <img src="../../images/delete-icon-white.png" alt="Delete node"/>
-                </button>
+                {
+                    this.state.projectEditMode ?
+                        <div>
+                            <form onSubmit={(event) => this.submitOnEnter(event)}
+                                  onBlur={(event) => this.editProjectName(event.target.value)}
+                                  autoComplete="off">
+                                <input id={projectId} type="text"
+                                       defaultValue={this.props.project} required/>
+                            </form>
+                            <ProjectTitleAlertMessage alertMessage={this.state.alertMessage}
+                                                      projectTitle={this.state.invalidTitle}/>
+                        </div> :
+                        <h2>{this.props.project}</h2>
+                }
+                <SidebarButtons deleteProject={this.deleteProject} switchProjectEditMode={this.switchProjectEditMode}
+                                projectEditMode={this.state.projectEditMode}/>
             </div>
         );
     }
 }
 
+function SidebarButtons(props) {
+    return (
+        <div>
+            <button
+                className={props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button"}
+                onMouseDown={(event) => {
+                    event.preventDefault();
+                    props.switchProjectEditMode();
+                }}>
+                {
+                    props.projectEditMode ?
+                        <p>Cancel</p> :
+                        <img src="../../images/edit-icon-white.png" alt="Edit project"/>
+                }
+            </button>
+            <button className="button delete-project-button" onClick={props.deleteProject}>
+                <img src="../../images/delete-icon-white.png" alt="Delete project"/>
+            </button>
+        </div>
+    );
+}
 
 // Form that allows the user to manually add nodes
 class NewNodeForm extends React.Component {
@@ -965,7 +1076,7 @@ class NewNodeForm extends React.Component {
             <div className="modal" style={style}>
                 <div className="modal-content">
                     <button className="close-modal button" onClick={this.props.closeForm}>
-                        <img src="../../images/close-icon-black.png" alt="Close"/>
+                        <img src="../../images/close-icon-white.png" alt="Close"/>
                     </button>
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
@@ -1011,7 +1122,7 @@ class PageView extends React.Component {
                 <div className="modal-content">
                     <button className="close-modal button" id="close-page-view"
                             onClick={this.props.closePageView}>
-                        <img src="../../images/close-icon-black.png" alt="Close"/>
+                        <img src="../../images/close-icon-white.png" alt="Close"/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
                     </a>
@@ -1028,7 +1139,7 @@ class PageView extends React.Component {
                     </div>
                     <div style={{textAlign: "right"}}>
                         <button className="button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-black.png" alt="Delete node"/>
+                            <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                         </button>
                     </div>
                 </div>
@@ -1048,9 +1159,8 @@ function ExportView(props) {
     return (
         <div className="modal">
             <div className="modal-content">
-                <button className="close-modal button" id="close-page-view"
-                        onClick={props.resetDisplayExport}>
-                    <img src="../../images/close-icon-black.png" alt="Close"/>
+                <button className="close-modal button" id="close-page-view" onClick={props.resetDisplayExport}>
+                    <img src="../../images/close-icon-white.png" alt="Close"/>
                 </button>
                 <h1>Export for Bibliography</h1>
                 <ul>{props.bibliographyData.map(item => <li key={item.url}>{item.title}, {item.url}</li>)}</ul>
@@ -1155,15 +1265,15 @@ function NewNotesButton(props) {
     }
     return (
         <button className="button add-note-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-black.png" alt="New"/>
+            <img src="../../images/add-icon-white.png" alt="New"/>
         </button>
     );
 }
 
 function RefreshGraphButton(props) {
     return (
-        <button onClick={props.refresh} className="button">
-            <img src="../../images/refresh-icon.png" alt="Refresh Button"/>
+        <button onClick={props.refresh} className="button" data-tooltip="Refresh" data-tooltip-location="right">
+            <img src="../../images/refresh-icon-white.png" alt="Refresh Button"/>
         </button>
     );
 }
@@ -1189,7 +1299,21 @@ class SearchBar extends React.Component {
                 !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
                 this.closeFilterList();
             }
-        })
+        });
+
+        // Remap CTRL+F to focus the search bar
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey && event.key === 'f') {
+                event.preventDefault();
+                document.getElementById("search-text").focus();
+                $("#search-bar").effect({
+                    effect: "highlight",
+                    color: "#fffaa6",
+                    duration: 1500,
+                    queue: false
+                });
+            }
+        });
     }
 
     switchShowFilterList() {
@@ -1293,7 +1417,8 @@ class SearchBar extends React.Component {
 function Filters(props) {
     return (
         <div>
-            <button onClick={props.switchShowFilterList} className="button" id="search-filters-button">
+            <button onClick={props.switchShowFilterList} className="button" id="search-filters-button"
+                    data-tooltip="Search Filters" data-tooltip-location="top">
                 <img src="../../images/filter-icon-black.png" alt="Filter"/>
             </button>
             <FiltersDropdown showFilterList={props.showFilterList} filterList={props.filterList}
@@ -1345,8 +1470,9 @@ class FilterItem extends React.Component {
 
 function ExportGraphButton(props) {
     return (
-        <button onClick={props.export} className="button">
-            <img src="../../images/share-icon.webp" alt="Refresh Button"/>
+        <button onClick={props.export} className="button" data-tooltip="Export for Bibliography"
+                data-tooltip-location="left">
+            <img src="../../images/export-icon-white.png" alt="Refresh Button"/>
         </button>
     );
 }

@@ -1,5 +1,6 @@
 body {
-    background-image: url("../images/background.jpg");
+    /*background-image: url("../images/background.jpg");*/
+    background-color: var(--light-blue);
     font-family: "Product Sans", sans-serif;
     height: 230px;
     width: 300px;
@@ -7,7 +8,7 @@ body {
 }
 
 .header {
-    background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url("../images/background.jpg");
+    background-color: rgba(255, 255, 255, 0.8);
     padding: 5px;
     border-style: none none solid none;
     border-bottom-color: var(--dark-blue);

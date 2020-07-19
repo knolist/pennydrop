@@ -285,7 +285,7 @@ function NewProjectButton(props) {
     return React.createElement(
         "button",
         { className: "button new-project-button", onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-black.png", alt: "New", style: { width: "100%" } })
+        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New", style: { width: "100%" } })
     );
 }
 
@@ -312,16 +312,10 @@ var NewProjectForm = function (_React$Component4) {
             event.preventDefault();
 
             // Data validation
-            var title = event.target.newProjectTitle.value;
-            if (title === "curProject" || title === "version") {
-                // Invalid options (reserved words for the graph structure)
-                this.props.setInvalidTitle(title);
-                this.props.setAlertMessage("invalid-title");
-            } else if (this.props.projects.includes(title)) {
-                // Don't allow repeated project names
-                this.props.setInvalidTitle(title);
-                this.props.setAlertMessage("repeated-title");
-            } else {
+            var title = Utils.trimString(event.target.newProjectTitle.value);
+            var alertMessage = Utils.validateProjectTitle(title, this.props.projects);
+            this.props.setAlertMessage(alertMessage);
+            if (alertMessage == null) {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
                     return _this10.props.refresh();
@@ -336,8 +330,9 @@ var NewProjectForm = function (_React$Component4) {
                 // Close the form
                 this.props.switchForm();
                 // Hide alert message if there was one
-                this.props.setAlertMessage(null);
                 this.props.setInvalidTitle(null);
+            } else {
+                this.props.setInvalidTitle(title);
             }
         }
     }, {
@@ -352,7 +347,7 @@ var NewProjectForm = function (_React$Component4) {
                 { style: style, id: "new-project-form-area" },
                 React.createElement(
                     "form",
-                    { id: "new-project-form", onSubmit: this.handleSubmit },
+                    { id: "new-project-form", onSubmit: this.handleSubmit, autoComplete: "off" },
                     React.createElement("input", { type: "text", id: "newProjectTitle", name: "newProjectTitle", defaultValue: "New Project", required: true }),
                     React.createElement(
                         "button",

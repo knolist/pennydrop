@@ -273,9 +273,9 @@ deleteProjectFromGraph = async (projectName) => {
             }
         }
     }
-    // If there are no more available options, create a new project called default and set it to curProject
+    // If there are no more available options, create a new project called Default and set it to curProject
     if (graph["curProject"] === projectName) {
-        await createNewProjectInGraph("default");
+        await createNewProjectInGraph("Default");
     }
 
     // Save to disk
@@ -356,6 +356,25 @@ getHighlightsFromURL = async (url) => {
     let graph = await getGraphFromDisk();
     const project = graph["curProject"];
     return graph[project][url]["highlights"];
+};
+
+/**
+ * Updates the name of a project in the graph.
+ * @param oldTitle the old title of the project
+ * @param newTitle the new title of the project
+ * @returns {Promise<void>} ignored
+ */
+updateProjectTitle = async (oldTitle, newTitle) => {
+    let graph = await getGraphFromDisk();
+    if (graph.hasOwnProperty(oldTitle) && !graph.hasOwnProperty(newTitle)) {
+        graph[newTitle] = graph[oldTitle];
+        delete graph[oldTitle];
+
+        // Update curProject if necessary
+        if (graph["curProject"] === oldTitle) graph["curProject"] = newTitle;
+    }
+
+    saveGraphToDisk(graph);
 };
 
 /**
