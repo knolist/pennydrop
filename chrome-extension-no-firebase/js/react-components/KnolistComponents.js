@@ -1152,8 +1152,8 @@ class PageView extends React.Component {
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.closePageView}>
+                    <button className="close-modal button" id="close-page-view" data-tooltip="Close"
+                            data-tooltip-location="down" onClick={this.props.closePageView}>
                         <img src="../../images/close-icon-white.png" alt="Close"/>
                     </button>
                     <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
@@ -1169,8 +1169,12 @@ class PageView extends React.Component {
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                     </div>
-                    <div style={{textAlign: "right"}}>
-                        <button className="button" onClick={this.setForDeletion}>
+                    <div className="pageview-buttons">
+                        <button className="button" data-tooltip="Edit node" data-tooltip-location="up">
+                            <img src="../../images/edit-icon-white.png" alt="Edit node"/>
+                        </button>
+                        <button className="button" data-tooltip="Delete node" data-tooltip-location="up"
+                                onClick={this.setForDeletion}>
                             <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                         </button>
                     </div>
@@ -1303,7 +1307,8 @@ function NewNotesButton(props) {
         );
     }
     return (
-        <button className="button add-note-button" onClick={props.switchShowForm}>
+        <button className="button add-note-button" data-tooltip="Add notes" data-tooltip-location="right"
+                onClick={props.switchShowForm}>
             <img src="../../images/add-icon-white.png" alt="New"/>
         </button>
     );

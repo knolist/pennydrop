@@ -1511,8 +1511,8 @@ var PageView = function (_React$Component8) {
                     { className: "modal-content" },
                     React.createElement(
                         "button",
-                        { className: "close-modal button", id: "close-page-view",
-                            onClick: this.props.closePageView },
+                        { className: "close-modal button", id: "close-page-view", "data-tooltip": "Close",
+                            "data-tooltip-location": "down", onClick: this.props.closePageView },
                         React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
                     ),
                     React.createElement(
@@ -1539,10 +1539,16 @@ var PageView = function (_React$Component8) {
                     ),
                     React.createElement(
                         "div",
-                        { style: { textAlign: "right" } },
+                        { className: "pageview-buttons" },
                         React.createElement(
                             "button",
-                            { className: "button", onClick: this.setForDeletion },
+                            { className: "button", "data-tooltip": "Edit node", "data-tooltip-location": "up" },
+                            React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit node" })
+                        ),
+                        React.createElement(
+                            "button",
+                            { className: "button", "data-tooltip": "Delete node", "data-tooltip-location": "up",
+                                onClick: this.setForDeletion },
                             React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
                         )
                     )
@@ -1764,7 +1770,8 @@ function NewNotesButton(props) {
     }
     return React.createElement(
         "button",
-        { className: "button add-note-button", onClick: props.switchShowForm },
+        { className: "button add-note-button", "data-tooltip": "Add notes", "data-tooltip-location": "right",
+            onClick: props.switchShowForm },
         React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
     );
 }
