@@ -1060,7 +1060,7 @@ function ConfirmDeletionWindow(props) {
             ),
             React.createElement(
                 "div",
-                { style: { display: "flex", justifyContent: "space-between" } },
+                { className: "flex-and-spaced" },
                 React.createElement(
                     "button",
                     { className: "button confirmation-button", onClick: props.delete },
@@ -1081,7 +1081,7 @@ function NewProjectButton(props) {
     return React.createElement(
         "button",
         {
-            className: props.showForm ? "button new-project-button cancel-new-project" : "button new-project-button",
+            className: props.showForm ? "button new-project-button button-with-text" : "button new-project-button",
             onMouseDown: function onMouseDown(event) {
                 event.preventDefault();
                 props.switchShowForm();
@@ -1370,7 +1370,7 @@ function SidebarButtons(props) {
         React.createElement(
             "button",
             {
-                className: props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button",
+                className: props.projectEditMode ? "button edit-project-button button-with-text" : "button edit-project-button",
                 onMouseDown: function onMouseDown(event) {
                     event.preventDefault();
                     props.switchProjectEditMode();
@@ -1457,7 +1457,7 @@ var NewNodeForm = function (_React$Component7) {
                         React.createElement("br", null),
                         React.createElement(
                             "button",
-                            { className: "button", style: { width: 100 } },
+                            { className: "button button-with-text" },
                             "Add node"
                         )
                     )
@@ -1508,27 +1508,43 @@ var PageView = function (_React$Component8) {
                 { id: "page-view", className: "modal" },
                 React.createElement(
                     "div",
-                    { className: "modal-content" },
+                    { className: "modal-content pageview" },
                     React.createElement(
-                        "button",
-                        { className: "close-modal button", id: "close-page-view", "data-tooltip": "Close",
-                            "data-tooltip-location": "down", onClick: this.props.closePageView },
-                        React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
-                    ),
-                    React.createElement(
-                        "a",
-                        { href: this.props.selectedNode.source, target: "_blank" },
+                        "div",
+                        { className: "flex-and-spaced" },
                         React.createElement(
-                            "h1",
-                            null,
-                            this.props.selectedNode.title
+                            "div",
+                            { style: { display: "flex" } },
+                            React.createElement(
+                                "a",
+                                { href: this.props.selectedNode.source, target: "_blank" },
+                                React.createElement(
+                                    "h1",
+                                    null,
+                                    this.props.selectedNode.title
+                                )
+                            ),
+                            React.createElement(
+                                "button",
+                                { className: "button pageview-button", "data-tooltip": "Edit Title",
+                                    "data-tooltip-location": "up" },
+                                React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit title" })
+                            )
+                        ),
+                        React.createElement(
+                            "button",
+                            { className: "button close-pageview", id: "close-page-view", "data-tooltip": "Close",
+                                "data-tooltip-location": "down", onClick: this.props.closePageView },
+                            React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
                         )
                     ),
                     React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
+                    React.createElement("hr", null),
                     React.createElement(NotesList, { showNewNotesForm: this.props.showNewNotesForm,
                         switchShowNewNotesForm: this.props.switchShowNewNotesForm,
                         selectedNode: this.props.selectedNode,
                         refresh: this.props.refresh }),
+                    React.createElement("hr", null),
                     React.createElement(
                         "div",
                         { style: { display: "flex" } },
@@ -1539,12 +1555,7 @@ var PageView = function (_React$Component8) {
                     ),
                     React.createElement(
                         "div",
-                        { className: "pageview-buttons" },
-                        React.createElement(
-                            "button",
-                            { className: "button", "data-tooltip": "Edit node", "data-tooltip-location": "up" },
-                            React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit node" })
-                        ),
+                        { style: { textAlign: "right" } },
                         React.createElement(
                             "button",
                             { className: "button", "data-tooltip": "Delete node", "data-tooltip-location": "up",
@@ -1650,10 +1661,25 @@ function HighlightsList(props) {
         "div",
         null,
         React.createElement(
-            "h2",
-            null,
-            props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
+            "div",
+            { style: { display: "flex" } },
+            React.createElement(
+                "h2",
+                null,
+                props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
+            ),
+            props.highlights.length > 0 ? React.createElement(
+                "button",
+                { className: "button small-button", "data-tooltip": "Edit Highlights",
+                    "data-tooltip-location": "up" },
+                React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit highlights" })
+            ) : null
         ),
+        props.highlights.length === 0 ? React.createElement(
+            "p",
+            null,
+            "To add highlights, select text on a page, right-click, then click on \"Highlight with Knolist\"."
+        ) : null,
         React.createElement(
             "ul",
             null,
@@ -1709,7 +1735,13 @@ var NotesList = function (_React$Component9) {
                         this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."
                     ),
                     React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
-                        switchShowForm: this.props.switchShowNewNotesForm })
+                        switchShowForm: this.props.switchShowNewNotesForm }),
+                    this.props.selectedNode.notes.length > 0 ? React.createElement(
+                        "button",
+                        { className: "button small-button", "data-tooltip": "Edit Notes",
+                            "data-tooltip-location": "up" },
+                        React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit notes" })
+                    ) : null
                 ),
                 React.createElement(
                     "ul",
@@ -1749,7 +1781,7 @@ function NewNotesForm(props) {
             "button",
             { onMouseDown: function onMouseDown(event) {
                     event.preventDefault();
-                }, className: "button add-note-button cancel-new-project", style: { marginTop: 0, marginBottom: 0 } },
+                }, className: "button small-button button-with-text", style: { marginTop: 0, marginBottom: 0 } },
             "Add"
         )
     );
@@ -1760,7 +1792,7 @@ function NewNotesButton(props) {
     if (props.showForm) {
         return React.createElement(
             "button",
-            { className: "button add-note-button cancel-new-project", onClick: props.switchShowForm },
+            { className: "button small-button button-with-text", onClick: props.switchShowForm },
             React.createElement(
                 "p",
                 null,
@@ -1770,7 +1802,7 @@ function NewNotesButton(props) {
     }
     return React.createElement(
         "button",
-        { className: "button add-note-button", "data-tooltip": "Add notes", "data-tooltip-location": "right",
+        { className: "button small-button", "data-tooltip": "Add notes", "data-tooltip-location": "up",
             onClick: props.switchShowForm },
         React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
     );

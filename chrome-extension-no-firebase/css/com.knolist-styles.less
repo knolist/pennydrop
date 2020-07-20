@@ -1,3 +1,5 @@
+@import "general-styles";
+
 :root {
   --sidebar-width: @sidebar-width;
 }
@@ -85,6 +87,10 @@ body {
   border: 2px solid var(--dark-blue);
   border-radius: 16px;
   width: 80%; /* Could be more or less, depending on screen size */
+
+  h1 {
+    margin: 10px 0;
+  }
 }
 
 /* The Close Button */
@@ -93,12 +99,32 @@ body {
   padding: 8px;
 }
 
-.pageview-buttons {
-  text-align: right;
+.pageview {
+  h2 {
+    margin: 5px 0;
+  }
 
-  .button {
+  p {
+    font-size: 14px;
+  }
+
+  hr {
+    border: 1px solid fade(@dark-blue, 50%);
+    border-radius: 10px;
+  }
+
+  .small-button {
     margin-left: 10px;
   }
+}
+
+.pageview-button {
+  margin: 5px 5px 5px 10px;
+}
+
+.close-pageview {
+  .pageview-button();
+  padding: 8px;
 }
 
 ul {
@@ -271,23 +297,9 @@ li {
 .create-project-button {
   margin: 5px 0;
   color: white;
-  width: auto;
+  .button-with-text();
   position: absolute;
   right: @sidebar-button-position;
-}
-
-.add-note-button {
-  margin: 10px;
-  height: 30px;
-  width: 30px;
-}
-
-.cancel-new-project {
-  width: auto;
-
-  p {
-    margin: 0;
-  }
 }
 
 #delete-confirmation-modal {
@@ -327,8 +339,7 @@ li {
 }
 
 #search-filters-button {
-  height: 30px;
-  width: 30px;
+  .small-button();
   padding: 5px;
   margin: 0 0 0 5px;
   border: none;

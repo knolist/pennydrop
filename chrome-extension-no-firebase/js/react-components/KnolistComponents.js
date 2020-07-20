@@ -828,7 +828,7 @@ function ConfirmDeletionWindow(props) {
                      style={{width: "30%", display: "block", marginLeft: "auto", marginRight: "auto"}}/>
                 <h1>Are you sure you want to delete "{props.item}"?</h1>
                 <h3>This action cannot be undone.</h3>
-                <div style={{display: "flex", justifyContent: "space-between"}}>
+                <div className="flex-and-spaced">
                     <button className="button confirmation-button" onClick={props.delete}>
                         Yes, delete it!
                     </button>
@@ -846,7 +846,7 @@ function ConfirmDeletionWindow(props) {
 function NewProjectButton(props) {
     return (
         <button
-            className={props.showForm ? "button new-project-button cancel-new-project" : "button new-project-button"}
+            className={props.showForm ? "button new-project-button button-with-text" : "button new-project-button"}
             onMouseDown={(event) => {
                 event.preventDefault();
                 props.switchShowForm();
@@ -1061,7 +1061,7 @@ function SidebarButtons(props) {
     return (
         <div>
             <button
-                className={props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button"}
+                className={props.projectEditMode ? "button edit-project-button button-with-text" : "button edit-project-button"}
                 onMouseDown={(event) => {
                     event.preventDefault();
                     props.switchProjectEditMode();
@@ -1118,7 +1118,7 @@ class NewNodeForm extends React.Component {
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
                         <input id="url" name="url" type="url" placeholder="Insert URL" required/><br/>
-                        <button className="button" style={{width: 100}}>Add node</button>
+                        <button className="button button-with-text">Add node</button>
                     </form>
                 </div>
             </div>
@@ -1151,28 +1151,36 @@ class PageView extends React.Component {
 
         return (
             <div id="page-view" className="modal">
-                <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view" data-tooltip="Close"
-                            data-tooltip-location="down" onClick={this.props.closePageView}>
-                        <img src="../../images/close-icon-white.png" alt="Close"/>
-                    </button>
-                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
-                    </a>
+                <div className="modal-content pageview">
+                    <div className="flex-and-spaced">
+                        <div style={{display: "flex"}}>
+                            <a href={this.props.selectedNode.source} target="_blank">
+                                <h1>{this.props.selectedNode.title}</h1>
+                            </a>
+                            <button className="button pageview-button" data-tooltip="Edit Title"
+                                    data-tooltip-location="up">
+                                <img src="../../images/edit-icon-white.png" alt="Edit title"/>
+                            </button>
+                        </div>
+                        <button className="button close-pageview" id="close-page-view" data-tooltip="Close"
+                                data-tooltip-location="down" onClick={this.props.closePageView}>
+                            <img src="../../images/close-icon-white.png" alt="Close"/>
+                        </button>
+                    </div>
                     <HighlightsList highlights={this.props.selectedNode.highlights}/>
+                    <hr/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
                                selectedNode={this.props.selectedNode}
                                refresh={this.props.refresh}/>
+                    <hr/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                     </div>
-                    <div className="pageview-buttons">
-                        <button className="button" data-tooltip="Edit node" data-tooltip-location="up">
-                            <img src="../../images/edit-icon-white.png" alt="Edit node"/>
-                        </button>
+                    <div style={{textAlign: "right"}}>
                         <button className="button" data-tooltip="Delete node" data-tooltip-location="up"
                                 onClick={this.setForDeletion}>
                             <img src="../../images/delete-icon-white.png" alt="Delete node"/>
@@ -1235,7 +1243,23 @@ function ListURL(props) {
 function HighlightsList(props) {
     return (
         <div>
-            <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+            <div style={{display: "flex"}}>
+                <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+                {
+                    props.highlights.length > 0 ?
+                        <button className="button small-button" data-tooltip="Edit Highlights"
+                                data-tooltip-location="up">
+                            <img src="../../images/edit-icon-white.png" alt="Edit highlights"/>
+                        </button> :
+                        null
+                }
+            </div>
+            {
+                props.highlights.length === 0 ?
+                    <p>To add highlights, select text on a page, right-click, then click on "Highlight with
+                        Knolist".</p> :
+                    null
+            }
             <ul>{props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
         </div>
     );
@@ -1266,6 +1290,14 @@ class NotesList extends React.Component {
                     <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
+                    {
+                        this.props.selectedNode.notes.length > 0 ?
+                            <button className="button small-button" data-tooltip="Edit Notes"
+                                    data-tooltip-location="up">
+                                <img src="../../images/edit-icon-white.png" alt="Edit notes"/>
+                            </button> :
+                            null
+                    }
                 </div>
                 <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
                 <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}
@@ -1290,7 +1322,7 @@ function NewNotesForm(props) {
             <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
             <button onMouseDown={(event) => {
                 event.preventDefault();
-            }} className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>
+            }} className="button small-button button-with-text" style={{marginTop: 0, marginBottom: 0}}>
                 Add
             </button>
         </form>
@@ -1301,13 +1333,13 @@ function NewNotesForm(props) {
 function NewNotesButton(props) {
     if (props.showForm) {
         return (
-            <button className="button add-note-button cancel-new-project" onClick={props.switchShowForm}>
+            <button className="button small-button button-with-text" onClick={props.switchShowForm}>
                 <p>Cancel</p>
             </button>
         );
     }
     return (
-        <button className="button add-note-button" data-tooltip="Add notes" data-tooltip-location="right"
+        <button className="button small-button" data-tooltip="Add notes" data-tooltip-location="up"
                 onClick={props.switchShowForm}>
             <img src="../../images/add-icon-white.png" alt="New"/>
         </button>

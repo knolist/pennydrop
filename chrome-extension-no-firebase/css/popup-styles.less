@@ -1,3 +1,5 @@
+@import "general-styles";
+
 body {
   /*background-image: url("../images/background.jpg");*/
   background-color: var(--light-blue);
@@ -124,22 +126,16 @@ input:checked + .switch-slider:before {
 }
 
 .new-project-button {
-  height: 30px;
-  width: 30px;
   margin-bottom: 5px;
 }
 
 .cancel-new-project {
+  max-width: none;
   width: auto;
 
   p {
     margin: 0;
   }
-}
-
-.create-project-button {
-  width: auto;
-  height: 30px;
 }
 
 #new-project-form {
@@ -153,15 +149,6 @@ input:checked + .switch-slider:before {
   p {
     color: red;
     font-size: 11px;
-  }
-}
-
-.add-note-button {
-  width: auto;
-  height: 30px;
-
-  p {
-    margin: 0;
   }
 }
 
