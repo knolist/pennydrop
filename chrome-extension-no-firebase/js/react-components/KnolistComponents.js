@@ -370,7 +370,6 @@ class KnolistComponents extends React.Component {
         // Sort so that results with the most occurrences are at the top
         resultObject.results.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
         this.setFullSearchResults(resultObject);
-        console.log(resultObject);
     }
 
     /* Helper function to generate position for nodes
@@ -863,9 +862,10 @@ class NewProjectForm extends React.Component {
         }
         return (
             <div style={style} className="project-item new-project-form-area">
-                <form id="new-project-form" onSubmit={this.handleSubmit} autoComplete="off">
+                <form id="new-project-form" onSubmit={this.handleSubmit}
+                      onBlur={() => this.props.showNewProjectForm ? this.props.switchForm() : null} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
-                    <button className="button create-project-button">Create</button>
+                    <button onMouseDown={(event) => event.preventDefault()} className="button create-project-button">Create</button>
                 </form>
                 <ProjectTitleAlertMessage alertMessage={this.props.alertMessage}
                                           projectTitle={this.props.invalidTitle}/>
@@ -1229,7 +1229,8 @@ class NotesList extends React.Component {
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
                 </div>
                 <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
-                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
+                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}
+                              switchShowNewNotesForm={this.props.switchShowNewNotesForm}/>
             </div>
         );
     }
@@ -1243,9 +1244,15 @@ function NewNotesForm(props) {
     }
 
     return (
-        <form id="new-notes-form" onSubmit={props.handleSubmit} style={style}>
+        <form id="new-notes-form" onSubmit={props.handleSubmit}
+              onBlur={() => {
+                  if (props.showNewNotesForm) props.switchShowNewNotesForm();
+              }} style={style}>
             <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
-            <button className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Add
+            <button onMouseDown={(event) => {
+                event.preventDefault();
+            }} className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>
+                Add
             </button>
         </form>
     );
