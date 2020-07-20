@@ -1329,20 +1329,23 @@ function NewNotesForm(props) {
     );
 }
 
-// Button used to open the "create project" form
+// Button used to open the "create notes" form
 function NewNotesButton(props) {
-    if (props.showForm) {
-        return (
-            <button className="button small-button button-with-text" onClick={props.switchShowForm}>
-                <p>Cancel</p>
-            </button>
-        );
-    }
     return (
-        <button className="button small-button" data-tooltip="Add notes" data-tooltip-location="up"
-                onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-white.png" alt="New"/>
-        </button>
+      <button className={props.showForm ? "button small-button button-with-text" : "button small-button"}
+              data-tooltip={props.showForm ? undefined : "Add notes"}
+              data-tooltip-location={props.showForm ? undefined : "up"}
+              onMouseDown={(event) => {
+                  event.preventDefault();
+                  props.switchShowForm();
+              }}>
+          {
+              props.showForm ?
+                  <p>Cancel</p> :
+                  <img src="../../images/add-icon-white.png" alt="New"/>
+          }
+
+      </button>
     );
 }
 

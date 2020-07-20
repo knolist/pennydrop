@@ -1787,24 +1787,22 @@ function NewNotesForm(props) {
     );
 }
 
-// Button used to open the "create project" form
+// Button used to open the "create notes" form
 function NewNotesButton(props) {
-    if (props.showForm) {
-        return React.createElement(
-            "button",
-            { className: "button small-button button-with-text", onClick: props.switchShowForm },
-            React.createElement(
-                "p",
-                null,
-                "Cancel"
-            )
-        );
-    }
     return React.createElement(
         "button",
-        { className: "button small-button", "data-tooltip": "Add notes", "data-tooltip-location": "up",
-            onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
+        { className: props.showForm ? "button small-button button-with-text" : "button small-button",
+            "data-tooltip": props.showForm ? undefined : "Add notes",
+            "data-tooltip-location": props.showForm ? undefined : "up",
+            onMouseDown: function onMouseDown(event) {
+                event.preventDefault();
+                props.switchShowForm();
+            } },
+        props.showForm ? React.createElement(
+            "p",
+            null,
+            "Cancel"
+        ) : React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
     );
 }
 
