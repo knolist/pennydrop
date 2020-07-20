@@ -593,11 +593,14 @@ var KnolistComponents = function (_React$Component) {
                     },
                     color: "black",
                     physics: false,
-                    smooth: false
+                    smooth: false,
+                    hoverWidth: 0
                 },
                 interaction: {
                     navigationButtons: true,
-                    selectConnectedEdges: false
+                    selectConnectedEdges: false,
+                    hover: true,
+                    hoverConnectedEdges: false
                 },
                 manipulation: {
                     enabled: true,
@@ -639,6 +642,14 @@ var KnolistComponents = function (_React$Component) {
                     updatePositionOfNode(url, x, y);
                 }
                 // this.setState({autoRefresh: true});
+            });
+
+            // Set cursor to pointer when hovering over a node
+            network.on("hoverNode", function () {
+                return network.canvas.body.container.style.cursor = "pointer";
+            });
+            network.on("blurNode", function () {
+                return network.canvas.body.container.style.cursor = "default";
             });
 
             // Store the network
@@ -961,7 +972,6 @@ var ProjectsSidebar = function (_React$Component4) {
         value: function switchShowNewProjectForm() {
             var _this18 = this;
 
-            document.getElementById("new-project-form").reset();
             this.setState({
                 showNewProjectForm: !this.state.showNewProjectForm,
                 alertMessage: null,
@@ -969,6 +979,7 @@ var ProjectsSidebar = function (_React$Component4) {
             }, function () {
                 // Set focus to the input field
                 if (_this18.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
+                document.getElementById("new-project-form").reset();
             });
         }
     }, {
@@ -1067,21 +1078,19 @@ function ConfirmDeletionWindow(props) {
 
 // Button used to open the "create project" form
 function NewProjectButton(props) {
-    if (props.showForm) {
-        return React.createElement(
-            "button",
-            { className: "button new-project-button cancel-new-project", onClick: props.switchShowForm },
-            React.createElement(
-                "p",
-                null,
-                "Cancel"
-            )
-        );
-    }
     return React.createElement(
         "button",
-        { className: "button new-project-button", onClick: props.switchShowForm },
-        React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
+        {
+            className: props.showForm ? "button new-project-button cancel-new-project" : "button new-project-button",
+            onMouseDown: function onMouseDown(event) {
+                event.preventDefault();
+                props.switchShowForm();
+            } },
+        props.showForm ? React.createElement(
+            "p",
+            null,
+            "Cancel"
+        ) : React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New" })
     );
 }
 

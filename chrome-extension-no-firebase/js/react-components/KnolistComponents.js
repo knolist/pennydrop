@@ -485,11 +485,14 @@ class KnolistComponents extends React.Component {
                 },
                 color: "black",
                 physics: false,
-                smooth: false
+                smooth: false,
+                hoverWidth: 0
             },
             interaction: {
                 navigationButtons: true,
-                selectConnectedEdges: false
+                selectConnectedEdges: false,
+                hover: true,
+                hoverConnectedEdges: false
             },
             manipulation: {
                 enabled: true,
@@ -532,6 +535,10 @@ class KnolistComponents extends React.Component {
             }
             // this.setState({autoRefresh: true});
         });
+
+        // Set cursor to pointer when hovering over a node
+        network.on("hoverNode", () => network.canvas.body.container.style.cursor = "pointer");
+        network.on("blurNode", () => network.canvas.body.container.style.cursor = "default");
 
         // Store the network
         this.setState({visNetwork: network});
@@ -766,7 +773,6 @@ class ProjectsSidebar extends React.Component {
     }
 
     switchShowNewProjectForm() {
-        document.getElementById("new-project-form").reset();
         this.setState({
             showNewProjectForm: !this.state.showNewProjectForm,
             alertMessage: null,
@@ -774,6 +780,7 @@ class ProjectsSidebar extends React.Component {
         }, () => {
             // Set focus to the input field
             if (this.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
+            document.getElementById("new-project-form").reset();
         });
     }
 
@@ -837,16 +844,18 @@ function ConfirmDeletionWindow(props) {
 
 // Button used to open the "create project" form
 function NewProjectButton(props) {
-    if (props.showForm) {
-        return (
-            <button className="button new-project-button cancel-new-project" onClick={props.switchShowForm}>
-                <p>Cancel</p>
-            </button>
-        );
-    }
     return (
-        <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-white.png" alt="New"/>
+        <button
+            className={props.showForm ? "button new-project-button cancel-new-project" : "button new-project-button"}
+            onMouseDown={(event) => {
+                event.preventDefault();
+                props.switchShowForm();
+            }}>
+            {
+                props.showForm ?
+                    <p>Cancel</p> :
+                    <img src="../../images/add-icon-white.png" alt="New"/>
+            }
         </button>
     );
 }
