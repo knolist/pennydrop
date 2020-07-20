@@ -34,7 +34,8 @@ var KnolistComponents = function (_React$Component) {
 
         _this.state = {
             graph: null, // All the graph data
-            selectedNode: null, // Node that's clicked for the detailed view
+            selectedNode: null, // Node that's clicked for the detailed view,
+            nodeForDeletion: null, // Node to be deleted after confirmation
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
@@ -50,16 +51,19 @@ var KnolistComponents = function (_React$Component) {
         };
 
         // Bind functions that need to be passed as parameters
+        // this.deleteNode = this.deleteNode.bind(this); // Was used for deletion through the vis.js GUI
         _this.getDataFromServer = _this.getDataFromServer.bind(_this);
         _this.exportData = _this.exportData.bind(_this);
         _this.handleClickedNode = _this.handleClickedNode.bind(_this);
-        _this.deleteNode = _this.deleteNode.bind(_this);
         _this.addNode = _this.addNode.bind(_this);
         _this.deleteEdge = _this.deleteEdge.bind(_this);
         _this.addEdge = _this.addEdge.bind(_this);
         _this.switchShowNewNodeForm = _this.switchShowNewNodeForm.bind(_this);
         _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
         _this.resetSelectedNode = _this.resetSelectedNode.bind(_this);
+        _this.setNodeForDeletion = _this.setNodeForDeletion.bind(_this);
+        _this.resetNodeForDeletion = _this.resetNodeForDeletion.bind(_this);
+        _this.deleteNodeAfterConfirmation = _this.deleteNodeAfterConfirmation.bind(_this);
         _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
         _this.openProjectsSidebar = _this.openProjectsSidebar.bind(_this);
         _this.closeProjectsSidebar = _this.closeProjectsSidebar.bind(_this);
@@ -193,12 +197,35 @@ var KnolistComponents = function (_React$Component) {
         key: "resetSelectedNode",
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
+            this.resetNodeForDeletion();
         }
     }, {
         key: "setSelectedNode",
         value: function setSelectedNode(url) {
             var curProject = this.state.graph.curProject;
             this.setState({ selectedNode: this.state.graph[curProject][url] });
+        }
+    }, {
+        key: "setNodeForDeletion",
+        value: function setNodeForDeletion(url) {
+            this.setState({ nodeForDeletion: url });
+        }
+    }, {
+        key: "resetNodeForDeletion",
+        value: function resetNodeForDeletion() {
+            this.setState({ nodeForDeletion: null });
+        }
+    }, {
+        key: "deleteNodeAfterConfirmation",
+        value: function deleteNodeAfterConfirmation() {
+            var _this5 = this;
+
+            // Remove from the graph
+            removeItemFromGraph(this.state.selectedNode.source).then(function () {
+                // Reset the selected node
+                _this5.resetSelectedNode();
+                _this5.getDataFromServer();
+            });
         }
     }, {
         key: "closePageView",
@@ -222,14 +249,15 @@ var KnolistComponents = function (_React$Component) {
                 this.setSelectedNode(id);
             }
         }
-    }, {
-        key: "deleteNode",
-        value: function deleteNode(data, callback) {
-            var nodeId = data.nodes[0];
-            removeItemFromGraph(nodeId).then(function () {
-                callback(data);
-            });
-        }
+
+        // Was used for deletion through the vis.js GUI, probably unnecessary
+        // deleteNode(data, callback) {
+        //     const nodeId = data.nodes[0];
+        //     removeItemFromGraph(nodeId).then(() => {
+        //         callback(data);
+        //     });
+        // }
+
     }, {
         key: "addNode",
         value: function addNode(nodeData, callback) {
@@ -241,12 +269,12 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "deleteEdge",
         value: function deleteEdge(data, callback) {
-            var _this5 = this;
+            var _this6 = this;
 
             var edgeId = data.edges[0];
             var connectedNodes = this.state.visNetwork.getConnectedNodes(edgeId);
             removeEdgeFromGraph(connectedNodes[0], connectedNodes[1]).then(function () {
-                _this5.getDataFromServer();
+                _this6.getDataFromServer();
                 callback(data);
             });
             callback(data);
@@ -254,12 +282,12 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "addEdge",
         value: function addEdge(edgeData, callback) {
-            var _this6 = this;
+            var _this7 = this;
 
             if (edgeData.from !== edgeData.to) {
                 // Ensure that user isn't adding self edge
                 addEdgeToGraph(edgeData.from, edgeData.to).then(function () {
-                    _this6.getDataFromServer();
+                    _this7.getDataFromServer();
                     callback(edgeData);
                 });
             }
@@ -273,11 +301,11 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "switchShowNewNodeForm",
         value: function switchShowNewNodeForm() {
-            var _this7 = this;
+            var _this8 = this;
 
             this.setState({ showNewNodeForm: !this.state.showNewNodeForm }, function () {
                 // Set focus to the input field
-                if (_this7.state.showNewNodeForm) {
+                if (_this8.state.showNewNodeForm) {
                     document.getElementById("url").focus();
                 }
             });
@@ -285,12 +313,12 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "switchShowNewNotesForm",
         value: function switchShowNewNotesForm() {
-            var _this8 = this;
+            var _this9 = this;
 
             document.getElementById("new-notes-form").reset();
             this.setState({ showNewNotesForm: !this.state.showNewNotesForm }, function () {
                 // Set focus to the input field if the notes form is open
-                if (_this8.state.showNewNotesForm) document.getElementById("notes").focus();
+                if (_this9.state.showNewNotesForm) document.getElementById("notes").focus();
             });
         }
     }, {
@@ -329,7 +357,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "highlightNodes",
         value: function highlightNodes(nodesToHighlight) {
-            var _this9 = this;
+            var _this10 = this;
 
             // If the list is null, reset all nodes to the default
             if (nodesToHighlight === null) {
@@ -338,7 +366,7 @@ var KnolistComponents = function (_React$Component) {
                     node.color = {
                         background: nodeBackgroundDefaultColor
                     };
-                    _this9.state.visNodes.update(node);
+                    _this10.state.visNodes.update(node);
                 });
                 return;
             }
@@ -356,7 +384,7 @@ var KnolistComponents = function (_React$Component) {
                         background: nodeHighlightDefaultColor
                     };
                 }
-                _this9.state.visNodes.update(node);
+                _this10.state.visNodes.update(node);
             });
         }
 
@@ -525,7 +553,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "setupVisGraph",
         value: function setupVisGraph() {
-            var _this10 = this;
+            var _this11 = this;
 
             var _createNodesAndEdges = this.createNodesAndEdges(),
                 _createNodesAndEdges2 = _slicedToArray(_createNodesAndEdges, 2),
@@ -573,10 +601,11 @@ var KnolistComponents = function (_React$Component) {
                 },
                 manipulation: {
                     enabled: true,
-                    deleteNode: this.deleteNode,
+                    deleteNode: false,
                     addNode: this.addNode,
                     deleteEdge: this.deleteEdge,
-                    addEdge: this.addEdge
+                    addEdge: this.addEdge,
+                    editEdge: false
                 }
             };
             var network = new vis.Network(container, data, options);
@@ -590,7 +619,7 @@ var KnolistComponents = function (_React$Component) {
             network.on("click", function (params) {
                 if (params.nodes !== undefined && params.nodes.length > 0) {
                     var nodeId = params.nodes[0];
-                    _this10.handleClickedNode(nodeId);
+                    _this11.handleClickedNode(nodeId);
                 }
             });
 
@@ -618,7 +647,7 @@ var KnolistComponents = function (_React$Component) {
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            var _this11 = this;
+            var _this12 = this;
 
             this.getDataFromServer();
             this.checkIfLocalServer();
@@ -627,7 +656,7 @@ var KnolistComponents = function (_React$Component) {
                 chrome.tabs.get(activeInfo.tabId, function (tab) {
                     if (tab.title === "Knolist") {
                         // Update data
-                        _this11.getDataFromServer();
+                        _this12.getDataFromServer();
                     }
                 });
             });
@@ -685,10 +714,15 @@ var KnolistComponents = function (_React$Component) {
                         refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
                         resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
+                        setNodeForDeletion: this.setNodeForDeletion,
                         refresh: this.getDataFromServer, closePageView: this.closePageView,
                         switchShowNewNotesForm: this.switchShowNewNotesForm,
                         fullSearchResults: this.state.fullSearchResults,
                         showNewNotesForm: this.state.showNewNotesForm }),
+                    React.createElement(ConfirmDeletionWindow, {
+                        item: this.state.nodeForDeletion == null ? null : this.state.nodeForDeletion.title,
+                        resetForDeletion: this.resetNodeForDeletion,
+                        "delete": this.deleteNodeAfterConfirmation }),
                     React.createElement(ExportView, { bibliographyData: this.state.bibliographyData, shouldShow: this.state.displayExport,
                         resetDisplayExport: this.resetDisplayExport })
                 )
@@ -711,10 +745,10 @@ var FullSearchResults = function (_React$Component2) {
         //
         // this.setExpandedSearchResult = this.setExpandedSearchResult.bind(this);
         // this.resetExpandedSearchResult = this.resetExpandedSearchResult.bind(this);
-        var _this12 = _possibleConstructorReturn(this, (FullSearchResults.__proto__ || Object.getPrototypeOf(FullSearchResults)).call(this, props));
+        var _this13 = _possibleConstructorReturn(this, (FullSearchResults.__proto__ || Object.getPrototypeOf(FullSearchResults)).call(this, props));
 
-        _this12.closeSearch = _this12.closeSearch.bind(_this12);
-        return _this12;
+        _this13.closeSearch = _this13.closeSearch.bind(_this13);
+        return _this13;
     }
 
     // setExpandedSearchResult(url) {
@@ -734,7 +768,7 @@ var FullSearchResults = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
-            var _this13 = this;
+            var _this14 = this;
 
             if (this.props.fullSearchResults === null) return null;
 
@@ -761,12 +795,12 @@ var FullSearchResults = function (_React$Component2) {
                 ),
                 this.props.fullSearchResults.results.map(function (result) {
                     return React.createElement(SearchResultItem, { key: result.url,
-                        item: _this13.props.graph[result.url]
+                        item: _this14.props.graph[result.url]
                         // expandedSearchResult={this.state.expandedSearchResult}
                         // setExpandedSearchResult={this.setExpandedSearchResult}
                         // resetExpandedSearchResult={this.resetExpandedSearchResult}
                         , result: result,
-                        setSelectedNode: _this13.props.setSelectedNode });
+                        setSelectedNode: _this14.props.setSelectedNode });
                 })
             );
         }
@@ -781,10 +815,10 @@ var SearchResultItem = function (_React$Component3) {
     function SearchResultItem(props) {
         _classCallCheck(this, SearchResultItem);
 
-        var _this14 = _possibleConstructorReturn(this, (SearchResultItem.__proto__ || Object.getPrototypeOf(SearchResultItem)).call(this, props));
+        var _this15 = _possibleConstructorReturn(this, (SearchResultItem.__proto__ || Object.getPrototypeOf(SearchResultItem)).call(this, props));
 
-        _this14.itemAction = _this14.itemAction.bind(_this14);
-        return _this14;
+        _this15.itemAction = _this15.itemAction.bind(_this15);
+        return _this15;
     }
 
     _createClass(SearchResultItem, [{
@@ -874,22 +908,22 @@ var ProjectsSidebar = function (_React$Component4) {
     function ProjectsSidebar(props) {
         _classCallCheck(this, ProjectsSidebar);
 
-        var _this15 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
+        var _this16 = _possibleConstructorReturn(this, (ProjectsSidebar.__proto__ || Object.getPrototypeOf(ProjectsSidebar)).call(this, props));
 
-        _this15.state = {
+        _this16.state = {
             showNewProjectForm: false,
             projectForDeletion: null,
             alertMessage: null,
             invalidTitle: null
         };
 
-        _this15.switchShowNewProjectForm = _this15.switchShowNewProjectForm.bind(_this15);
-        _this15.setProjectForDeletion = _this15.setProjectForDeletion.bind(_this15);
-        _this15.resetProjectForDeletion = _this15.resetProjectForDeletion.bind(_this15);
-        _this15.setAlertMessage = _this15.setAlertMessage.bind(_this15);
-        _this15.setInvalidTitle = _this15.setInvalidTitle.bind(_this15);
-        _this15.deleteProject = _this15.deleteProject.bind(_this15);
-        return _this15;
+        _this16.switchShowNewProjectForm = _this16.switchShowNewProjectForm.bind(_this16);
+        _this16.setProjectForDeletion = _this16.setProjectForDeletion.bind(_this16);
+        _this16.resetProjectForDeletion = _this16.resetProjectForDeletion.bind(_this16);
+        _this16.setAlertMessage = _this16.setAlertMessage.bind(_this16);
+        _this16.setInvalidTitle = _this16.setInvalidTitle.bind(_this16);
+        _this16.deleteProject = _this16.deleteProject.bind(_this16);
+        return _this16;
     }
 
     _createClass(ProjectsSidebar, [{
@@ -915,17 +949,17 @@ var ProjectsSidebar = function (_React$Component4) {
     }, {
         key: "deleteProject",
         value: function deleteProject() {
-            var _this16 = this;
+            var _this17 = this;
 
             deleteProjectFromGraph(this.state.projectForDeletion).then(function () {
-                _this16.props.refresh();
-                _this16.resetProjectForDeletion();
+                _this17.props.refresh();
+                _this17.resetProjectForDeletion();
             });
         }
     }, {
         key: "switchShowNewProjectForm",
         value: function switchShowNewProjectForm() {
-            var _this17 = this;
+            var _this18 = this;
 
             document.getElementById("new-project-form").reset();
             this.setState({
@@ -934,13 +968,13 @@ var ProjectsSidebar = function (_React$Component4) {
                 invalidTitle: null
             }, function () {
                 // Set focus to the input field
-                if (_this17.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
+                if (_this18.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this18 = this;
+            var _this19 = this;
 
             return React.createElement(
                 "div",
@@ -961,10 +995,10 @@ var ProjectsSidebar = function (_React$Component4) {
                     { id: "sidebar-content" },
                     Object.keys(this.props.graph).map(function (project, index) {
                         return React.createElement(ProjectItem, { key: index, index: index,
-                            graph: _this18.props.graph,
+                            graph: _this19.props.graph,
                             project: project,
-                            refresh: _this18.props.refresh,
-                            setForDeletion: _this18.setProjectForDeletion });
+                            refresh: _this19.props.refresh,
+                            setForDeletion: _this19.setProjectForDeletion });
                     }),
                     React.createElement(NewProjectForm, { showNewProjectForm: this.state.showNewProjectForm, refresh: this.props.refresh,
                         switchForm: this.switchShowNewProjectForm,
@@ -1059,16 +1093,16 @@ var NewProjectForm = function (_React$Component5) {
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this19 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this20 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this19.handleSubmit = _this19.handleSubmit.bind(_this19);
-        return _this19;
+        _this20.handleSubmit = _this20.handleSubmit.bind(_this20);
+        return _this20;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this20 = this;
+            var _this21 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -1084,11 +1118,11 @@ var NewProjectForm = function (_React$Component5) {
 
                 // Create project
                 createNewProjectInGraph(title).then(function () {
-                    _this20.props.refresh();
+                    _this21.props.refresh();
                     // Close the form
-                    _this20.props.switchForm();
+                    _this21.props.switchForm();
                     // Hide alert message if there was one
-                    _this20.props.setInvalidTitle(null);
+                    _this21.props.setInvalidTitle(null);
                 });
             } else {
                 this.props.setInvalidTitle(title);
@@ -1097,7 +1131,7 @@ var NewProjectForm = function (_React$Component5) {
     }, {
         key: "render",
         value: function render() {
-            var _this21 = this;
+            var _this22 = this;
 
             var style = { display: "none" };
             if (this.props.showNewProjectForm) {
@@ -1110,14 +1144,15 @@ var NewProjectForm = function (_React$Component5) {
                     "form",
                     { id: "new-project-form", onSubmit: this.handleSubmit,
                         onBlur: function onBlur() {
-                            return _this21.props.showNewProjectForm ? _this21.props.switchForm() : null;
+                            return _this22.props.showNewProjectForm ? _this22.props.switchForm() : null;
                         }, autoComplete: "off" },
                     React.createElement("input", { type: "text", id: "newProjectTitle", name: "newProjectTitle", defaultValue: "New Project", required: true }),
                     React.createElement(
                         "button",
                         { onMouseDown: function onMouseDown(event) {
                                 return event.preventDefault();
-                            }, className: "button create-project-button" },
+                            },
+                            className: "button create-project-button" },
                         "Create"
                     )
                 ),
@@ -1166,21 +1201,21 @@ var ProjectItem = function (_React$Component6) {
     function ProjectItem(props) {
         _classCallCheck(this, ProjectItem);
 
-        var _this22 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
+        var _this23 = _possibleConstructorReturn(this, (ProjectItem.__proto__ || Object.getPrototypeOf(ProjectItem)).call(this, props));
 
-        _this22.state = {
+        _this23.state = {
             projectEditMode: false,
             alertMessage: null,
             invalidTitle: null
         };
 
-        _this22.switchProject = _this22.switchProject.bind(_this22);
-        _this22.deleteProject = _this22.deleteProject.bind(_this22);
-        _this22.switchProjectEditMode = _this22.switchProjectEditMode.bind(_this22);
-        _this22.editProjectName = _this22.editProjectName.bind(_this22);
-        _this22.setAlertMessage = _this22.setAlertMessage.bind(_this22);
-        _this22.setInvalidTitle = _this22.setInvalidTitle.bind(_this22);
-        return _this22;
+        _this23.switchProject = _this23.switchProject.bind(_this23);
+        _this23.deleteProject = _this23.deleteProject.bind(_this23);
+        _this23.switchProjectEditMode = _this23.switchProjectEditMode.bind(_this23);
+        _this23.editProjectName = _this23.editProjectName.bind(_this23);
+        _this23.setAlertMessage = _this23.setAlertMessage.bind(_this23);
+        _this23.setInvalidTitle = _this23.setInvalidTitle.bind(_this23);
+        return _this23;
     }
 
     _createClass(ProjectItem, [{
@@ -1192,12 +1227,12 @@ var ProjectItem = function (_React$Component6) {
     }, {
         key: "switchProject",
         value: function switchProject(data) {
-            var _this23 = this;
+            var _this24 = this;
 
             // Only switch if the click was on the item, not on the delete button
             if (data.target.className === "project-item" || data.target.tagName === "H2") {
                 setCurrentProjectInGraph(this.props.project).then(function () {
-                    return _this23.props.refresh();
+                    return _this24.props.refresh();
                 });
             }
         }
@@ -1225,7 +1260,7 @@ var ProjectItem = function (_React$Component6) {
     }, {
         key: "editProjectName",
         value: function editProjectName(title) {
-            var _this24 = this;
+            var _this25 = this;
 
             // Prevent user from inputting empty title name
             if (title == null || title.length === 0) {
@@ -1246,11 +1281,11 @@ var ProjectItem = function (_React$Component6) {
             if (alertMessage == null) {
                 // Valid name
                 updateProjectTitle(this.props.project, title).then(function () {
-                    _this24.props.refresh();
-                    _this24.switchProjectEditMode();
+                    _this25.props.refresh();
+                    _this25.switchProjectEditMode();
 
                     // Hide alert message if there was one
-                    _this24.setInvalidTitle(null);
+                    _this25.setInvalidTitle(null);
                 });
             } else {
                 this.setInvalidTitle(title);
@@ -1259,21 +1294,21 @@ var ProjectItem = function (_React$Component6) {
     }, {
         key: "switchProjectEditMode",
         value: function switchProjectEditMode() {
-            var _this25 = this;
+            var _this26 = this;
 
             this.setState({ projectEditMode: !this.state.projectEditMode }, function () {
-                if (_this25.state.projectEditMode) {
-                    document.getElementById(_this25.getInputFieldId()).focus();
+                if (_this26.state.projectEditMode) {
+                    document.getElementById(_this26.getInputFieldId()).focus();
                 } else {
-                    _this25.setAlertMessage(null);
-                    _this25.setInvalidTitle(null);
+                    _this26.setAlertMessage(null);
+                    _this26.setInvalidTitle(null);
                 }
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this26 = this;
+            var _this27 = this;
 
             var project = this.props.project;
             // Ignore properties that are not project names
@@ -1294,10 +1329,10 @@ var ProjectItem = function (_React$Component6) {
                     React.createElement(
                         "form",
                         { onSubmit: function onSubmit(event) {
-                                return _this26.submitOnEnter(event);
+                                return _this27.submitOnEnter(event);
                             },
                             onBlur: function onBlur(event) {
-                                return _this26.editProjectName(event.target.value);
+                                return _this27.editProjectName(event.target.value);
                             },
                             autoComplete: "off" },
                         React.createElement("input", { id: projectId, type: "text",
@@ -1353,16 +1388,16 @@ var NewNodeForm = function (_React$Component7) {
     function NewNodeForm(props) {
         _classCallCheck(this, NewNodeForm);
 
-        var _this27 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
+        var _this28 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
-        _this27.handleSubmit = _this27.handleSubmit.bind(_this27);
-        return _this27;
+        _this28.handleSubmit = _this28.handleSubmit.bind(_this28);
+        return _this28;
     }
 
     _createClass(NewNodeForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this28 = this;
+            var _this29 = this;
 
             event.preventDefault(); // Stop page from reloading
             // Call from server
@@ -1374,9 +1409,9 @@ var NewNodeForm = function (_React$Component7) {
             var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
             $.getJSON(contentExtractionURL, function (item) {
                 addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this28.props.nodeData.x, _this28.props.nodeData.y);
+                    return updatePositionOfNode(item.source, _this29.props.nodeData.x, _this29.props.nodeData.y);
                 }).then(function () {
-                    return _this28.props.refresh();
+                    return _this29.props.refresh();
                 });
             });
 
@@ -1434,23 +1469,16 @@ var PageView = function (_React$Component8) {
     function PageView(props) {
         _classCallCheck(this, PageView);
 
-        var _this29 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
+        var _this30 = _possibleConstructorReturn(this, (PageView.__proto__ || Object.getPrototypeOf(PageView)).call(this, props));
 
-        _this29.deleteNode = _this29.deleteNode.bind(_this29);
-        return _this29;
+        _this30.setForDeletion = _this30.setForDeletion.bind(_this30);
+        return _this30;
     }
 
     _createClass(PageView, [{
-        key: "deleteNode",
-        value: function deleteNode() {
-            var _this30 = this;
-
-            // Remove from the graph
-            removeItemFromGraph(this.props.selectedNode.source).then(function () {
-                // Reset the selected node
-                _this30.props.resetSelectedNode();
-                _this30.props.refresh();
-            });
+        key: "setForDeletion",
+        value: function setForDeletion() {
+            this.props.setNodeForDeletion(this.props.selectedNode);
         }
     }, {
         key: "render",
@@ -1505,7 +1533,7 @@ var PageView = function (_React$Component8) {
                         { style: { textAlign: "right" } },
                         React.createElement(
                             "button",
-                            { className: "button", onClick: this.deleteNode },
+                            { className: "button", onClick: this.setForDeletion },
                             React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
                         )
                     )

@@ -18,7 +18,8 @@ class KnolistComponents extends React.Component {
         super(props);
         this.state = {
             graph: null, // All the graph data
-            selectedNode: null, // Node that's clicked for the detailed view
+            selectedNode: null, // Node that's clicked for the detailed view,
+            nodeForDeletion: null, // Node to be deleted after confirmation
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
@@ -34,16 +35,19 @@ class KnolistComponents extends React.Component {
         };
 
         // Bind functions that need to be passed as parameters
+        // this.deleteNode = this.deleteNode.bind(this); // Was used for deletion through the vis.js GUI
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
-        this.deleteNode = this.deleteNode.bind(this);
         this.addNode = this.addNode.bind(this);
         this.deleteEdge = this.deleteEdge.bind(this);
         this.addEdge = this.addEdge.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
+        this.setNodeForDeletion = this.setNodeForDeletion.bind(this);
+        this.resetNodeForDeletion = this.resetNodeForDeletion.bind(this);
+        this.deleteNodeAfterConfirmation = this.deleteNodeAfterConfirmation.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
         this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
         this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
@@ -150,11 +154,29 @@ class KnolistComponents extends React.Component {
 
     resetSelectedNode() {
         this.setState({selectedNode: null});
+        this.resetNodeForDeletion();
     }
 
     setSelectedNode(url) {
         const curProject = this.state.graph.curProject;
         this.setState({selectedNode: this.state.graph[curProject][url]});
+    }
+
+    setNodeForDeletion(url) {
+        this.setState({nodeForDeletion: url});
+    }
+
+    resetNodeForDeletion() {
+        this.setState({nodeForDeletion: null});
+    }
+
+    deleteNodeAfterConfirmation() {
+        // Remove from the graph
+        removeItemFromGraph(this.state.selectedNode.source).then(() => {
+            // Reset the selected node
+            this.resetSelectedNode();
+            this.getDataFromServer();
+        });
     }
 
     closePageView() {
@@ -175,12 +197,13 @@ class KnolistComponents extends React.Component {
         }
     }
 
-    deleteNode(data, callback) {
-        const nodeId = data.nodes[0];
-        removeItemFromGraph(nodeId).then(() => {
-            callback(data);
-        });
-    }
+    // Was used for deletion through the vis.js GUI, probably unnecessary
+    // deleteNode(data, callback) {
+    //     const nodeId = data.nodes[0];
+    //     removeItemFromGraph(nodeId).then(() => {
+    //         callback(data);
+    //     });
+    // }
 
     addNode(nodeData, callback) {
         this.switchShowNewNodeForm();
@@ -470,10 +493,11 @@ class KnolistComponents extends React.Component {
             },
             manipulation: {
                 enabled: true,
-                deleteNode: this.deleteNode,
+                deleteNode: false,
                 addNode: this.addNode,
                 deleteEdge: this.deleteEdge,
-                addEdge: this.addEdge
+                addEdge: this.addEdge,
+                editEdge: false
             }
         };
         const network = new vis.Network(container, data, options);
@@ -572,10 +596,15 @@ class KnolistComponents extends React.Component {
                                  refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
+                              setNodeForDeletion={this.setNodeForDeletion}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
                               switchShowNewNotesForm={this.switchShowNewNotesForm}
                               fullSearchResults={this.state.fullSearchResults}
                               showNewNotesForm={this.state.showNewNotesForm}/>
+                    <ConfirmDeletionWindow
+                        item={this.state.nodeForDeletion == null ? null : this.state.nodeForDeletion.title}
+                        resetForDeletion={this.resetNodeForDeletion}
+                        delete={this.deleteNodeAfterConfirmation}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
@@ -865,7 +894,9 @@ class NewProjectForm extends React.Component {
                 <form id="new-project-form" onSubmit={this.handleSubmit}
                       onBlur={() => this.props.showNewProjectForm ? this.props.switchForm() : null} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
-                    <button onMouseDown={(event) => event.preventDefault()} className="button create-project-button">Create</button>
+                    <button onMouseDown={(event) => event.preventDefault()}
+                            className="button create-project-button">Create
+                    </button>
                 </form>
                 <ProjectTitleAlertMessage alertMessage={this.props.alertMessage}
                                           projectTitle={this.props.invalidTitle}/>
@@ -1090,16 +1121,11 @@ class NewNodeForm extends React.Component {
 class PageView extends React.Component {
     constructor(props) {
         super(props);
-        this.deleteNode = this.deleteNode.bind(this);
+        this.setForDeletion = this.setForDeletion.bind(this);
     }
 
-    deleteNode() {
-        // Remove from the graph
-        removeItemFromGraph(this.props.selectedNode.source).then(() => {
-            // Reset the selected node
-            this.props.resetSelectedNode();
-            this.props.refresh();
-        });
+    setForDeletion() {
+        this.props.setNodeForDeletion(this.props.selectedNode);
     }
 
     render() {
@@ -1135,7 +1161,7 @@ class PageView extends React.Component {
                                  setSelectedNode={this.props.setSelectedNode}/>
                     </div>
                     <div style={{textAlign: "right"}}>
-                        <button className="button" onClick={this.deleteNode}>
+                        <button className="button" onClick={this.setForDeletion}>
                             <img src="../../images/delete-icon-white.png" alt="Delete node"/>
                         </button>
                     </div>
