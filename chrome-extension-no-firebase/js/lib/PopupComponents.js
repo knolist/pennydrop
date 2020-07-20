@@ -122,8 +122,9 @@ var Header = function (_React$Component2) {
             }, function (tabs) {
                 // Check if a tab was found. If it was, it means the home page is already open
                 if (tabs.length > 0) {
-                    var tabId = tabs[0].id;
-                    chrome.tabs.update(tabId, { active: true });
+                    var tab = tabs[0];
+                    // Reload if already active, switch to Knolist if not active
+                    if (tab.active) chrome.tabs.reload(tab.id);else chrome.tabs.update(tab.id, { active: true });
                 } else {
                     // Open a new tab for the home page
                     chrome.tabs.query({

@@ -711,6 +711,7 @@ class ProjectsSidebar extends React.Component {
         this.resetProjectForDeletion = this.resetProjectForDeletion.bind(this);
         this.setAlertMessage = this.setAlertMessage.bind(this);
         this.setInvalidTitle = this.setInvalidTitle.bind(this);
+        this.deleteProject = this.deleteProject.bind(this);
     }
 
     setAlertMessage(value) {
@@ -727,6 +728,13 @@ class ProjectsSidebar extends React.Component {
 
     resetProjectForDeletion() {
         this.setState({projectForDeletion: null});
+    }
+
+    deleteProject() {
+        deleteProjectFromGraph(this.state.projectForDeletion).then(() => {
+            this.props.refresh();
+            this.resetProjectForDeletion();
+        });
     }
 
     switchShowNewProjectForm() {
@@ -762,51 +770,40 @@ class ProjectsSidebar extends React.Component {
                                     alertMessage={this.state.alertMessage}
                                     invalidTitle={this.state.invalidTitle}
                                     projects={Object.keys(this.props.graph)}/>
-                    <ConfirmProjectDeletionWindow project={this.state.projectForDeletion}
-                                                  resetForDeletion={this.resetProjectForDeletion}
-                                                  refresh={this.props.refresh}/>
+                    <ConfirmDeletionWindow item={this.state.projectForDeletion}
+                                           resetForDeletion={this.resetProjectForDeletion}
+                                           delete={this.deleteProject}/>
                 </div>
             </div>
         );
     }
 }
 
-// Confirmation window before a project is deleted
-class ConfirmProjectDeletionWindow extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.deleteProject = this.deleteProject.bind(this);
+/**Confirmation window before an item is deleted
+ * @return {null}
+ */
+function ConfirmDeletionWindow(props) {
+    if (props.item === null) {
+        return null;
     }
-
-    deleteProject() {
-        this.props.resetForDeletion();
-        deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
-    }
-
-    render() {
-        if (this.props.project === null) {
-            return null;
-        }
-        return (
-            <div className="modal">
-                <div id="delete-confirmation-modal" className="modal-content">
-                    <img src="../../images/alert-icon-black.png" alt="Alert icon"
-                         style={{width: "30%", display: "block", marginLeft: "auto", marginRight: "auto"}}/>
-                    <h1>Are you sure you want to delete "{this.props.project}"?</h1>
-                    <h3>This action cannot be undone.</h3>
-                    <div style={{display: "flex", justifyContent: "space-between"}}>
-                        <button className="button confirmation-button" onClick={this.deleteProject}>
-                            Yes, delete it!
-                        </button>
-                        <button className="button confirmation-button" onClick={this.props.resetForDeletion}>
-                            Cancel
-                        </button>
-                    </div>
+    return (
+        <div className="modal">
+            <div id="delete-confirmation-modal" className="modal-content">
+                <img src="../../images/alert-icon-black.png" alt="Alert icon"
+                     style={{width: "30%", display: "block", marginLeft: "auto", marginRight: "auto"}}/>
+                <h1>Are you sure you want to delete "{props.item}"?</h1>
+                <h3>This action cannot be undone.</h3>
+                <div style={{display: "flex", justifyContent: "space-between"}}>
+                    <button className="button confirmation-button" onClick={props.delete}>
+                        Yes, delete it!
+                    </button>
+                    <button className="button confirmation-button" onClick={props.resetForDeletion}>
+                        Cancel
+                    </button>
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 
@@ -1395,6 +1392,10 @@ class SearchBar extends React.Component {
         } else {
             this.props.basicSearch(searchInput.target.value, this.getActiveFilters());
         }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.graph !== this.props.graph) this.setState({filterList: this.generateFilterList()});
     }
 
     render() {
