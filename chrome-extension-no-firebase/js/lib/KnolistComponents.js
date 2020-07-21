@@ -1900,7 +1900,9 @@ var NotesList = function (_React$Component10) {
                 ),
                 this.props.editNodeMode ? React.createElement(
                     "form",
-                    { style: { margin: "12px 0" } },
+                    { style: { margin: "12px 0" }, onSubmit: function onSubmit(event) {
+                            return event.preventDefault();
+                        } },
                     this.props.selectedNode.notes.map(function (notes, index) {
                         return React.createElement(
                             "div",

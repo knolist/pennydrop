@@ -1424,7 +1424,7 @@ class NotesList extends React.Component {
                 </div>
                 {
                     this.props.editNodeMode ?
-                        <form style={{margin: "12px 0"}}>
+                        <form style={{margin: "12px 0"}} onSubmit={(event) => event.preventDefault()}>
                             {this.props.selectedNode.notes.map((notes, index) =>
                                 <div className="editable-note" key={Math.random()}>
                                     <input type="checkbox"/><input type="text" defaultValue={notes}
