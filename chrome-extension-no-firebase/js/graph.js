@@ -215,6 +215,12 @@ addHighlightsToItemInGraph = async (item, highlights) => {
     saveGraphToDisk(graphData);
 };
 
+/**
+ * Delete highlights from an item given a list of indices to remove.
+ * @param url the url of the item whose highlights we will delete
+ * @param indicesToDelete an array of indices to be removed
+ * @returns {Promise<void>} async promise
+ */
 deleteHighlightsFromItemInGraph = async (url, indicesToDelete) => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
@@ -224,6 +230,26 @@ deleteHighlightsFromItemInGraph = async (url, indicesToDelete) => {
     indicesToDelete.sort(function(a,b){ return b - a; });
     // Remove
     indicesToDelete.forEach((index) => graph[url]["highlights"].splice(index, 1));
+
+    // Save to disk
+    saveGraphToDisk(graphData);
+};
+
+/**
+ * Delete notes from an item given a list of indices to remove.
+ * @param url the url of the item whose notes we will delete
+ * @param indicesToDelete an array of indices to be removed
+ * @returns {Promise<void>} async promise
+ */
+deleteNotesFromItemInGraph = async (url, indicesToDelete) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Sort in decreasing order
+    indicesToDelete.sort(function(a,b){ return b - a; });
+    // Remove
+    indicesToDelete.forEach((index) => graph[url]["notes"].splice(index, 1));
 
     // Save to disk
     saveGraphToDisk(graphData);
@@ -270,9 +296,10 @@ updateNotesInGraph = async (url, index, newNotes) => {
     let item = graph[url];
     // Update value
     if (item !== undefined && index < item["notes"].length) {
-        // Delete this note if the newValue is null
-        if (newNotes === null) graph[url]["notes"].splice(index, 1);
-        else graph[url]["notes"][index] = newNotes;
+        if (newNotes != null && newNotes !== "") graph[url]["notes"][index] = newNotes;
+        // // Delete this note if the newValue is null
+        // if (newNotes === null) graph[url]["notes"].splice(index, 1);
+        // else
     }
     // Save to disk
     saveGraphToDisk(graphData);

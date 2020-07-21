@@ -1930,7 +1930,6 @@ function DeleteSelected(props) {
     // Don't return anything if there are no selected items or outside of edit mode
     if (!props.editNodeMode || props.selectedItems == null || props.selectedItems.length === 0) return null;
 
-    console.log(props.selectedItems);
     return React.createElement(
         "button",
         { className: "button small-button button-with-text",
@@ -1956,43 +1955,106 @@ var NotesList = function (_React$Component11) {
 
         var _this37 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
+        _this37.state = {
+            selectedNotes: [] // Array of notes selected to be deleted
+        };
+
         _this37.handleSubmit = _this37.handleSubmit.bind(_this37);
         _this37.updateNotesOnBlur = _this37.updateNotesOnBlur.bind(_this37);
+        _this37.addSelectedNotes = _this37.addSelectedNotes.bind(_this37);
+        _this37.removeSelectedNotes = _this37.removeSelectedNotes.bind(_this37);
+        _this37.resetSelectedNotes = _this37.resetSelectedNotes.bind(_this37);
+        _this37.deleteSelectedNotes = _this37.deleteSelectedNotes.bind(_this37);
         return _this37;
     }
 
     _createClass(NotesList, [{
-        key: "handleSubmit",
-        value: function handleSubmit(event) {
+        key: "checkboxChange",
+        value: function checkboxChange(index, checked) {
+            if (checked) this.addSelectedNotes(index);else this.removeSelectedNotes(index);
+        }
+    }, {
+        key: "resetSelectedNotes",
+        value: function resetSelectedNotes() {
+            this.setState({ selectedNotes: [] });
+        }
+    }, {
+        key: "removeSelectedNotes",
+        value: function removeSelectedNotes(toRemove) {
+            var notes = this.state.selectedNotes;
+            var index = notes.indexOf(toRemove);
+            if (index >= 0) notes.splice(index, 1);
+            this.setState({ selectedNotes: notes });
+        }
+    }, {
+        key: "addSelectedNotes",
+        value: function addSelectedNotes(toAdd) {
+            var notes = this.state.selectedNotes;
+            notes.push(toAdd);
+            this.setState({ selectedNotes: notes });
+        }
+    }, {
+        key: "deleteSelectedNotes",
+        value: function deleteSelectedNotes(notesToDelete) {
             var _this38 = this;
 
-            event.preventDefault();
-            event.persist();
-            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
+            deleteNotesFromItemInGraph(this.props.selectedNode.source, notesToDelete).then(function () {
                 var callbackObject = {
                     selectedNodeCallback: function selectedNodeCallback() {
-                        _this38.props.switchShowNewNotesForm();
-                        event.target.reset(); // Clear the form entries
+                        _this38.resetSelectedNotes();
+                        document.getElementById("delete-notes-form").reset();
                     }
                 };
                 _this38.props.refresh(callbackObject);
             });
         }
     }, {
-        key: "updateNotesOnBlur",
-        value: function updateNotesOnBlur(index, newNotes) {
+        key: "handleSubmit",
+        value: function handleSubmit(event) {
             var _this39 = this;
 
-            if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
-
-            updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(function () {
-                _this39.props.refresh();
+            event.preventDefault();
+            event.persist();
+            addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
+                var callbackObject = {
+                    selectedNodeCallback: function selectedNodeCallback() {
+                        _this39.props.switchShowNewNotesForm();
+                        event.target.reset(); // Clear the form entries
+                    }
+                };
+                _this39.props.refresh(callbackObject);
             });
+        }
+    }, {
+        key: "updateNotesOnBlur",
+        value: function updateNotesOnBlur(index, newNotes) {
+            var _this40 = this;
+
+            // if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
+            updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(function () {
+                var id = _this40.getInputFieldId(index);
+                var callbackObject = {
+                    selectedNodeCallback: function selectedNodeCallback() {
+                        document.getElementById(id).value = _this40.props.selectedNode.notes[index];
+                    }
+                };
+                _this40.props.refresh(callbackObject);
+            });
+        }
+    }, {
+        key: "getInputFieldId",
+        value: function getInputFieldId(index) {
+            return "edit-note-input" + index;
+        }
+    }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate(prevProps) {
+            if (prevProps.editNodeMode !== this.props.editNodeMode) this.resetSelectedNotes();
         }
     }, {
         key: "render",
         value: function render() {
-            var _this40 = this;
+            var _this41 = this;
 
             return React.createElement(
                 "div",
@@ -2006,21 +2068,27 @@ var NotesList = function (_React$Component11) {
                         this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."
                     ),
                     React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
-                        switchShowForm: this.props.switchShowNewNotesForm })
+                        switchShowForm: this.props.switchShowNewNotesForm }),
+                    React.createElement(DeleteSelected, { editNodeMode: this.props.editNodeMode, selectedItems: this.state.selectedNotes,
+                        type: "Notes", deleteSelected: this.deleteSelectedNotes })
                 ),
                 this.props.editNodeMode ? React.createElement(
                     "form",
-                    { style: { margin: "12px 0" }, onSubmit: function onSubmit(event) {
+                    { id: "delete-notes-form", style: { margin: "12px 0" },
+                        onSubmit: function onSubmit(event) {
                             return event.preventDefault();
                         } },
                     this.props.selectedNode.notes.map(function (notes, index) {
                         return React.createElement(
                             "div",
-                            { className: "editable-note", key: Math.random() },
-                            React.createElement("input", { type: "checkbox" }),
-                            React.createElement("input", { type: "text", defaultValue: notes,
+                            { className: "editable-note", key: index },
+                            React.createElement("input", { type: "checkbox",
+                                onChange: function onChange(event) {
+                                    return _this41.checkboxChange(index, event.target.checked);
+                                } }),
+                            React.createElement("input", { type: "text", defaultValue: notes, id: _this41.getInputFieldId(index),
                                 onBlur: function onBlur(event) {
-                                    return _this40.updateNotesOnBlur(index, event.target.value);
+                                    return _this41.updateNotesOnBlur(index, event.target.value);
                                 } })
                         );
                     })
@@ -2101,23 +2169,23 @@ var SearchBar = function (_React$Component12) {
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this41 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this42 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this41.state = {
-            filterList: _this41.generateFilterList(),
+        _this42.state = {
+            filterList: _this42.generateFilterList(),
             showFilterList: false
         };
 
-        _this41.submitSearch = _this41.submitSearch.bind(_this41);
-        _this41.searchButtonAction = _this41.searchButtonAction.bind(_this41);
-        _this41.setActiveFilter = _this41.setActiveFilter.bind(_this41);
-        _this41.switchShowFilterList = _this41.switchShowFilterList.bind(_this41);
-        _this41.setAllFilters = _this41.setAllFilters.bind(_this41);
+        _this42.submitSearch = _this42.submitSearch.bind(_this42);
+        _this42.searchButtonAction = _this42.searchButtonAction.bind(_this42);
+        _this42.setActiveFilter = _this42.setActiveFilter.bind(_this42);
+        _this42.switchShowFilterList = _this42.switchShowFilterList.bind(_this42);
+        _this42.setAllFilters = _this42.setAllFilters.bind(_this42);
 
         // Add listener to close filter when clicking outside
         document.body.addEventListener("click", function (event) {
             if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
-                _this41.closeFilterList();
+                _this42.closeFilterList();
             }
         });
 
@@ -2134,7 +2202,7 @@ var SearchBar = function (_React$Component12) {
                 });
             }
         });
-        return _this41;
+        return _this42;
     }
 
     _createClass(SearchBar, [{
@@ -2173,15 +2241,15 @@ var SearchBar = function (_React$Component12) {
     }, {
         key: "setFilterList",
         value: function setFilterList(filterList) {
-            var _this42 = this;
+            var _this43 = this;
 
             this.setState({ filterList: filterList }, function () {
                 // Call search with updated filter list
-                if (_this42.props.fullSearchResults !== null && _this42.props.fullSearchResults.query !== "") {
-                    _this42.props.fullSearch(_this42.props.fullSearchResults.query, _this42.getActiveFilters());
+                if (_this43.props.fullSearchResults !== null && _this43.props.fullSearchResults.query !== "") {
+                    _this43.props.fullSearch(_this43.props.fullSearchResults.query, _this43.getActiveFilters());
                 } else {
                     var query = document.getElementById("search-text").value;
-                    _this42.props.basicSearch(query, _this42.getActiveFilters());
+                    _this43.props.basicSearch(query, _this43.getActiveFilters());
                 }
             });
         }
@@ -2204,11 +2272,11 @@ var SearchBar = function (_React$Component12) {
     }, {
         key: "getActiveFilters",
         value: function getActiveFilters() {
-            var _this43 = this;
+            var _this44 = this;
 
             var activeFilters = [];
             Object.keys(this.state.filterList).forEach(function (filter) {
-                if (_this43.state.filterList[filter].active) activeFilters.push(filter);
+                if (_this44.state.filterList[filter].active) activeFilters.push(filter);
             });
             return activeFilters;
         }
@@ -2239,7 +2307,7 @@ var SearchBar = function (_React$Component12) {
     }, {
         key: "render",
         value: function render() {
-            var _this44 = this;
+            var _this45 = this;
 
             return React.createElement(
                 "div",
@@ -2248,7 +2316,7 @@ var SearchBar = function (_React$Component12) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this44.submitSearch(searchInput);
+                            return _this45.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
@@ -2322,10 +2390,10 @@ var FilterItem = function (_React$Component13) {
     function FilterItem(props) {
         _classCallCheck(this, FilterItem);
 
-        var _this45 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
+        var _this46 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
 
-        _this45.filterClicked = _this45.filterClicked.bind(_this45);
-        return _this45;
+        _this46.filterClicked = _this46.filterClicked.bind(_this46);
+        return _this46;
     }
 
     _createClass(FilterItem, [{

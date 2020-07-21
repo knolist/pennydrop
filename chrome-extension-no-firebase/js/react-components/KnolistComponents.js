@@ -1452,7 +1452,6 @@ function DeleteSelected(props) {
     // Don't return anything if there are no selected items or outside of edit mode
     if (!props.editNodeMode || props.selectedItems == null || props.selectedItems.length === 0) return null;
 
-    console.log(props.selectedItems);
     return (
         <button className="button small-button button-with-text"
                 onClick={() => props.deleteSelected(props.selectedItems)}>
@@ -1466,8 +1465,50 @@ class NotesList extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            selectedNotes: [] // Array of notes selected to be deleted
+        };
+
         this.handleSubmit = this.handleSubmit.bind(this);
         this.updateNotesOnBlur = this.updateNotesOnBlur.bind(this);
+        this.addSelectedNotes = this.addSelectedNotes.bind(this);
+        this.removeSelectedNotes = this.removeSelectedNotes.bind(this);
+        this.resetSelectedNotes = this.resetSelectedNotes.bind(this);
+        this.deleteSelectedNotes = this.deleteSelectedNotes.bind(this);
+    }
+
+    checkboxChange(index, checked) {
+        if (checked) this.addSelectedNotes(index);
+        else this.removeSelectedNotes(index);
+    }
+
+    resetSelectedNotes() {
+        this.setState({selectedNotes: []});
+    }
+
+    removeSelectedNotes(toRemove) {
+        let notes = this.state.selectedNotes;
+        const index = notes.indexOf(toRemove);
+        if (index >= 0) notes.splice(index, 1);
+        this.setState({selectedNotes: notes});
+    }
+
+    addSelectedNotes(toAdd) {
+        let notes = this.state.selectedNotes;
+        notes.push(toAdd);
+        this.setState({selectedNotes: notes});
+    }
+
+    deleteSelectedNotes(notesToDelete) {
+        deleteNotesFromItemInGraph(this.props.selectedNode.source, notesToDelete).then(() => {
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    this.resetSelectedNotes();
+                    document.getElementById("delete-notes-form").reset();
+                }
+            };
+            this.props.refresh(callbackObject);
+        });
     }
 
     handleSubmit(event) {
@@ -1485,11 +1526,24 @@ class NotesList extends React.Component {
     }
 
     updateNotesOnBlur(index, newNotes) {
-        if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
-
+        // if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
         updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(() => {
-            this.props.refresh();
+            const id = this.getInputFieldId(index);
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    document.getElementById(id).value = this.props.selectedNode.notes[index];
+                }
+            };
+            this.props.refresh(callbackObject);
         });
+    }
+
+    getInputFieldId(index) {
+        return "edit-note-input" + index;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.editNodeMode !== this.props.editNodeMode) this.resetSelectedNotes();
     }
 
     render() {
@@ -1499,14 +1553,19 @@ class NotesList extends React.Component {
                     <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
+                    <DeleteSelected editNodeMode={this.props.editNodeMode} selectedItems={this.state.selectedNotes}
+                                    type="Notes" deleteSelected={this.deleteSelectedNotes}/>
                 </div>
                 {
                     this.props.editNodeMode ?
-                        <form style={{margin: "12px 0"}} onSubmit={(event) => event.preventDefault()}>
+                        <form id="delete-notes-form" style={{margin: "12px 0"}}
+                              onSubmit={(event) => event.preventDefault()}>
                             {this.props.selectedNode.notes.map((notes, index) =>
-                                <div className="editable-note" key={Math.random()}>
-                                    <input type="checkbox"/><input type="text" defaultValue={notes}
-                                                                   onBlur={(event) => this.updateNotesOnBlur(index, event.target.value)}/>
+                                <div className="editable-note" key={index}>
+                                    <input type="checkbox"
+                                           onChange={(event) => this.checkboxChange(index, event.target.checked)}/>
+                                    <input type="text" defaultValue={notes} id={this.getInputFieldId(index)}
+                                           onBlur={(event) => this.updateNotesOnBlur(index, event.target.value)}/>
                                 </div>)}
                         </form> :
                         <ul>
