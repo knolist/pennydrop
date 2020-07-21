@@ -1431,6 +1431,10 @@ var NewNodeForm = function (_React$Component7) {
 
         var _this28 = _possibleConstructorReturn(this, (NewNodeForm.__proto__ || Object.getPrototypeOf(NewNodeForm)).call(this, props));
 
+        _this28.state = {
+            loading: false // Used to display loading icon while the new node is being added
+        };
+
         _this28.handleSubmit = _this28.handleSubmit.bind(_this28);
         return _this28;
     }
@@ -1448,16 +1452,35 @@ var NewNodeForm = function (_React$Component7) {
                 baseServerURL = localServerURL;
             }
             var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
-            $.getJSON(contentExtractionURL, function (item) {
-                addItemToGraph(item, "").then(function () {
-                    return updatePositionOfNode(item.source, _this29.props.nodeData.x, _this29.props.nodeData.y);
-                }).then(function () {
-                    return _this29.props.refresh();
+
+            // Start loading
+            event.persist();
+            this.setState({ loading: true }, function () {
+                $.getJSON(contentExtractionURL, function (item) {
+                    addItemToGraph(item, "").then(function () {
+                        return updatePositionOfNode(item.source, _this29.props.nodeData.x, _this29.props.nodeData.y);
+                    }).then(function () {
+                        // Create callback object
+                        var callbackObject = {
+                            graphCallback: function graphCallback() {
+                                _this29.setState({ loading: false }, function () {
+                                    _this29.props.closeForm();
+                                    event.target.reset(); // Clear the form entries
+                                });
+                            }
+                        };
+                        _this29.props.refresh(callbackObject);
+                    });
                 });
             });
-
-            this.props.closeForm();
-            event.target.reset(); // Clear the form entries
+        }
+    }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate(prevProps, prevState) {
+            // Block clicks while the new node is being loaded
+            if (prevState.loading !== this.state.loading) {
+                if (this.state.loading) document.body.style.pointerEvents = "none";else document.body.style.pointerEvents = "auto";
+            }
         }
     }, {
         key: "render",
@@ -1492,7 +1515,12 @@ var NewNodeForm = function (_React$Component7) {
                             { className: "button button-with-text" },
                             "Add node"
                         )
-                    )
+                    ),
+                    this.state.loading ? React.createElement(
+                        "div",
+                        { id: "new-node-spinner" },
+                        React.createElement(LoadingSpinner, null)
+                    ) : null
                 )
             );
         }
@@ -1501,8 +1529,20 @@ var NewNodeForm = function (_React$Component7) {
     return NewNodeForm;
 }(React.Component);
 
-// Detailed view of a specific node
+// Simple loading spinner, CSS is defined in utilities.less
 
+
+function LoadingSpinner() {
+    return React.createElement("div", { className: "spinner" });
+
+    // return (
+    //     <div className="lds-spinner">
+    //         <div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/>
+    //     </div>
+    // );
+}
+
+// Detailed view of a specific node
 
 var PageView = function (_React$Component8) {
     _inherits(PageView, _React$Component8);

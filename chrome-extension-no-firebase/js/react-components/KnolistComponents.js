@@ -1112,6 +1112,11 @@ function SidebarButtons(props) {
 class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            loading: false // Used to display loading icon while the new node is being added
+        };
+
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -1123,14 +1128,35 @@ class NewNodeForm extends React.Component {
             baseServerURL = localServerURL;
         }
         const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
-        $.getJSON(contentExtractionURL, (item) => {
-            addItemToGraph(item, "").then(() => {
-                return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
-            }).then(() => this.props.refresh());
-        });
 
-        this.props.closeForm();
-        event.target.reset(); // Clear the form entries
+        // Start loading
+        event.persist();
+        this.setState({loading: true}, () => {
+            $.getJSON(contentExtractionURL, (item) => {
+                addItemToGraph(item, "").then(() => {
+                    return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
+                }).then(() => {
+                    // Create callback object
+                    const callbackObject = {
+                        graphCallback: () => {
+                            this.setState({loading: false}, () => {
+                                this.props.closeForm();
+                                event.target.reset(); // Clear the form entries
+                            });
+                        }
+                    };
+                    this.props.refresh(callbackObject);
+                });
+            });
+        });
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // Block clicks while the new node is being loaded
+        if (prevState.loading !== this.state.loading) {
+            if (this.state.loading) document.body.style.pointerEvents = "none";
+            else document.body.style.pointerEvents = "auto";
+        }
     }
 
     render() {
@@ -1149,10 +1175,22 @@ class NewNodeForm extends React.Component {
                         <input id="url" name="url" type="url" placeholder="Insert URL" required/><br/>
                         <button className="button button-with-text">Add node</button>
                     </form>
+                    {this.state.loading ? <div id="new-node-spinner"><LoadingSpinner/></div> : null}
                 </div>
             </div>
         );
     }
+}
+
+// Simple loading spinner, CSS is defined in utilities.less
+function LoadingSpinner() {
+    return <div className="spinner"/>
+
+    // return (
+    //     <div className="lds-spinner">
+    //         <div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/>
+    //     </div>
+    // );
 }
 
 // Detailed view of a specific node
