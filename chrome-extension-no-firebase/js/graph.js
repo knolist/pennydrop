@@ -205,7 +205,7 @@ addHighlightsToItemInGraph = async (item, highlights) => {
         graph[item["source"]]["nextURLs"] = [];
         graph[item["source"]]["highlights"] = [];
         graph[item["source"]]["notes"] = [];
-        // Initialize with null positions (will be updated on render of the network
+        // Initialize with null positions (will be updated on render of the network)
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
     }
@@ -232,7 +232,7 @@ addNotesToItemInGraph = async (item, notes) => {
         graph[item["source"]]["nextURLs"] = [];
         graph[item["source"]]["highlights"] = [];
         graph[item["source"]]["notes"] = [];
-        // Initialize with null positions (will be updated on render of the network
+        // Initialize with null positions (will be updated on render of the network)
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
     }
@@ -240,6 +240,29 @@ addNotesToItemInGraph = async (item, notes) => {
 
     // Save to disk
     saveGraphToDisk(graphData);
+};
+
+/**
+ * Update a certain block of notes in the current project.
+ * @param url the url of the node whose notes will be updated
+ * @param index the index to be updated inside the list of notes
+ * @param newNotes the value to be inserted in the given index
+ * @returns {Promise<void>} ignored
+ */
+updateNotesInGraph = async (url, index, newNotes) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+    let item = graph[url];
+    // Update value
+    if (item !== undefined && index < item["notes"].length) {
+        // Delete this note if the newValue is null
+        if (newNotes === null) graph[url]["notes"].splice(index, 1);
+        else graph[url]["notes"][index] = newNotes;
+    }
+    // Save to disk
+    saveGraphToDisk(graphData);
+
 };
 
 /**

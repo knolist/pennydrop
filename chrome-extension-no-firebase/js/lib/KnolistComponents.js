@@ -36,6 +36,7 @@ var KnolistComponents = function (_React$Component) {
             graph: null, // All the graph data
             selectedNode: null, // Node that's clicked for the detailed view,
             nodeForDeletion: null, // Node to be deleted after confirmation
+            editNodeMode: false, // Set to true when selectedNode is in edit mode
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
@@ -62,6 +63,7 @@ var KnolistComponents = function (_React$Component) {
         _this.switchShowNewNotesForm = _this.switchShowNewNotesForm.bind(_this);
         _this.resetSelectedNode = _this.resetSelectedNode.bind(_this);
         _this.setNodeForDeletion = _this.setNodeForDeletion.bind(_this);
+        _this.setEditNodeMode = _this.setEditNodeMode.bind(_this);
         _this.resetNodeForDeletion = _this.resetNodeForDeletion.bind(_this);
         _this.deleteNodeAfterConfirmation = _this.deleteNodeAfterConfirmation.bind(_this);
         _this.resetDisplayExport = _this.resetDisplayExport.bind(_this);
@@ -198,6 +200,7 @@ var KnolistComponents = function (_React$Component) {
         value: function resetSelectedNode() {
             this.setState({ selectedNode: null });
             this.resetNodeForDeletion();
+            this.setEditNodeMode(false);
         }
     }, {
         key: "setSelectedNode",
@@ -214,6 +217,11 @@ var KnolistComponents = function (_React$Component) {
         key: "resetNodeForDeletion",
         value: function resetNodeForDeletion() {
             this.setState({ nodeForDeletion: null });
+        }
+    }, {
+        key: "setEditNodeMode",
+        value: function setEditNodeMode(status) {
+            this.setState({ editNodeMode: status });
         }
     }, {
         key: "deleteNodeAfterConfirmation",
@@ -724,8 +732,9 @@ var KnolistComponents = function (_React$Component) {
                         localServer: this.state.localServer, closeForm: this.closeNewNodeForm,
                         refresh: this.getDataFromServer }),
                     React.createElement(PageView, { graph: this.state.graph[curProject], selectedNode: this.state.selectedNode,
+                        editNodeMode: this.state.editNodeMode,
                         resetSelectedNode: this.resetSelectedNode, setSelectedNode: this.setSelectedNode,
-                        setNodeForDeletion: this.setNodeForDeletion,
+                        setNodeForDeletion: this.setNodeForDeletion, setEditNodeMode: this.setEditNodeMode,
                         refresh: this.getDataFromServer, closePageView: this.closePageView,
                         switchShowNewNotesForm: this.switchShowNewNotesForm,
                         fullSearchResults: this.state.fullSearchResults,
@@ -1344,8 +1353,7 @@ var ProjectItem = function (_React$Component6) {
                                 return _this27.editProjectName(event.target.value);
                             },
                             autoComplete: "off" },
-                        React.createElement("input", { id: projectId, type: "text",
-                            defaultValue: this.props.project, required: true })
+                        React.createElement("input", { id: projectId, type: "text", defaultValue: this.props.project, required: true })
                     ),
                     React.createElement(ProjectTitleAlertMessage, { alertMessage: this.state.alertMessage,
                         projectTitle: this.state.invalidTitle })
@@ -1511,8 +1519,8 @@ var PageView = function (_React$Component8) {
                     { className: "modal-content pageview" },
                     React.createElement(
                         "div",
-                        { className: "flex-and-spaced" },
-                        React.createElement(PageViewTitle, { selectedNode: this.props.selectedNode }),
+                        { className: "flex-and-spaced pageview-header" },
+                        React.createElement(PageViewTitle, { selectedNode: this.props.selectedNode, editNodeMode: this.props.editNodeMode }),
                         React.createElement(
                             "button",
                             { className: "button close-pageview", id: "close-page-view", "data-tooltip": "Close",
@@ -1520,12 +1528,14 @@ var PageView = function (_React$Component8) {
                             React.createElement("img", { src: "../../images/close-icon-white.png", alt: "Close" })
                         )
                     ),
-                    React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights }),
+                    React.createElement(HighlightsList, { highlights: this.props.selectedNode.highlights,
+                        editNodeMode: this.props.editNodeMode }),
                     React.createElement("hr", null),
                     React.createElement(NotesList, { showNewNotesForm: this.props.showNewNotesForm,
                         switchShowNewNotesForm: this.props.switchShowNewNotesForm,
                         selectedNode: this.props.selectedNode,
-                        refresh: this.props.refresh }),
+                        refresh: this.props.refresh,
+                        editNodeMode: this.props.editNodeMode }),
                     React.createElement("hr", null),
                     React.createElement(
                         "div",
@@ -1537,13 +1547,10 @@ var PageView = function (_React$Component8) {
                     ),
                     React.createElement(
                         "div",
-                        { style: { textAlign: "right" } },
-                        React.createElement(
-                            "button",
-                            { className: "button", "data-tooltip": "Delete node", "data-tooltip-location": "up",
-                                onClick: this.setForDeletion },
-                            React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
-                        )
+                        { style: { display: "flex", justifyContent: "flex-end" } },
+                        React.createElement(EditNodeButton, { editNodeMode: this.props.editNodeMode,
+                            setEditNodeMode: this.props.setEditNodeMode }),
+                        React.createElement(DeleteNodeButton, { setForDeletion: this.setForDeletion })
                     )
                 )
             );
@@ -1553,24 +1560,48 @@ var PageView = function (_React$Component8) {
     return PageView;
 }(React.Component);
 
-function PageViewTitle(props) {
+function EditNodeButton(props) {
     return React.createElement(
-        "div",
-        { style: { display: "flex" } },
+        "button",
+        { className: props.editNodeMode ? "button button-with-text" : "button", style: { marginRight: "10px" },
+            "data-tooltip": props.editNodeMode ? undefined : "Edit Node",
+            "data-tooltip-location": props.editNodeMode ? undefined : "up",
+            onClick: function onClick() {
+                return props.setEditNodeMode(!props.editNodeMode);
+            } },
+        props.editNodeMode ? React.createElement(
+            "p",
+            null,
+            "Done"
+        ) : React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit node" })
+    );
+}
+
+function DeleteNodeButton(props) {
+    return React.createElement(
+        "button",
+        { className: "button", "data-tooltip": "Delete node", "data-tooltip-location": "up",
+            onClick: props.setForDeletion },
+        React.createElement("img", { src: "../../images/delete-icon-white.png", alt: "Delete node" })
+    );
+}
+
+function PageViewTitle(props) {
+    if (props.editNodeMode) {
+        return React.createElement(
+            "form",
+            { onSubmit: null,
+                onBlur: null },
+            React.createElement("input", { type: "text", defaultValue: props.selectedNode.title, required: true })
+        );
+    }
+    return React.createElement(
+        "a",
+        { href: props.selectedNode.source, target: "_blank" },
         React.createElement(
-            "a",
-            { href: props.selectedNode.source, target: "_blank" },
-            React.createElement(
-                "h1",
-                null,
-                props.selectedNode.title
-            )
-        ),
-        React.createElement(
-            "button",
-            { className: "button pageview-button", "data-tooltip": "Edit Title",
-                "data-tooltip-location": "up" },
-            React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit title" })
+            "h1",
+            null,
+            props.selectedNode.title
         )
     );
 }
@@ -1663,26 +1694,31 @@ function HighlightsList(props) {
         "div",
         null,
         React.createElement(
-            "div",
-            { style: { display: "flex" } },
-            React.createElement(
-                "h2",
-                null,
-                props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
-            ),
-            props.highlights.length > 0 ? React.createElement(
-                "button",
-                { className: "button small-button", "data-tooltip": "Edit Highlights",
-                    "data-tooltip-location": "up" },
-                React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit highlights" })
-            ) : null
+            "h2",
+            null,
+            props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
         ),
         props.highlights.length === 0 ? React.createElement(
             "p",
             null,
             "To add highlights, select text on a page, right-click, then click on \"Highlight with Knolist\"."
         ) : null,
-        React.createElement(
+        props.editNodeMode ? React.createElement(
+            "form",
+            { style: { margin: "12px 0" } },
+            props.highlights.map(function (highlight, index) {
+                return React.createElement(
+                    "div",
+                    { key: index },
+                    React.createElement(
+                        "label",
+                        null,
+                        React.createElement("input", { type: "checkbox" }),
+                        highlight
+                    )
+                );
+            })
+        ) : React.createElement(
             "ul",
             null,
             props.highlights.map(function (highlight, index) {
@@ -1707,6 +1743,7 @@ var NotesList = function (_React$Component9) {
         var _this31 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
         _this31.handleSubmit = _this31.handleSubmit.bind(_this31);
+        _this31.updateNotesOnBlur = _this31.updateNotesOnBlur.bind(_this31);
         return _this31;
     }
 
@@ -1723,8 +1760,21 @@ var NotesList = function (_React$Component9) {
             event.target.reset(); // Clear the form entries
         }
     }, {
+        key: "updateNotesOnBlur",
+        value: function updateNotesOnBlur(index, newNotes) {
+            var _this33 = this;
+
+            if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
+
+            updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(function () {
+                _this33.props.refresh();
+            });
+        }
+    }, {
         key: "render",
         value: function render() {
+            var _this34 = this;
+
             return React.createElement(
                 "div",
                 null,
@@ -1737,15 +1787,23 @@ var NotesList = function (_React$Component9) {
                         this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."
                     ),
                     React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
-                        switchShowForm: this.props.switchShowNewNotesForm }),
-                    this.props.selectedNode.notes.length > 0 ? React.createElement(
-                        "button",
-                        { className: "button small-button", "data-tooltip": "Edit Notes",
-                            "data-tooltip-location": "up" },
-                        React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit notes" })
-                    ) : null
+                        switchShowForm: this.props.switchShowNewNotesForm })
                 ),
-                React.createElement(
+                this.props.editNodeMode ? React.createElement(
+                    "form",
+                    { style: { margin: "12px 0" } },
+                    this.props.selectedNode.notes.map(function (notes, index) {
+                        return React.createElement(
+                            "div",
+                            { className: "editable-note", key: Math.random() },
+                            React.createElement("input", { type: "checkbox" }),
+                            React.createElement("input", { type: "text", defaultValue: notes,
+                                onBlur: function onBlur(event) {
+                                    return _this34.updateNotesOnBlur(index, event.target.value);
+                                } })
+                        );
+                    })
+                ) : React.createElement(
                     "ul",
                     null,
                     this.props.selectedNode.notes.map(function (notes, index) {
@@ -1822,23 +1880,23 @@ var SearchBar = function (_React$Component10) {
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this33 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this35 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this33.state = {
-            filterList: _this33.generateFilterList(),
+        _this35.state = {
+            filterList: _this35.generateFilterList(),
             showFilterList: false
         };
 
-        _this33.submitSearch = _this33.submitSearch.bind(_this33);
-        _this33.searchButtonAction = _this33.searchButtonAction.bind(_this33);
-        _this33.setActiveFilter = _this33.setActiveFilter.bind(_this33);
-        _this33.switchShowFilterList = _this33.switchShowFilterList.bind(_this33);
-        _this33.setAllFilters = _this33.setAllFilters.bind(_this33);
+        _this35.submitSearch = _this35.submitSearch.bind(_this35);
+        _this35.searchButtonAction = _this35.searchButtonAction.bind(_this35);
+        _this35.setActiveFilter = _this35.setActiveFilter.bind(_this35);
+        _this35.switchShowFilterList = _this35.switchShowFilterList.bind(_this35);
+        _this35.setAllFilters = _this35.setAllFilters.bind(_this35);
 
         // Add listener to close filter when clicking outside
         document.body.addEventListener("click", function (event) {
             if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
-                _this33.closeFilterList();
+                _this35.closeFilterList();
             }
         });
 
@@ -1855,7 +1913,7 @@ var SearchBar = function (_React$Component10) {
                 });
             }
         });
-        return _this33;
+        return _this35;
     }
 
     _createClass(SearchBar, [{
@@ -1894,15 +1952,15 @@ var SearchBar = function (_React$Component10) {
     }, {
         key: "setFilterList",
         value: function setFilterList(filterList) {
-            var _this34 = this;
+            var _this36 = this;
 
             this.setState({ filterList: filterList }, function () {
                 // Call search with updated filter list
-                if (_this34.props.fullSearchResults !== null && _this34.props.fullSearchResults.query !== "") {
-                    _this34.props.fullSearch(_this34.props.fullSearchResults.query, _this34.getActiveFilters());
+                if (_this36.props.fullSearchResults !== null && _this36.props.fullSearchResults.query !== "") {
+                    _this36.props.fullSearch(_this36.props.fullSearchResults.query, _this36.getActiveFilters());
                 } else {
                     var query = document.getElementById("search-text").value;
-                    _this34.props.basicSearch(query, _this34.getActiveFilters());
+                    _this36.props.basicSearch(query, _this36.getActiveFilters());
                 }
             });
         }
@@ -1925,11 +1983,11 @@ var SearchBar = function (_React$Component10) {
     }, {
         key: "getActiveFilters",
         value: function getActiveFilters() {
-            var _this35 = this;
+            var _this37 = this;
 
             var activeFilters = [];
             Object.keys(this.state.filterList).forEach(function (filter) {
-                if (_this35.state.filterList[filter].active) activeFilters.push(filter);
+                if (_this37.state.filterList[filter].active) activeFilters.push(filter);
             });
             return activeFilters;
         }
@@ -1960,7 +2018,7 @@ var SearchBar = function (_React$Component10) {
     }, {
         key: "render",
         value: function render() {
-            var _this36 = this;
+            var _this38 = this;
 
             return React.createElement(
                 "div",
@@ -1969,7 +2027,7 @@ var SearchBar = function (_React$Component10) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this36.submitSearch(searchInput);
+                            return _this38.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
@@ -2043,10 +2101,10 @@ var FilterItem = function (_React$Component11) {
     function FilterItem(props) {
         _classCallCheck(this, FilterItem);
 
-        var _this37 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
+        var _this39 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
 
-        _this37.filterClicked = _this37.filterClicked.bind(_this37);
-        return _this37;
+        _this39.filterClicked = _this39.filterClicked.bind(_this39);
+        return _this39;
     }
 
     _createClass(FilterItem, [{

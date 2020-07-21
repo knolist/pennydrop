@@ -87,10 +87,6 @@ body {
   border: 2px solid var(--dark-blue);
   border-radius: 16px;
   width: 80%; /* Could be more or less, depending on screen size */
-
-  h1 {
-    margin: 10px 0;
-  }
 }
 
 /* The Close Button */
@@ -111,19 +107,51 @@ body {
   hr {
     border: 1px solid fade(@dark-blue, 50%);
     border-radius: 10px;
+    margin: 10px 0;
   }
 
   .small-button {
     margin-left: 10px;
   }
+
+  label {
+    font-size: 16px;
+    display: flex;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    cursor: pointer;
+  }
 }
 
-.pageview-button {
-  margin: 5px 5px 5px 10px;
+.pageview-header {
+  margin-bottom: 10px;
+
+  form {
+    width: 90%;
+  }
+
+  input[type="text"] {
+    font-size: 24px;
+    width: 100%;
+    padding: 0;
+  }
+
+  h1 {
+    margin: 5px 0;
+  }
+}
+
+.editable-note {
+  display: flex;
+
+  input[type="text"] {
+    width: 100%;
+  }
 }
 
 .close-pageview {
-  .pageview-button();
   padding: 8px;
 }
 
@@ -312,7 +340,8 @@ li {
 }
 
 .confirmation-button {
-  width: 45%;
+  max-width: 45%;
+  min-width: 45%;
   font-size: 16px;
 }
 

@@ -20,6 +20,7 @@ class KnolistComponents extends React.Component {
             graph: null, // All the graph data
             selectedNode: null, // Node that's clicked for the detailed view,
             nodeForDeletion: null, // Node to be deleted after confirmation
+            editNodeMode: false, // Set to true when selectedNode is in edit mode
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
@@ -46,6 +47,7 @@ class KnolistComponents extends React.Component {
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
         this.setNodeForDeletion = this.setNodeForDeletion.bind(this);
+        this.setEditNodeMode = this.setEditNodeMode.bind(this);
         this.resetNodeForDeletion = this.resetNodeForDeletion.bind(this);
         this.deleteNodeAfterConfirmation = this.deleteNodeAfterConfirmation.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
@@ -155,6 +157,7 @@ class KnolistComponents extends React.Component {
     resetSelectedNode() {
         this.setState({selectedNode: null});
         this.resetNodeForDeletion();
+        this.setEditNodeMode(false);
     }
 
     setSelectedNode(url) {
@@ -168,6 +171,10 @@ class KnolistComponents extends React.Component {
 
     resetNodeForDeletion() {
         this.setState({nodeForDeletion: null});
+    }
+
+    setEditNodeMode(status) {
+        this.setState({editNodeMode: status});
     }
 
     deleteNodeAfterConfirmation() {
@@ -602,8 +609,9 @@ class KnolistComponents extends React.Component {
                                  localServer={this.state.localServer} closeForm={this.closeNewNodeForm}
                                  refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                              editNodeMode={this.state.editNodeMode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
-                              setNodeForDeletion={this.setNodeForDeletion}
+                              setNodeForDeletion={this.setNodeForDeletion} setEditNodeMode={this.setEditNodeMode}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
                               switchShowNewNotesForm={this.switchShowNewNotesForm}
                               fullSearchResults={this.state.fullSearchResults}
@@ -1042,8 +1050,7 @@ class ProjectItem extends React.Component {
                             <form onSubmit={(event) => this.submitOnEnter(event)}
                                   onBlur={(event) => this.editProjectName(event.target.value)}
                                   autoComplete="off">
-                                <input id={projectId} type="text"
-                                       defaultValue={this.props.project} required/>
+                                <input id={projectId} type="text" defaultValue={this.props.project} required/>
                             </form>
                             <ProjectTitleAlertMessage alertMessage={this.state.alertMessage}
                                                       projectTitle={this.state.invalidTitle}/>
@@ -1152,19 +1159,21 @@ class PageView extends React.Component {
         return (
             <div id="page-view" className="modal">
                 <div className="modal-content pageview">
-                    <div className="flex-and-spaced">
-                        <PageViewTitle selectedNode={this.props.selectedNode}/>
+                    <div className="flex-and-spaced pageview-header">
+                        <PageViewTitle selectedNode={this.props.selectedNode} editNodeMode={this.props.editNodeMode}/>
                         <button className="button close-pageview" id="close-page-view" data-tooltip="Close"
                                 data-tooltip-location="down" onClick={this.props.closePageView}>
                             <img src="../../images/close-icon-white.png" alt="Close"/>
                         </button>
                     </div>
-                    <HighlightsList highlights={this.props.selectedNode.highlights}/>
+                    <HighlightsList highlights={this.props.selectedNode.highlights}
+                                    editNodeMode={this.props.editNodeMode}/>
                     <hr/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
                                selectedNode={this.props.selectedNode}
-                               refresh={this.props.refresh}/>
+                               refresh={this.props.refresh}
+                               editNodeMode={this.props.editNodeMode}/>
                     <hr/>
                     <div style={{display: "flex"}}>
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
@@ -1172,11 +1181,10 @@ class PageView extends React.Component {
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                     </div>
-                    <div style={{textAlign: "right"}}>
-                        <button className="button" data-tooltip="Delete node" data-tooltip-location="up"
-                                onClick={this.setForDeletion}>
-                            <img src="../../images/delete-icon-white.png" alt="Delete node"/>
-                        </button>
+                    <div style={{display: "flex", justifyContent: "flex-end"}}>
+                        <EditNodeButton editNodeMode={this.props.editNodeMode}
+                                        setEditNodeMode={this.props.setEditNodeMode}/>
+                        <DeleteNodeButton setForDeletion={this.setForDeletion}/>
                     </div>
                 </div>
             </div>
@@ -1184,17 +1192,43 @@ class PageView extends React.Component {
     }
 }
 
-function PageViewTitle(props) {
+function EditNodeButton(props) {
     return (
-        <div style={{display: "flex"}}>
-            <a href={props.selectedNode.source} target="_blank">
-                <h1>{props.selectedNode.title}</h1>
-            </a>
-            <button className="button pageview-button" data-tooltip="Edit Title"
-                    data-tooltip-location="up">
-                <img src="../../images/edit-icon-white.png" alt="Edit title"/>
-            </button>
-        </div>
+        <button className={props.editNodeMode ? "button button-with-text" : "button"} style={{marginRight: "10px"}}
+                data-tooltip={props.editNodeMode ? undefined : "Edit Node"}
+                data-tooltip-location={props.editNodeMode ? undefined : "up"}
+                onClick={() => props.setEditNodeMode(!props.editNodeMode)}>
+            {
+                props.editNodeMode ?
+                    <p>Done</p> :
+                    <img src="../../images/edit-icon-white.png" alt="Edit node"/>
+            }
+        </button>
+    );
+}
+
+function DeleteNodeButton(props) {
+    return (
+        <button className="button" data-tooltip="Delete node" data-tooltip-location="up"
+                onClick={props.setForDeletion}>
+            <img src="../../images/delete-icon-white.png" alt="Delete node"/>
+        </button>
+    )
+}
+
+function PageViewTitle(props) {
+    if (props.editNodeMode) {
+        return (
+            <form onSubmit={null}
+                  onBlur={null}>
+                <input type="text" defaultValue={props.selectedNode.title} required/>
+            </form>
+        );
+    }
+    return (
+        <a href={props.selectedNode.source} target="_blank">
+            <h1>{props.selectedNode.title}</h1>
+        </a>
     );
 }
 
@@ -1249,24 +1283,25 @@ function ListURL(props) {
 function HighlightsList(props) {
     return (
         <div>
-            <div style={{display: "flex"}}>
-                <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
-                {
-                    props.highlights.length > 0 ?
-                        <button className="button small-button" data-tooltip="Edit Highlights"
-                                data-tooltip-location="up">
-                            <img src="../../images/edit-icon-white.png" alt="Edit highlights"/>
-                        </button> :
-                        null
-                }
-            </div>
+            <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
             {
                 props.highlights.length === 0 ?
                     <p>To add highlights, select text on a page, right-click, then click on "Highlight with
                         Knolist".</p> :
                     null
             }
-            <ul>{props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
+            {
+                props.editNodeMode ?
+                    <form style={{margin: "12px 0"}}>
+                        {props.highlights.map((highlight, index) =>
+                            <div key={index}>
+                                <label><input type="checkbox"/>{highlight}</label>
+                            </div>)}
+                    </form> :
+                    <ul>
+                        {props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}
+                    </ul>
+            }
         </div>
     );
 
@@ -1278,6 +1313,7 @@ class NotesList extends React.Component {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.updateNotesOnBlur = this.updateNotesOnBlur.bind(this);
     }
 
     handleSubmit(event) {
@@ -1289,6 +1325,14 @@ class NotesList extends React.Component {
         event.target.reset(); // Clear the form entries
     }
 
+    updateNotesOnBlur(index, newNotes) {
+        if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
+
+        updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(() => {
+            this.props.refresh();
+        });
+    }
+
     render() {
         return (
             <div>
@@ -1296,16 +1340,20 @@ class NotesList extends React.Component {
                     <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
-                    {
-                        this.props.selectedNode.notes.length > 0 ?
-                            <button className="button small-button" data-tooltip="Edit Notes"
-                                    data-tooltip-location="up">
-                                <img src="../../images/edit-icon-white.png" alt="Edit notes"/>
-                            </button> :
-                            null
-                    }
                 </div>
-                <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
+                {
+                    this.props.editNodeMode ?
+                        <form style={{margin: "12px 0"}}>
+                            {this.props.selectedNode.notes.map((notes, index) =>
+                                <div className="editable-note" key={Math.random()}>
+                                    <input type="checkbox"/><input type="text" defaultValue={notes}
+                                                                   onBlur={(event) => this.updateNotesOnBlur(index, event.target.value)}/>
+                                </div>)}
+                        </form> :
+                        <ul>
+                            {this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}
+                        </ul>
+                }
                 <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}
                               switchShowNewNotesForm={this.props.switchShowNewNotesForm}/>
             </div>
@@ -1338,20 +1386,20 @@ function NewNotesForm(props) {
 // Button used to open the "create notes" form
 function NewNotesButton(props) {
     return (
-      <button className={props.showForm ? "button small-button button-with-text" : "button small-button"}
-              data-tooltip={props.showForm ? undefined : "Add notes"}
-              data-tooltip-location={props.showForm ? undefined : "up"}
-              onMouseDown={(event) => {
-                  event.preventDefault();
-                  props.switchShowForm();
-              }}>
-          {
-              props.showForm ?
-                  <p>Cancel</p> :
-                  <img src="../../images/add-icon-white.png" alt="New"/>
-          }
+        <button className={props.showForm ? "button small-button button-with-text" : "button small-button"}
+                data-tooltip={props.showForm ? undefined : "Add notes"}
+                data-tooltip-location={props.showForm ? undefined : "up"}
+                onMouseDown={(event) => {
+                    event.preventDefault();
+                    props.switchShowForm();
+                }}>
+            {
+                props.showForm ?
+                    <p>Cancel</p> :
+                    <img src="../../images/add-icon-white.png" alt="New"/>
+            }
 
-      </button>
+        </button>
     );
 }
 
