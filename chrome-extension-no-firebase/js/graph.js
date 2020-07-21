@@ -205,11 +205,51 @@ addHighlightsToItemInGraph = async (item, highlights) => {
         graph[item["source"]]["nextURLs"] = [];
         graph[item["source"]]["highlights"] = [];
         graph[item["source"]]["notes"] = [];
-        // Initialize with null positions (will be updated on render of the network
+        // Initialize with null positions (will be updated on render of the network)
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
     }
     graph[item["source"]]["highlights"].push(highlights);
+
+    // Save to disk
+    saveGraphToDisk(graphData);
+};
+
+/**
+ * Delete highlights from an item given a list of indices to remove.
+ * @param url the url of the item whose highlights we will delete
+ * @param indicesToDelete an array of indices to be removed
+ * @returns {Promise<void>} async promise
+ */
+deleteHighlightsFromItemInGraph = async (url, indicesToDelete) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Sort in decreasing order
+    indicesToDelete.sort(function(a,b){ return b - a; });
+    // Remove
+    indicesToDelete.forEach((index) => graph[url]["highlights"].splice(index, 1));
+
+    // Save to disk
+    saveGraphToDisk(graphData);
+};
+
+/**
+ * Delete notes from an item given a list of indices to remove.
+ * @param url the url of the item whose notes we will delete
+ * @param indicesToDelete an array of indices to be removed
+ * @returns {Promise<void>} async promise
+ */
+deleteNotesFromItemInGraph = async (url, indicesToDelete) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Sort in decreasing order
+    indicesToDelete.sort(function(a,b){ return b - a; });
+    // Remove
+    indicesToDelete.forEach((index) => graph[url]["notes"].splice(index, 1));
 
     // Save to disk
     saveGraphToDisk(graphData);
@@ -232,13 +272,50 @@ addNotesToItemInGraph = async (item, notes) => {
         graph[item["source"]]["nextURLs"] = [];
         graph[item["source"]]["highlights"] = [];
         graph[item["source"]]["notes"] = [];
-        // Initialize with null positions (will be updated on render of the network
+        // Initialize with null positions (will be updated on render of the network)
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
     }
     graph[item["source"]]["notes"].push(notes);
 
     // Save to disk
+    saveGraphToDisk(graphData);
+};
+
+/**
+ * Update a certain block of notes in the current project.
+ * @param url the url of the node whose notes will be updated
+ * @param index the index to be updated inside the list of notes
+ * @param newNotes the value to be inserted in the given index
+ * @returns {Promise<void>} ignored
+ */
+updateNotesInGraph = async (url, index, newNotes) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+    let item = graph[url];
+    // Update value
+    if (item !== undefined && index < item["notes"].length) {
+        if (newNotes != null && newNotes !== "") graph[url]["notes"][index] = newNotes;
+        // // Delete this note if the newValue is null
+        // if (newNotes === null) graph[url]["notes"].splice(index, 1);
+        // else
+    }
+    // Save to disk
+    saveGraphToDisk(graphData);
+};
+
+/**
+ * Update the title of a certain node in the current project.
+ * @param url the url of the node whose title we will change
+ * @param newTitle the new title to be set
+ * @returns {Promise<void>} ignored
+ */
+updateNodeTitleInGraph = async (url, newTitle) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+    if (newTitle != null && newTitle !== "") graph[url]["title"] = newTitle;
     saveGraphToDisk(graphData);
 };
 

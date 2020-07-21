@@ -18,7 +18,9 @@ class KnolistComponents extends React.Component {
         super(props);
         this.state = {
             graph: null, // All the graph data
-            selectedNode: null, // Node that's clicked for the detailed view
+            selectedNode: null, // Node that's clicked for the detailed view,
+            nodeForDeletion: null, // Node to be deleted after confirmation
+            editNodeMode: false, // Set to true when selectedNode is in edit mode
             displayExport: false,
             showNewNodeForm: false,
             showNewNotesForm: false,
@@ -34,16 +36,20 @@ class KnolistComponents extends React.Component {
         };
 
         // Bind functions that need to be passed as parameters
+        // this.deleteNode = this.deleteNode.bind(this); // Was used for deletion through the vis.js GUI
         this.getDataFromServer = this.getDataFromServer.bind(this);
         this.exportData = this.exportData.bind(this);
         this.handleClickedNode = this.handleClickedNode.bind(this);
-        this.deleteNode = this.deleteNode.bind(this);
         this.addNode = this.addNode.bind(this);
         this.deleteEdge = this.deleteEdge.bind(this);
         this.addEdge = this.addEdge.bind(this);
         this.switchShowNewNodeForm = this.switchShowNewNodeForm.bind(this);
         this.switchShowNewNotesForm = this.switchShowNewNotesForm.bind(this);
         this.resetSelectedNode = this.resetSelectedNode.bind(this);
+        this.setNodeForDeletion = this.setNodeForDeletion.bind(this);
+        this.setEditNodeMode = this.setEditNodeMode.bind(this);
+        this.resetNodeForDeletion = this.resetNodeForDeletion.bind(this);
+        this.deleteNodeAfterConfirmation = this.deleteNodeAfterConfirmation.bind(this);
         this.resetDisplayExport = this.resetDisplayExport.bind(this);
         this.openProjectsSidebar = this.openProjectsSidebar.bind(this);
         this.closeProjectsSidebar = this.closeProjectsSidebar.bind(this);
@@ -105,25 +111,35 @@ class KnolistComponents extends React.Component {
     }
 
     // Calls graph.js function to pull the graph from the Chrome storage
-    getDataFromServer() {
+    // Optional callback to be called after selectedNode is updated
+    /**
+     * Main function used to update the front end graph data
+     * @param callbackObject is an optional object containing callback functions. callbackObject.graphCallback is called
+     * after updating the graph. callbackObject.selectedNodeCallback is called after updating the selected node.
+     */
+    getDataFromServer(callbackObject = {}) {
         // All the websites as a graph
         getGraphFromDisk().then((graph) => {
-            this.setState({graph: graph});
+            this.setState({graph: graph}, () => {
+                if (callbackObject.graphCallback !== undefined) callbackObject.graphCallback();
+            });
             this.setupVisGraph();
             this.getBibliographyData();
-
-            // Manually update selectedNode if it's not null nor undefined (for notes update)
-            if (this.state.selectedNode !== null && this.state.selectedNode !== undefined) {
-                const url = this.state.selectedNode.source;
-                const curProject = graph.curProject;
-                const updatedSelectedNode = graph[curProject][url];
-                this.setState({selectedNode: updatedSelectedNode});
-            }
 
             // Redo search if search mode is active
             if (this.state.fullSearchResults !== null) {
                 const resultObject = this.state.fullSearchResults;
                 this.fullSearch(resultObject.query, resultObject.filterList);
+            }
+
+            // Manually update selectedNode if it's not null nor undefined
+            if (this.state.selectedNode !== null && this.state.selectedNode !== undefined) {
+                const url = this.state.selectedNode.source;
+                const curProject = graph.curProject;
+                const updatedSelectedNode = graph[curProject][url];
+                this.setState({selectedNode: updatedSelectedNode}, () => {
+                    if (callbackObject.selectedNodeCallback !== undefined) callbackObject.selectedNodeCallback();
+                });
             }
         });
 
@@ -150,11 +166,34 @@ class KnolistComponents extends React.Component {
 
     resetSelectedNode() {
         this.setState({selectedNode: null});
+        this.resetNodeForDeletion();
+        this.setEditNodeMode(false);
     }
 
     setSelectedNode(url) {
         const curProject = this.state.graph.curProject;
         this.setState({selectedNode: this.state.graph[curProject][url]});
+    }
+
+    setNodeForDeletion(url) {
+        this.setState({nodeForDeletion: url});
+    }
+
+    resetNodeForDeletion() {
+        this.setState({nodeForDeletion: null});
+    }
+
+    setEditNodeMode(status) {
+        this.setState({editNodeMode: status});
+    }
+
+    deleteNodeAfterConfirmation() {
+        // Remove from the graph
+        removeItemFromGraph(this.state.selectedNode.source).then(() => {
+            // Reset the selected node
+            this.resetSelectedNode();
+            this.getDataFromServer();
+        });
     }
 
     closePageView() {
@@ -175,12 +214,13 @@ class KnolistComponents extends React.Component {
         }
     }
 
-    deleteNode(data, callback) {
-        const nodeId = data.nodes[0];
-        removeItemFromGraph(nodeId).then(() => {
-            callback(data);
-        });
-    }
+    // Was used for deletion through the vis.js GUI, probably unnecessary
+    // deleteNode(data, callback) {
+    //     const nodeId = data.nodes[0];
+    //     removeItemFromGraph(nodeId).then(() => {
+    //         callback(data);
+    //     });
+    // }
 
     addNode(nodeData, callback) {
         this.switchShowNewNodeForm();
@@ -370,7 +410,6 @@ class KnolistComponents extends React.Component {
         // Sort so that results with the most occurrences are at the top
         resultObject.results.sort((a, b) => (a.occurrencesCount >= b.occurrencesCount) ? -1 : 1);
         this.setFullSearchResults(resultObject);
-        console.log(resultObject);
     }
 
     /* Helper function to generate position for nodes
@@ -463,18 +502,22 @@ class KnolistComponents extends React.Component {
                 },
                 color: "black",
                 physics: false,
-                smooth: false
+                smooth: false,
+                hoverWidth: 0
             },
             interaction: {
                 navigationButtons: true,
-                selectConnectedEdges: false
+                selectConnectedEdges: false,
+                hover: true,
+                hoverConnectedEdges: false
             },
             manipulation: {
                 enabled: true,
-                deleteNode: this.deleteNode,
+                deleteNode: false,
                 addNode: this.addNode,
                 deleteEdge: this.deleteEdge,
-                addEdge: this.addEdge
+                addEdge: this.addEdge,
+                editEdge: false
             }
         };
         const network = new vis.Network(container, data, options);
@@ -509,6 +552,10 @@ class KnolistComponents extends React.Component {
             }
             // this.setState({autoRefresh: true});
         });
+
+        // Set cursor to pointer when hovering over a node
+        network.on("hoverNode", () => network.canvas.body.container.style.cursor = "pointer");
+        network.on("blurNode", () => network.canvas.body.container.style.cursor = "default");
 
         // Store the network
         this.setState({visNetwork: network});
@@ -572,11 +619,17 @@ class KnolistComponents extends React.Component {
                                  localServer={this.state.localServer} closeForm={this.closeNewNodeForm}
                                  refresh={this.getDataFromServer}/>
                     <PageView graph={this.state.graph[curProject]} selectedNode={this.state.selectedNode}
+                              editNodeMode={this.state.editNodeMode}
                               resetSelectedNode={this.resetSelectedNode} setSelectedNode={this.setSelectedNode}
+                              setNodeForDeletion={this.setNodeForDeletion} setEditNodeMode={this.setEditNodeMode}
                               refresh={this.getDataFromServer} closePageView={this.closePageView}
                               switchShowNewNotesForm={this.switchShowNewNotesForm}
                               fullSearchResults={this.state.fullSearchResults}
                               showNewNotesForm={this.state.showNewNotesForm}/>
+                    <ConfirmDeletionWindow
+                        item={this.state.nodeForDeletion == null ? null : this.state.nodeForDeletion.title}
+                        resetForDeletion={this.resetNodeForDeletion}
+                        delete={this.deleteNodeAfterConfirmation}/>
                     <ExportView bibliographyData={this.state.bibliographyData} shouldShow={this.state.displayExport}
                                 resetDisplayExport={this.resetDisplayExport}/>
                 </div>
@@ -672,7 +725,7 @@ function OccurrenceCategories(props) {
         <div className="occurrence-categories">
             {props.occurrences.map((occurrence, index) => {
                 return (
-                    <div key={occurrence.key} style={{display: "flex"}}>
+                    <div key={occurrence.key} className="flex">
                         <div className="occurrence-item">
                             <h3>{Utils.getNodePropertyTitle(occurrence.key)}</h3>
                             <p>{occurrence.indices.length}</p>
@@ -711,6 +764,7 @@ class ProjectsSidebar extends React.Component {
         this.resetProjectForDeletion = this.resetProjectForDeletion.bind(this);
         this.setAlertMessage = this.setAlertMessage.bind(this);
         this.setInvalidTitle = this.setInvalidTitle.bind(this);
+        this.deleteProject = this.deleteProject.bind(this);
     }
 
     setAlertMessage(value) {
@@ -729,8 +783,18 @@ class ProjectsSidebar extends React.Component {
         this.setState({projectForDeletion: null});
     }
 
+    deleteProject() {
+        deleteProjectFromGraph(this.state.projectForDeletion).then(() => {
+            const callbackObject = {
+                graphCallback: () => {
+                    this.resetProjectForDeletion();
+                }
+            };
+            this.props.refresh(callbackObject);
+        });
+    }
+
     switchShowNewProjectForm() {
-        document.getElementById("new-project-form").reset();
         this.setState({
             showNewProjectForm: !this.state.showNewProjectForm,
             alertMessage: null,
@@ -738,6 +802,7 @@ class ProjectsSidebar extends React.Component {
         }, () => {
             // Set focus to the input field
             if (this.state.showNewProjectForm) document.getElementById("newProjectTitle").focus();
+            document.getElementById("new-project-form").reset();
         });
     }
 
@@ -762,66 +827,57 @@ class ProjectsSidebar extends React.Component {
                                     alertMessage={this.state.alertMessage}
                                     invalidTitle={this.state.invalidTitle}
                                     projects={Object.keys(this.props.graph)}/>
-                    <ConfirmProjectDeletionWindow project={this.state.projectForDeletion}
-                                                  resetForDeletion={this.resetProjectForDeletion}
-                                                  refresh={this.props.refresh}/>
+                    <ConfirmDeletionWindow item={this.state.projectForDeletion}
+                                           resetForDeletion={this.resetProjectForDeletion}
+                                           delete={this.deleteProject}/>
                 </div>
             </div>
         );
     }
 }
 
-// Confirmation window before a project is deleted
-class ConfirmProjectDeletionWindow extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.deleteProject = this.deleteProject.bind(this);
+/**Confirmation window before an item is deleted
+ * @return {null}
+ */
+function ConfirmDeletionWindow(props) {
+    if (props.item === null) {
+        return null;
     }
-
-    deleteProject() {
-        this.props.resetForDeletion();
-        deleteProjectFromGraph(this.props.project).then(() => this.props.refresh());
-    }
-
-    render() {
-        if (this.props.project === null) {
-            return null;
-        }
-        return (
-            <div className="modal">
-                <div id="delete-confirmation-modal" className="modal-content">
-                    <img src="../../images/alert-icon-black.png" alt="Alert icon"
-                         style={{width: "30%", display: "block", marginLeft: "auto", marginRight: "auto"}}/>
-                    <h1>Are you sure you want to delete "{this.props.project}"?</h1>
-                    <h3>This action cannot be undone.</h3>
-                    <div style={{display: "flex", justifyContent: "space-between"}}>
-                        <button className="button confirmation-button" onClick={this.deleteProject}>
-                            Yes, delete it!
-                        </button>
-                        <button className="button confirmation-button" onClick={this.props.resetForDeletion}>
-                            Cancel
-                        </button>
-                    </div>
+    return (
+        <div className="modal">
+            <div id="delete-confirmation-modal" className="modal-content">
+                <img src="../../images/alert-icon-black.png" alt="Alert icon"
+                     style={{width: "30%", display: "block", marginLeft: "auto", marginRight: "auto"}}/>
+                <h1>Are you sure you want to delete "{props.item}"?</h1>
+                <h3>This action cannot be undone.</h3>
+                <div className="flex-and-spaced">
+                    <button className="button confirmation-button" onClick={props.delete}>
+                        Yes, delete it!
+                    </button>
+                    <button className="button confirmation-button" onClick={props.resetForDeletion}>
+                        Cancel
+                    </button>
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 
 // Button used to open the "create project" form
 function NewProjectButton(props) {
-    if (props.showForm) {
-        return (
-            <button className="button new-project-button cancel-new-project" onClick={props.switchShowForm}>
-                <p>Cancel</p>
-            </button>
-        );
-    }
     return (
-        <button className="button new-project-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-white.png" alt="New"/>
+        <button
+            className={props.showForm ? "button new-project-button button-with-text" : "button new-project-button"}
+            onMouseDown={(event) => {
+                event.preventDefault();
+                props.switchShowForm();
+            }}>
+            {
+                props.showForm ?
+                    <p>Cancel</p> :
+                    <img src="../../images/add-icon-white.png" alt="New"/>
+            }
         </button>
     );
 }
@@ -848,11 +904,15 @@ class NewProjectForm extends React.Component {
 
             // Create project
             createNewProjectInGraph(title).then(() => {
-                this.props.refresh();
-                // Close the form
-                this.props.switchForm();
-                // Hide alert message if there was one
-                this.props.setInvalidTitle(null);
+                const callbackObject = {
+                    graphCallback: () => {
+                        // Close the form
+                        this.props.switchForm();
+                        // Hide alert message if there was one
+                        this.props.setInvalidTitle(null);
+                    }
+                };
+                this.props.refresh(callbackObject);
             });
         } else {
             this.props.setInvalidTitle(title);
@@ -866,9 +926,12 @@ class NewProjectForm extends React.Component {
         }
         return (
             <div style={style} className="project-item new-project-form-area">
-                <form id="new-project-form" onSubmit={this.handleSubmit} autoComplete="off">
+                <form id="new-project-form" onSubmit={this.handleSubmit}
+                      onBlur={() => this.props.showNewProjectForm ? this.props.switchForm() : null} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
-                    <button className="button create-project-button">Create</button>
+                    <button onMouseDown={(event) => event.preventDefault()}
+                            className="button create-project-button">Create
+                    </button>
                 </form>
                 <ProjectTitleAlertMessage alertMessage={this.props.alertMessage}
                                           projectTitle={this.props.invalidTitle}/>
@@ -964,11 +1027,15 @@ class ProjectItem extends React.Component {
         if (alertMessage == null) {
             // Valid name
             updateProjectTitle(this.props.project, title).then(() => {
-                this.props.refresh();
-                this.switchProjectEditMode();
-
-                // Hide alert message if there was one
-                this.setInvalidTitle(null);
+                const callbackObject = {
+                    graphCallback: () => {
+                        // Update on callback
+                        this.switchProjectEditMode();
+                        // Hide alert message if there was one
+                        this.setInvalidTitle(null);
+                    }
+                };
+                this.props.refresh(callbackObject);
             });
         } else {
             this.setInvalidTitle(title);
@@ -1005,8 +1072,7 @@ class ProjectItem extends React.Component {
                             <form onSubmit={(event) => this.submitOnEnter(event)}
                                   onBlur={(event) => this.editProjectName(event.target.value)}
                                   autoComplete="off">
-                                <input id={projectId} type="text"
-                                       defaultValue={this.props.project} required/>
+                                <input id={projectId} type="text" defaultValue={this.props.project} required/>
                             </form>
                             <ProjectTitleAlertMessage alertMessage={this.state.alertMessage}
                                                       projectTitle={this.state.invalidTitle}/>
@@ -1024,7 +1090,7 @@ function SidebarButtons(props) {
     return (
         <div>
             <button
-                className={props.projectEditMode ? "button edit-project-button cancel-new-project" : "button edit-project-button"}
+                className={props.projectEditMode ? "button edit-project-button button-with-text" : "button edit-project-button"}
                 onMouseDown={(event) => {
                     event.preventDefault();
                     props.switchProjectEditMode();
@@ -1046,6 +1112,11 @@ function SidebarButtons(props) {
 class NewNodeForm extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            loading: false // Used to display loading icon while the new node is being added
+        };
+
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -1057,14 +1128,35 @@ class NewNodeForm extends React.Component {
             baseServerURL = localServerURL;
         }
         const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(event.target.url.value);
-        $.getJSON(contentExtractionURL, (item) => {
-            addItemToGraph(item, "").then(() => {
-                return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
-            }).then(() => this.props.refresh());
-        });
 
-        this.props.closeForm();
-        event.target.reset(); // Clear the form entries
+        // Start loading
+        event.persist();
+        this.setState({loading: true}, () => {
+            $.getJSON(contentExtractionURL, (item) => {
+                addItemToGraph(item, "").then(() => {
+                    return updatePositionOfNode(item.source, this.props.nodeData.x, this.props.nodeData.y);
+                }).then(() => {
+                    // Create callback object
+                    const callbackObject = {
+                        graphCallback: () => {
+                            this.setState({loading: false}, () => {
+                                this.props.closeForm();
+                                event.target.reset(); // Clear the form entries
+                            });
+                        }
+                    };
+                    this.props.refresh(callbackObject);
+                });
+            });
+        });
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // Block clicks while the new node is being loaded
+        if (prevState.loading !== this.state.loading) {
+            if (this.state.loading) document.body.style.pointerEvents = "none";
+            else document.body.style.pointerEvents = "auto";
+        }
     }
 
     render() {
@@ -1081,28 +1173,35 @@ class NewNodeForm extends React.Component {
                     <h1>Add new node</h1>
                     <form id="new-node-form" onSubmit={this.handleSubmit}>
                         <input id="url" name="url" type="url" placeholder="Insert URL" required/><br/>
-                        <button className="button" style={{width: 100}}>Add node</button>
+                        <button className="button button-with-text">Add node</button>
                     </form>
+                    {this.state.loading ? <div id="new-node-spinner"><LoadingSpinner/></div> : null}
                 </div>
             </div>
         );
     }
 }
 
+// Simple loading spinner, CSS is defined in utilities.less
+function LoadingSpinner() {
+    return <div className="spinner"/>
+
+    // return (
+    //     <div className="lds-spinner">
+    //         <div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/>
+    //     </div>
+    // );
+}
+
 // Detailed view of a specific node
 class PageView extends React.Component {
     constructor(props) {
         super(props);
-        this.deleteNode = this.deleteNode.bind(this);
+        this.setForDeletion = this.setForDeletion.bind(this);
     }
 
-    deleteNode() {
-        // Remove from the graph
-        removeItemFromGraph(this.props.selectedNode.source).then(() => {
-            // Reset the selected node
-            this.props.resetSelectedNode();
-            this.props.refresh();
-        });
+    setForDeletion() {
+        this.props.setNodeForDeletion(this.props.selectedNode);
     }
 
     render() {
@@ -1119,31 +1218,94 @@ class PageView extends React.Component {
 
         return (
             <div id="page-view" className="modal">
-                <div className="modal-content">
-                    <button className="close-modal button" id="close-page-view"
-                            onClick={this.props.closePageView}>
-                        <img src="../../images/close-icon-white.png" alt="Close"/>
-                    </button>
-                    <a href={this.props.selectedNode.source} target="_blank"><h1>{this.props.selectedNode.title}</h1>
-                    </a>
-                    <HighlightsList highlights={this.props.selectedNode.highlights}/>
+                <div className="modal-content pageview">
+                    <div className="flex-and-spaced pageview-header">
+                        <PageViewTitle selectedNode={this.props.selectedNode} editNodeMode={this.props.editNodeMode}
+                                       refresh={this.props.refresh}/>
+                        <button className="button close-pageview" id="close-page-view" data-tooltip="Close"
+                                data-tooltip-location="down" onClick={this.props.closePageView}>
+                            <img src="../../images/close-icon-white.png" alt="Close"/>
+                        </button>
+                    </div>
+                    <HighlightsList highlights={this.props.selectedNode.highlights}
+                                    editNodeMode={this.props.editNodeMode}
+                                    selectedNode={this.props.selectedNode}
+                                    refresh={this.props.refresh}/>
+                    <hr/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
                                selectedNode={this.props.selectedNode}
-                               refresh={this.props.refresh}/>
-                    <div style={{display: "flex"}}>
+                               refresh={this.props.refresh}
+                               editNodeMode={this.props.editNodeMode}/>
+                    <hr/>
+                    <div className="flex">
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                     </div>
-                    <div style={{textAlign: "right"}}>
-                        <button className="button" onClick={this.deleteNode}>
-                            <img src="../../images/delete-icon-white.png" alt="Delete node"/>
-                        </button>
+                    <div className="flex" style={{justifyContent: "flex-end"}}>
+                        <EditNodeButton editNodeMode={this.props.editNodeMode}
+                                        setEditNodeMode={this.props.setEditNodeMode}/>
+                        <DeleteNodeButton setForDeletion={this.setForDeletion}/>
                     </div>
                 </div>
             </div>
+        );
+    }
+}
+
+function EditNodeButton(props) {
+    return (
+        <button className={props.editNodeMode ? "button button-with-text" : "button"} style={{marginRight: "10px"}}
+                data-tooltip={props.editNodeMode ? undefined : "Edit Node"}
+                data-tooltip-location={props.editNodeMode ? undefined : "up"}
+                onClick={() => props.setEditNodeMode(!props.editNodeMode)}>
+            {
+                props.editNodeMode ?
+                    <p>Done</p> :
+                    <img src="../../images/edit-icon-white.png" alt="Edit node"/>
+            }
+        </button>
+    );
+}
+
+function DeleteNodeButton(props) {
+    return (
+        <button className="button" data-tooltip="Delete node" data-tooltip-location="up"
+                onClick={props.setForDeletion}>
+            <img src="../../images/delete-icon-white.png" alt="Delete node"/>
+        </button>
+    )
+}
+
+class PageViewTitle extends React.Component {
+    updateTitle(newTitle) {
+        updateNodeTitleInGraph(this.props.selectedNode.source, newTitle).then(() => {
+            const callbackObject = {
+                selectedNodeCallback: () => document.getElementById("newNodeTitle").value = this.props.selectedNode.title
+            };
+            this.props.refresh(callbackObject);
+        });
+    }
+
+    render() {
+        if (this.props.editNodeMode) {
+            return (
+                <form onSubmit={(event) => {
+                    event.preventDefault();
+                    this.updateTitle(event.target.newNodeTitle.value);
+                }}
+                      onBlur={(event) => this.updateTitle(event.target.value)}>
+                    <input type="text" id="newNodeTitle" defaultValue={this.props.selectedNode.title}
+                           key={this.props.selectedNode.title} autoComplete="off" required/>
+                </form>
+            );
+        }
+        return (
+            <a href={this.props.selectedNode.source} target="_blank">
+                <h1>{this.props.selectedNode.title}</h1>
+            </a>
         );
     }
 }
@@ -1196,14 +1358,106 @@ function ListURL(props) {
 }
 
 // List of highlights in the detailed page view
-function HighlightsList(props) {
-    return (
-        <div>
-            <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
-            <ul>{props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}</ul>
-        </div>
-    );
+class HighlightsList extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            selectedHighlights: [] // Indices of the selected highlights in edit mode
+        };
+
+        this.resetSelectedHighlights = this.resetSelectedHighlights.bind(this);
+        this.removeSelectedHighlights = this.removeSelectedHighlights.bind(this);
+        this.addSelectedHighlights = this.addSelectedHighlights.bind(this);
+        this.deleteSelectedHighlights = this.deleteSelectedHighlights.bind(this);
+    }
+
+    checkboxChange(index, checked) {
+        if (checked) this.addSelectedHighlights(index);
+        else this.removeSelectedHighlights(index);
+    }
+
+    resetSelectedHighlights() {
+        this.setState({selectedHighlights: []});
+    }
+
+    removeSelectedHighlights(toRemove) {
+        let highlights = this.state.selectedHighlights;
+        const index = highlights.indexOf(toRemove);
+        if (index >= 0) highlights.splice(index, 1);
+        this.setState({selectedHighlights: highlights});
+    }
+
+    addSelectedHighlights(toAdd) {
+        let highlights = this.state.selectedHighlights;
+        highlights.push(toAdd);
+        this.setState({selectedHighlights: highlights});
+    }
+
+    deleteSelectedHighlights(highlightsToDelete) {
+        deleteHighlightsFromItemInGraph(this.props.selectedNode.source, highlightsToDelete).then(() => {
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    this.resetSelectedHighlights();
+                    document.getElementById("delete-highlights-form").reset();
+                }
+            };
+            this.props.refresh(callbackObject);
+        });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.editNodeMode !== this.props.editNodeMode) this.resetSelectedHighlights();
+    }
+
+    render() {
+        return (
+            <div>
+                <div className="flex">
+                    <h2>{this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+                    <DeleteSelected editNodeMode={this.props.editNodeMode} selectedItems={this.state.selectedHighlights}
+                                    type="Highlights" deleteSelected={this.deleteSelectedHighlights}/>
+                </div>
+                {
+                    this.props.highlights.length === 0 ?
+                        <p>To add highlights, select text on a page, right-click, then click on "Highlight with
+                            Knolist".</p> :
+                        null
+                }
+                {
+                    this.props.editNodeMode ?
+                        <form id="delete-highlights-form" style={{margin: "12px 0"}}>
+                            {this.props.highlights.map((highlight, index) =>
+                                <div key={index}>
+                                    <label><input type="checkbox"
+                                                  onChange={(event) => this.checkboxChange(index, event.target.checked)}/>{highlight}
+                                    </label>
+                                </div>)}
+                        </form> :
+                        <ul>
+                            {this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}
+                        </ul>
+                }
+            </div>
+        );
+    }
+}
+
+
+/**
+ * Button to delete selected items (notes or highlights)
+ * @return {null}
+ */
+function DeleteSelected(props) {
+    // Don't return anything if there are no selected items or outside of edit mode
+    if (!props.editNodeMode || props.selectedItems == null || props.selectedItems.length === 0) return null;
+
+    return (
+        <button className="button small-button button-with-text"
+                onClick={() => props.deleteSelected(props.selectedItems)}>
+            <p>Delete selected {props.type}</p>
+        </button>
+    );
 }
 
 // List of notes in the detailed page view
@@ -1211,28 +1465,115 @@ class NotesList extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            selectedNotes: [] // Array of notes selected to be deleted
+        };
+
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.updateNotesOnBlur = this.updateNotesOnBlur.bind(this);
+        this.addSelectedNotes = this.addSelectedNotes.bind(this);
+        this.removeSelectedNotes = this.removeSelectedNotes.bind(this);
+        this.resetSelectedNotes = this.resetSelectedNotes.bind(this);
+        this.deleteSelectedNotes = this.deleteSelectedNotes.bind(this);
+    }
+
+    checkboxChange(index, checked) {
+        if (checked) this.addSelectedNotes(index);
+        else this.removeSelectedNotes(index);
+    }
+
+    resetSelectedNotes() {
+        this.setState({selectedNotes: []});
+    }
+
+    removeSelectedNotes(toRemove) {
+        let notes = this.state.selectedNotes;
+        const index = notes.indexOf(toRemove);
+        if (index >= 0) notes.splice(index, 1);
+        this.setState({selectedNotes: notes});
+    }
+
+    addSelectedNotes(toAdd) {
+        let notes = this.state.selectedNotes;
+        notes.push(toAdd);
+        this.setState({selectedNotes: notes});
+    }
+
+    deleteSelectedNotes(notesToDelete) {
+        deleteNotesFromItemInGraph(this.props.selectedNode.source, notesToDelete).then(() => {
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    this.resetSelectedNotes();
+                    document.getElementById("delete-notes-form").reset();
+                }
+            };
+            this.props.refresh(callbackObject);
+        });
     }
 
     handleSubmit(event) {
         event.preventDefault();
+        event.persist();
         addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
-            this.props.refresh();
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    this.props.switchShowNewNotesForm();
+                    event.target.reset(); // Clear the form entries
+                }
+            };
+            this.props.refresh(callbackObject);
         });
-        this.props.switchShowNewNotesForm();
-        event.target.reset(); // Clear the form entries
+    }
+
+    updateNotesOnBlur(index, newNotes) {
+        // if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
+        updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(() => {
+            const id = this.getInputFieldId(index);
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    document.getElementById(id).value = this.props.selectedNode.notes[index];
+                }
+            };
+            this.props.refresh(callbackObject);
+        });
+    }
+
+    getInputFieldId(index) {
+        return "edit-note-input" + index;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.editNodeMode !== this.props.editNodeMode) this.resetSelectedNotes();
     }
 
     render() {
         return (
             <div>
-                <div style={{display: "flex"}}>
+                <div className="flex">
                     <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
+                    <DeleteSelected editNodeMode={this.props.editNodeMode} selectedItems={this.state.selectedNotes}
+                                    type="Notes" deleteSelected={this.deleteSelectedNotes}/>
                 </div>
-                <ul>{this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}</ul>
-                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}/>
+                {
+                    this.props.editNodeMode ?
+                        <form id="delete-notes-form" style={{margin: "12px 0"}}
+                              onSubmit={(event) => event.preventDefault()}>
+                            {this.props.selectedNode.notes.map((notes, index) =>
+                                <div className="editable-note" key={index}>
+                                    <input type="checkbox"
+                                           onChange={(event) => this.checkboxChange(index, event.target.checked)}/>
+                                    <input type="text" defaultValue={notes} id={this.getInputFieldId(index)}
+                                           onBlur={(event) => this.updateNotesOnBlur(index, event.target.value)}/>
+                                </div>)}
+                        </form> :
+                        <ul>
+                            {this.props.selectedNode.notes.map((notes, index) => <li key={index}>{notes}</li>)}
+                        </ul>
+                }
+                <NewNotesForm handleSubmit={this.handleSubmit} showNewNotesForm={this.props.showNewNotesForm}
+                              switchShowNewNotesForm={this.props.switchShowNewNotesForm}/>
             </div>
         );
     }
@@ -1246,26 +1587,36 @@ function NewNotesForm(props) {
     }
 
     return (
-        <form id="new-notes-form" onSubmit={props.handleSubmit} style={style}>
+        <form id="new-notes-form" onSubmit={props.handleSubmit}
+              onBlur={() => {
+                  if (props.showNewNotesForm) props.switchShowNewNotesForm();
+              }} style={style}>
             <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
-            <button className="button add-note-button cancel-new-project" style={{marginTop: 0, marginBottom: 0}}>Add
+            <button onMouseDown={(event) => {
+                event.preventDefault();
+            }} className="button small-button button-with-text" style={{marginTop: 0, marginBottom: 0}}>
+                Add
             </button>
         </form>
     );
 }
 
-// Button used to open the "create project" form
+// Button used to open the "create notes" form
 function NewNotesButton(props) {
-    if (props.showForm) {
-        return (
-            <button className="button add-note-button cancel-new-project" onClick={props.switchShowForm}>
-                <p>Cancel</p>
-            </button>
-        );
-    }
     return (
-        <button className="button add-note-button" onClick={props.switchShowForm}>
-            <img src="../../images/add-icon-white.png" alt="New"/>
+        <button className={props.showForm ? "button small-button button-with-text" : "button small-button"}
+                data-tooltip={props.showForm ? undefined : "Add notes"}
+                data-tooltip-location={props.showForm ? undefined : "up"}
+                onMouseDown={(event) => {
+                    event.preventDefault();
+                    props.switchShowForm();
+                }}>
+            {
+                props.showForm ?
+                    <p>Cancel</p> :
+                    <img src="../../images/add-icon-white.png" alt="New"/>
+            }
+
         </button>
     );
 }
@@ -1397,9 +1748,13 @@ class SearchBar extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.graph !== this.props.graph) this.setState({filterList: this.generateFilterList()});
+    }
+
     render() {
         return (
-            <div style={{display: "flex"}}>
+            <div className="flex">
                 <div id="search-bar">
                     <input id="search-text" type="text" onKeyUp={(searchInput) => this.submitSearch(searchInput)}
                            placeholder="Search through your project"/>

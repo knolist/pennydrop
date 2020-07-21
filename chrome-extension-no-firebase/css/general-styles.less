@@ -5,17 +5,24 @@
   src: local('Open Sans'), local('OpenSans'), url(https://fonts.gstatic.com/s/productsans/v5/HYvgU2fE2nRJvZ5JFAumwegdm0LZdjqr5-oayXSOefg.woff2) format('woff2');
 }
 
+@light-blue: #1dcdfe;
+@java-color: #21d0b2;
+@bright-turquoise: #34f5c5;
+@dark-blue: #2f455c;
+@sidebar-background: #326697;
+@active-project-background: #3e87cc;
+@main-green: #93c42d;
 @node-default-color: #7dc2ff;
 @node-highlight-color: lighten(@node-default-color, 15%);
 
 :root {
-  --light-blue: #1dcdfe;
-  --java-color: #21d0b2;
-  --bright-turquoise: #34f5c5;
-  --dark-blue: #2f455c;
-  --sidebar-background: #326697;
-  --active-project-background: #3e87cc;
-  --main-green: #93c42d;
+  --light-blue: @light-blue;
+  --java-color: @java-color;
+  --bright-turquoise: @bright-turquoise;
+  --dark-blue: @dark-blue;
+  --sidebar-background: @sidebar-background;
+  --active-project-background: @active-project-background;
+  --main-green: @main-green;
   --node-default-color: @node-default-color;
   --node-highlight-color: @node-highlight-color;
 }
@@ -27,7 +34,8 @@
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
   height: 40px;
-  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
   /*border: 1px solid var(--java-color);*/
   border: none;
   transition: 0.3s;
@@ -44,6 +52,22 @@
   &:hover {
     box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
     cursor: pointer;
+  }
+}
+
+.small-button {
+  //margin-left: 10px;
+  height: 30px;
+  min-width: 30px;
+  max-width: 30px;
+}
+
+.button-with-text {
+  max-width: none;
+  width: auto;
+
+  p {
+    margin: 0;
   }
 }
 
@@ -147,157 +171,11 @@ input[type="text"] {
   }
 }
 
-// TOOLTIP
-[data-tooltip] {
-  position: relative;
-  z-index: 1;
+.flex-and-spaced {
+  display: flex;
+  justify-content: space-between;
 }
 
-/* Positioning and visibility settings of the tooltip */
-[data-tooltip]:before,
-[data-tooltip]:after {
-  position: absolute;
-  visibility: hidden;
-  opacity: 0;
-  left: 50%;
-  bottom: calc(100% + 5px);
-  pointer-events: none;
-  transition: 0.2s;
-  will-change: transform;
-}
-
-/* The actual tooltip with a dynamic width */
-[data-tooltip]:before {
-  content: attr(data-tooltip);
-  padding: 5px 10px;
-  min-width: 50px;
-  max-width: 300px;
-  width: max-content;
-  width: -moz-max-content;
-  border-radius: 6px;
-  font-size: 12px;
-  /*   font-size: 0.73rem; */
-  background-color: rgba(59, 72, 80, 0.9);
-  background-image: linear-gradient(30deg,
-  rgba(59, 72, 80, 0.44),
-  rgba(59, 68, 75, 0.44),
-  rgba(60, 82, 88, 0.44));
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.2);
-  color: #fff;
-  text-align: center;
-  white-space: pre-wrap;
-  transform: translate(-50%, -5px) scale(0.5);
-}
-
-/* Tooltip arrow */
-[data-tooltip]:after {
-  content: '';
-  border-style: solid;
-  border-width: 5px 5px 0 5px;
-  border-color: rgba(55, 64, 70, 0.9) transparent transparent transparent;
-  transition-duration: 0s;
-  /* If the mouse leaves the element,
-                               the transition effects for the
-                               tooltip arrow are "turned off" */
-  transform-origin: top;
-  /* Orientation setting for the
-                             slide-down effect */
-  transform: translateX(-50%) scaleY(0);
-}
-
-/* Tooltip becomes visible at hover */
-[data-tooltip]:hover:before,
-[data-tooltip]:hover:after {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Scales from 0.5 to 1 -> grow effect */
-[data-tooltip]:hover:before {
-  transition-delay: 0.3s;
-  transform: translate(-50%, -5px) scale(1);
-}
-
-/* Slide down effect only on mouseenter (NOT on mouseleave) */
-[data-tooltip]:hover:after {
-  transition-delay: 0.5s; /* Starting after the grow effect */
-  transition-duration: 0.2s;
-  transform: translateX(-50%) scaleY(1);
-}
-
-/* LEFT */
-/* Tooltip + arrow */
-[data-tooltip-location="left"]:before,
-[data-tooltip-location="left"]:after {
-  left: auto;
-  right: calc(100% + 5px);
-  bottom: 50%;
-}
-
-/* Tooltip */
-[data-tooltip-location="left"]:before {
-  transform: translate(-5px, 50%) scale(0.5);
-}
-
-[data-tooltip-location="left"]:hover:before {
-  transform: translate(-5px, 50%) scale(1);
-}
-
-/* Arrow */
-[data-tooltip-location="left"]:after {
-  border-width: 5px 0 5px 5px;
-  border-color: transparent transparent transparent rgba(55, 64, 70, 0.9);
-  transform-origin: left;
-  transform: translateY(50%) scaleX(0);
-}
-
-[data-tooltip-location="left"]:hover:after {
-  transform: translateY(50%) scaleX(1);
-}
-
-/* RIGHT */
-[data-tooltip-location="right"]:before,
-[data-tooltip-location="right"]:after {
-  left: calc(100% + 5px);
-  bottom: 50%;
-}
-
-[data-tooltip-location="right"]:before {
-  transform: translate(5px, 50%) scale(0.5);
-}
-
-[data-tooltip-location="right"]:hover:before {
-  transform: translate(5px, 50%) scale(1);
-}
-
-[data-tooltip-location="right"]:after {
-  border-width: 5px 5px 5px 0;
-  border-color: transparent rgba(55, 64, 70, 0.9) transparent transparent;
-  transform-origin: right;
-  transform: translateY(50%) scaleX(0);
-}
-
-[data-tooltip-location="right"]:hover:after {
-  transform: translateY(50%) scaleX(1);
-}
-
-/* BOTTOM */
-[data-tooltip-location="bottom"]:before,
-[data-tooltip-location="bottom"]:after {
-  top: calc(100% + 5px);
-  bottom: auto;
-}
-
-[data-tooltip-location="bottom"]:before {
-  transform: translate(-50%, 5px) scale(0.5);
-}
-
-[data-tooltip-location="bottom"]:hover:before {
-  transform: translate(-50%, 5px) scale(1);
-}
-
-[data-tooltip-location="bottom"]:after {
-  border-width: 0 5px 5px 5px;
-  border-color: transparent transparent rgba(55, 64, 70, 0.9) transparent;
-  transform-origin: bottom;
+.flex {
+  display: flex;
 }

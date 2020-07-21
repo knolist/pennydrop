@@ -122,8 +122,12 @@ var Header = function (_React$Component2) {
             }, function (tabs) {
                 // Check if a tab was found. If it was, it means the home page is already open
                 if (tabs.length > 0) {
-                    var tabId = tabs[0].id;
-                    chrome.tabs.update(tabId, { active: true });
+                    var tab = tabs[0];
+                    // Reload if already active, switch to Knolist if not active
+                    if (tab.active) {
+                        chrome.tabs.reload(tab.id);
+                        window.close();
+                    } else chrome.tabs.update(tab.id, { active: true });
                 } else {
                     // Open a new tab for the home page
                     chrome.tabs.query({
@@ -274,7 +278,7 @@ function NewProjectButton(props) {
     if (props.showForm) {
         return React.createElement(
             "button",
-            { className: "button new-project-button cancel-new-project", onClick: props.switchShowForm },
+            { className: "button small-button button-with-text new-project-button", onClick: props.switchShowForm },
             React.createElement(
                 "p",
                 null,
@@ -284,7 +288,7 @@ function NewProjectButton(props) {
     }
     return React.createElement(
         "button",
-        { className: "button new-project-button", onClick: props.switchShowForm },
+        { className: "button small-button new-project-button", onClick: props.switchShowForm },
         React.createElement("img", { src: "../../images/add-icon-white.png", alt: "New", style: { width: "100%" } })
     );
 }
@@ -351,7 +355,7 @@ var NewProjectForm = function (_React$Component4) {
                     React.createElement("input", { type: "text", id: "newProjectTitle", name: "newProjectTitle", defaultValue: "New Project", required: true }),
                     React.createElement(
                         "button",
-                        { className: "button create-project-button" },
+                        { className: "button small-button button-with-text" },
                         "Create"
                     )
                 ),
@@ -591,7 +595,7 @@ var NewNotesForm = function (_React$Component7) {
                 React.createElement("input", { id: "notes", name: "notes", type: "text", placeholder: "Insert Notes", required: true }),
                 React.createElement(
                     "button",
-                    { className: "button add-note-button", style: { marginTop: 0, marginBottom: 0 } },
+                    { className: "button small-button button-with-text", style: { marginTop: 0, marginBottom: 0 } },
                     "Add"
                 )
             );
@@ -608,7 +612,7 @@ function NewNotesButton(props) {
     if (props.showForm) {
         return React.createElement(
             "button",
-            { className: "button add-note-button", onClick: props.switchShowForm },
+            { className: "button small-button button-with-text", onClick: props.switchShowForm },
             React.createElement(
                 "p",
                 null,
@@ -618,7 +622,7 @@ function NewNotesButton(props) {
     }
     return React.createElement(
         "button",
-        { className: "button add-note-button", onClick: props.switchShowForm },
+        { className: "button small-button button-with-text", onClick: props.switchShowForm },
         React.createElement(
             "p",
             null,

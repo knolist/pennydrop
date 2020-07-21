@@ -77,8 +77,13 @@ class Header extends React.Component {
         }, tabs => {
             // Check if a tab was found. If it was, it means the home page is already open
             if (tabs.length > 0) {
-                const tabId = tabs[0].id;
-                chrome.tabs.update(tabId, {active: true});
+                const tab = tabs[0];
+                // Reload if already active, switch to Knolist if not active
+                if (tab.active) {
+                    chrome.tabs.reload(tab.id);
+                    window.close();
+                }
+                else chrome.tabs.update(tab.id, {active: true});
             } else { // Open a new tab for the home page
                 chrome.tabs.query({
                     active: true, currentWindow: true
@@ -188,13 +193,13 @@ class ProjectList extends React.Component {
 function NewProjectButton(props) {
     if (props.showForm) {
         return (
-            <button className="button new-project-button cancel-new-project" onClick={props.switchShowForm}>
+            <button className="button small-button button-with-text new-project-button" onClick={props.switchShowForm}>
                 <p>Cancel</p>
             </button>
         );
     }
     return (
-        <button className="button new-project-button" onClick={props.switchShowForm}>
+        <button className="button small-button new-project-button" onClick={props.switchShowForm}>
             <img src="../../images/add-icon-white.png" alt="New" style={{width: "100%"}}/>
         </button>
     );
@@ -244,7 +249,7 @@ class NewProjectForm extends React.Component {
             <div style={style} id="new-project-form-area">
                 <form id="new-project-form" onSubmit={this.handleSubmit} autoComplete="off">
                     <input type="text" id="newProjectTitle" name="newProjectTitle" defaultValue="New Project" required/>
-                    <button className="button create-project-button">Create</button>
+                    <button className="button small-button button-with-text">Create</button>
                 </form>
                 <AlertMessage alertMessage={this.props.alertMessage} projectTitle={this.props.invalidTitle}/>
             </div>
@@ -415,7 +420,7 @@ class NewNotesForm extends React.Component {
         return (
             <form id="new-notes-form" onSubmit={this.handleSubmit} style={style}>
                 <input id="notes" name="notes" type="text" placeholder="Insert Notes" required/>
-                <button className="button add-note-button" style={{marginTop: 0, marginBottom: 0}}>
+                <button className="button small-button button-with-text" style={{marginTop: 0, marginBottom: 0}}>
                     Add
                 </button>
             </form>
@@ -427,13 +432,13 @@ class NewNotesForm extends React.Component {
 function NewNotesButton(props) {
     if (props.showForm) {
         return (
-            <button className="button add-note-button" onClick={props.switchShowForm}>
+            <button className="button small-button button-with-text" onClick={props.switchShowForm}>
                 <p>Cancel</p>
             </button>
         );
     }
     return (
-        <button className="button add-note-button" onClick={props.switchShowForm}>
+        <button className="button small-button button-with-text" onClick={props.switchShowForm}>
             <p>Add notes to this page</p>
         </button>
     );
