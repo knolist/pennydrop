@@ -1630,7 +1630,7 @@ var PageView = function (_React$Component8) {
 function EditNodeButton(props) {
     return React.createElement(
         "button",
-        { className: props.editNodeMode ? "button button-with-text" : "button", style: { marginRight: "10px" },
+        { className: props.editNodeMode ? "button button-with-text edit-done-button" : "button", style: { marginRight: "10px" },
             "data-tooltip": props.editNodeMode ? undefined : "Edit Node",
             "data-tooltip-location": props.editNodeMode ? undefined : "up",
             onClick: function onClick() {
@@ -1877,7 +1877,7 @@ var HighlightsList = function (_React$Component10) {
                         this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."
                     ),
                     React.createElement(DeleteSelected, { editNodeMode: this.props.editNodeMode, selectedItems: this.state.selectedHighlights,
-                        type: "Highlights", deleteSelected: this.deleteSelectedHighlights })
+                        type: "highlights", deleteSelected: this.deleteSelectedHighlights })
                 ),
                 this.props.highlights.length === 0 ? React.createElement(
                     "p",
@@ -2070,7 +2070,7 @@ var NotesList = function (_React$Component11) {
                     React.createElement(NewNotesButton, { showForm: this.props.showNewNotesForm,
                         switchShowForm: this.props.switchShowNewNotesForm }),
                     React.createElement(DeleteSelected, { editNodeMode: this.props.editNodeMode, selectedItems: this.state.selectedNotes,
-                        type: "Notes", deleteSelected: this.deleteSelectedNotes })
+                        type: "notes", deleteSelected: this.deleteSelectedNotes })
                 ),
                 this.props.editNodeMode ? React.createElement(
                     "form",

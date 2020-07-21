@@ -1257,7 +1257,7 @@ class PageView extends React.Component {
 
 function EditNodeButton(props) {
     return (
-        <button className={props.editNodeMode ? "button button-with-text" : "button"} style={{marginRight: "10px"}}
+        <button className={props.editNodeMode ? "button button-with-text edit-done-button" : "button"} style={{marginRight: "10px"}}
                 data-tooltip={props.editNodeMode ? undefined : "Edit Node"}
                 data-tooltip-location={props.editNodeMode ? undefined : "up"}
                 onClick={() => props.setEditNodeMode(!props.editNodeMode)}>
@@ -1416,7 +1416,7 @@ class HighlightsList extends React.Component {
                 <div className="flex">
                     <h2>{this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
                     <DeleteSelected editNodeMode={this.props.editNodeMode} selectedItems={this.state.selectedHighlights}
-                                    type="Highlights" deleteSelected={this.deleteSelectedHighlights}/>
+                                    type="highlights" deleteSelected={this.deleteSelectedHighlights}/>
                 </div>
                 {
                     this.props.highlights.length === 0 ?
@@ -1554,7 +1554,7 @@ class NotesList extends React.Component {
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
                     <DeleteSelected editNodeMode={this.props.editNodeMode} selectedItems={this.state.selectedNotes}
-                                    type="Notes" deleteSelected={this.deleteSelectedNotes}/>
+                                    type="notes" deleteSelected={this.deleteSelectedNotes}/>
                 </div>
                 {
                     this.props.editNodeMode ?
