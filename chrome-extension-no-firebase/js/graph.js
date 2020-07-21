@@ -215,6 +215,20 @@ addHighlightsToItemInGraph = async (item, highlights) => {
     saveGraphToDisk(graphData);
 };
 
+deleteHighlightsFromItemInGraph = async (url, indicesToDelete) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+
+    // Sort in decreasing order
+    indicesToDelete.sort(function(a,b){ return b - a; });
+    // Remove
+    indicesToDelete.forEach((index) => graph[url]["highlights"].splice(index, 1));
+
+    // Save to disk
+    saveGraphToDisk(graphData);
+};
+
 /**
  * Add notes to a certain item in the current project
  * @param item the item to receive the notes

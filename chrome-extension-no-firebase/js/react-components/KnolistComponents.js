@@ -725,7 +725,7 @@ function OccurrenceCategories(props) {
         <div className="occurrence-categories">
             {props.occurrences.map((occurrence, index) => {
                 return (
-                    <div key={occurrence.key} style={{display: "flex"}}>
+                    <div key={occurrence.key} className="flex">
                         <div className="occurrence-item">
                             <h3>{Utils.getNodePropertyTitle(occurrence.key)}</h3>
                             <p>{occurrence.indices.length}</p>
@@ -1228,7 +1228,9 @@ class PageView extends React.Component {
                         </button>
                     </div>
                     <HighlightsList highlights={this.props.selectedNode.highlights}
-                                    editNodeMode={this.props.editNodeMode}/>
+                                    editNodeMode={this.props.editNodeMode}
+                                    selectedNode={this.props.selectedNode}
+                                    refresh={this.props.refresh}/>
                     <hr/>
                     <NotesList showNewNotesForm={this.props.showNewNotesForm}
                                switchShowNewNotesForm={this.props.switchShowNewNotesForm}
@@ -1236,13 +1238,13 @@ class PageView extends React.Component {
                                refresh={this.props.refresh}
                                editNodeMode={this.props.editNodeMode}/>
                     <hr/>
-                    <div style={{display: "flex"}}>
+                    <div className="flex">
                         <ListURL type={"prev"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                         <ListURL type={"next"} graph={this.props.graph} selectedNode={this.props.selectedNode}
                                  setSelectedNode={this.props.setSelectedNode}/>
                     </div>
-                    <div style={{display: "flex", justifyContent: "flex-end"}}>
+                    <div className="flex" style={{justifyContent: "flex-end"}}>
                         <EditNodeButton editNodeMode={this.props.editNodeMode}
                                         setEditNodeMode={this.props.setEditNodeMode}/>
                         <DeleteNodeButton setForDeletion={this.setForDeletion}/>
@@ -1356,31 +1358,107 @@ function ListURL(props) {
 }
 
 // List of highlights in the detailed page view
-function HighlightsList(props) {
-    return (
-        <div>
-            <h2>{props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
-            {
-                props.highlights.length === 0 ?
-                    <p>To add highlights, select text on a page, right-click, then click on "Highlight with
-                        Knolist".</p> :
-                    null
-            }
-            {
-                props.editNodeMode ?
-                    <form style={{margin: "12px 0"}}>
-                        {props.highlights.map((highlight, index) =>
-                            <div key={index}>
-                                <label><input type="checkbox"/>{highlight}</label>
-                            </div>)}
-                    </form> :
-                    <ul>
-                        {props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}
-                    </ul>
-            }
-        </div>
-    );
+class HighlightsList extends React.Component {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            selectedHighlights: [] // Indices of the selected highlights in edit mode
+        };
+
+        this.resetSelectedHighlights = this.resetSelectedHighlights.bind(this);
+        this.removeSelectedHighlights = this.removeSelectedHighlights.bind(this);
+        this.addSelectedHighlights = this.addSelectedHighlights.bind(this);
+        this.deleteSelectedHighlights = this.deleteSelectedHighlights.bind(this);
+    }
+
+    checkboxChange(index, checked) {
+        if (checked) this.addSelectedHighlights(index);
+        else this.removeSelectedHighlights(index);
+    }
+
+    resetSelectedHighlights() {
+        this.setState({selectedHighlights: []});
+    }
+
+    removeSelectedHighlights(toRemove) {
+        let highlights = this.state.selectedHighlights;
+        const index = highlights.indexOf(toRemove);
+        if (index >= 0) highlights.splice(index, 1);
+        this.setState({selectedHighlights: highlights});
+    }
+
+    addSelectedHighlights(toAdd) {
+        let highlights = this.state.selectedHighlights;
+        highlights.push(toAdd);
+        this.setState({selectedHighlights: highlights});
+    }
+
+    deleteSelectedHighlights(highlightsToDelete) {
+        deleteHighlightsFromItemInGraph(this.props.selectedNode.source, highlightsToDelete).then(() => {
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    this.resetSelectedHighlights();
+                    document.getElementById("delete-highlights-form").reset();
+                }
+            };
+            this.props.refresh(callbackObject);
+        });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.editNodeMode !== this.props.editNodeMode) this.resetSelectedHighlights();
+    }
+
+    render() {
+        return (
+            <div>
+                <div className="flex">
+                    <h2>{this.props.highlights.length > 0 ? "My Highlights" : "You haven't added any highlights yet."}</h2>
+                    <DeleteSelected editNodeMode={this.props.editNodeMode} selectedItems={this.state.selectedHighlights}
+                                    type="Highlights" deleteSelected={this.deleteSelectedHighlights}/>
+                </div>
+                {
+                    this.props.highlights.length === 0 ?
+                        <p>To add highlights, select text on a page, right-click, then click on "Highlight with
+                            Knolist".</p> :
+                        null
+                }
+                {
+                    this.props.editNodeMode ?
+                        <form id="delete-highlights-form" style={{margin: "12px 0"}}>
+                            {this.props.highlights.map((highlight, index) =>
+                                <div key={index}>
+                                    <label><input type="checkbox"
+                                                  onChange={(event) => this.checkboxChange(index, event.target.checked)}/>{highlight}
+                                    </label>
+                                </div>)}
+                        </form> :
+                        <ul>
+                            {this.props.highlights.map((highlight, index) => <li key={index}>{highlight}</li>)}
+                        </ul>
+                }
+            </div>
+        );
+    }
+}
+
+
+/**
+ * Button to delete selected items (notes or highlights)
+ * @return {null}
+ */
+function DeleteSelected(props) {
+    // Don't return anything if there are no selected items or outside of edit mode
+    if (!props.editNodeMode || props.selectedItems == null || props.selectedItems.length === 0) return null;
+
+    console.log(props.selectedItems);
+    return (
+        <button className="button small-button button-with-text"
+                onClick={() => props.deleteSelected(props.selectedItems)}>
+            <p>Delete selected {props.type}</p>
+        </button>
+    );
 }
 
 // List of notes in the detailed page view
@@ -1417,7 +1495,7 @@ class NotesList extends React.Component {
     render() {
         return (
             <div>
-                <div style={{display: "flex"}}>
+                <div className="flex">
                     <h2>{this.props.selectedNode.notes.length > 0 ? "My Notes" : "You haven't added any notes yet."}</h2>
                     <NewNotesButton showForm={this.props.showNewNotesForm}
                                     switchShowForm={this.props.switchShowNewNotesForm}/>
@@ -1617,7 +1695,7 @@ class SearchBar extends React.Component {
 
     render() {
         return (
-            <div style={{display: "flex"}}>
+            <div className="flex">
                 <div id="search-bar">
                     <input id="search-text" type="text" onKeyUp={(searchInput) => this.submitSearch(searchInput)}
                            placeholder="Search through your project"/>
