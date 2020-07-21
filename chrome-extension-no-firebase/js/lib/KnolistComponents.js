@@ -1512,25 +1512,7 @@ var PageView = function (_React$Component8) {
                     React.createElement(
                         "div",
                         { className: "flex-and-spaced" },
-                        React.createElement(
-                            "div",
-                            { style: { display: "flex" } },
-                            React.createElement(
-                                "a",
-                                { href: this.props.selectedNode.source, target: "_blank" },
-                                React.createElement(
-                                    "h1",
-                                    null,
-                                    this.props.selectedNode.title
-                                )
-                            ),
-                            React.createElement(
-                                "button",
-                                { className: "button pageview-button", "data-tooltip": "Edit Title",
-                                    "data-tooltip-location": "up" },
-                                React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit title" })
-                            )
-                        ),
+                        React.createElement(PageViewTitle, { selectedNode: this.props.selectedNode }),
                         React.createElement(
                             "button",
                             { className: "button close-pageview", id: "close-page-view", "data-tooltip": "Close",
@@ -1571,12 +1553,32 @@ var PageView = function (_React$Component8) {
     return PageView;
 }(React.Component);
 
+function PageViewTitle(props) {
+    return React.createElement(
+        "div",
+        { style: { display: "flex" } },
+        React.createElement(
+            "a",
+            { href: props.selectedNode.source, target: "_blank" },
+            React.createElement(
+                "h1",
+                null,
+                props.selectedNode.title
+            )
+        ),
+        React.createElement(
+            "button",
+            { className: "button pageview-button", "data-tooltip": "Edit Title",
+                "data-tooltip-location": "up" },
+            React.createElement("img", { src: "../../images/edit-icon-white.png", alt: "Edit title" })
+        )
+    );
+}
+
 // Bibliography export
 /**
  * @return {null}
  */
-
-
 function ExportView(props) {
     if (props.shouldShow === false) {
         return null;

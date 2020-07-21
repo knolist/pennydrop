@@ -1153,15 +1153,7 @@ class PageView extends React.Component {
             <div id="page-view" className="modal">
                 <div className="modal-content pageview">
                     <div className="flex-and-spaced">
-                        <div style={{display: "flex"}}>
-                            <a href={this.props.selectedNode.source} target="_blank">
-                                <h1>{this.props.selectedNode.title}</h1>
-                            </a>
-                            <button className="button pageview-button" data-tooltip="Edit Title"
-                                    data-tooltip-location="up">
-                                <img src="../../images/edit-icon-white.png" alt="Edit title"/>
-                            </button>
-                        </div>
+                        <PageViewTitle selectedNode={this.props.selectedNode}/>
                         <button className="button close-pageview" id="close-page-view" data-tooltip="Close"
                                 data-tooltip-location="down" onClick={this.props.closePageView}>
                             <img src="../../images/close-icon-white.png" alt="Close"/>
@@ -1190,6 +1182,20 @@ class PageView extends React.Component {
             </div>
         );
     }
+}
+
+function PageViewTitle(props) {
+    return (
+        <div style={{display: "flex"}}>
+            <a href={props.selectedNode.source} target="_blank">
+                <h1>{props.selectedNode.title}</h1>
+            </a>
+            <button className="button pageview-button" data-tooltip="Edit Title"
+                    data-tooltip-location="up">
+                <img src="../../images/edit-icon-white.png" alt="Edit title"/>
+            </button>
+        </div>
+    );
 }
 
 // Bibliography export
