@@ -139,30 +139,42 @@ var KnolistComponents = function (_React$Component) {
         }
 
         // Calls graph.js function to pull the graph from the Chrome storage
+        // Optional callback to be called after selectedNode is updated
+        /**
+         * Main function used to update the front end graph data
+         * @param callbackObject is an optional object containing callback functions. callbackObject.graphCallback is called
+         * after updating the graph. callbackObject.selectedNodeCallback is called after updating the selected node.
+         */
 
     }, {
         key: "getDataFromServer",
         value: function getDataFromServer() {
             var _this3 = this;
 
+            var callbackObject = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
             // All the websites as a graph
             getGraphFromDisk().then(function (graph) {
-                _this3.setState({ graph: graph });
+                _this3.setState({ graph: graph }, function () {
+                    if (callbackObject.graphCallback !== undefined) callbackObject.graphCallback();
+                });
                 _this3.setupVisGraph();
                 _this3.getBibliographyData();
-
-                // Manually update selectedNode if it's not null nor undefined (for notes update)
-                if (_this3.state.selectedNode !== null && _this3.state.selectedNode !== undefined) {
-                    var url = _this3.state.selectedNode.source;
-                    var curProject = graph.curProject;
-                    var updatedSelectedNode = graph[curProject][url];
-                    _this3.setState({ selectedNode: updatedSelectedNode });
-                }
 
                 // Redo search if search mode is active
                 if (_this3.state.fullSearchResults !== null) {
                     var resultObject = _this3.state.fullSearchResults;
                     _this3.fullSearch(resultObject.query, resultObject.filterList);
+                }
+
+                // Manually update selectedNode if it's not null nor undefined
+                if (_this3.state.selectedNode !== null && _this3.state.selectedNode !== undefined) {
+                    var url = _this3.state.selectedNode.source;
+                    var curProject = graph.curProject;
+                    var updatedSelectedNode = graph[curProject][url];
+                    _this3.setState({ selectedNode: updatedSelectedNode }, function () {
+                        if (callbackObject.selectedNodeCallback !== undefined) callbackObject.selectedNodeCallback();
+                    });
                 }
             });
 
@@ -972,8 +984,12 @@ var ProjectsSidebar = function (_React$Component4) {
             var _this17 = this;
 
             deleteProjectFromGraph(this.state.projectForDeletion).then(function () {
-                _this17.props.refresh();
-                _this17.resetProjectForDeletion();
+                var callbackObject = {
+                    graphCallback: function graphCallback() {
+                        _this17.resetProjectForDeletion();
+                    }
+                };
+                _this17.props.refresh(callbackObject);
             });
         }
     }, {
@@ -1136,11 +1152,15 @@ var NewProjectForm = function (_React$Component5) {
 
                 // Create project
                 createNewProjectInGraph(title).then(function () {
-                    _this21.props.refresh();
-                    // Close the form
-                    _this21.props.switchForm();
-                    // Hide alert message if there was one
-                    _this21.props.setInvalidTitle(null);
+                    var callbackObject = {
+                        graphCallback: function graphCallback() {
+                            // Close the form
+                            _this21.props.switchForm();
+                            // Hide alert message if there was one
+                            _this21.props.setInvalidTitle(null);
+                        }
+                    };
+                    _this21.props.refresh(callbackObject);
                 });
             } else {
                 this.props.setInvalidTitle(title);
@@ -1299,11 +1319,15 @@ var ProjectItem = function (_React$Component6) {
             if (alertMessage == null) {
                 // Valid name
                 updateProjectTitle(this.props.project, title).then(function () {
-                    _this25.props.refresh();
-                    _this25.switchProjectEditMode();
-
-                    // Hide alert message if there was one
-                    _this25.setInvalidTitle(null);
+                    var callbackObject = {
+                        graphCallback: function graphCallback() {
+                            // Update on callback
+                            _this25.switchProjectEditMode();
+                            // Hide alert message if there was one
+                            _this25.setInvalidTitle(null);
+                        }
+                    };
+                    _this25.props.refresh(callbackObject);
                 });
             } else {
                 this.setInvalidTitle(title);
@@ -1520,7 +1544,8 @@ var PageView = function (_React$Component8) {
                     React.createElement(
                         "div",
                         { className: "flex-and-spaced pageview-header" },
-                        React.createElement(PageViewTitle, { selectedNode: this.props.selectedNode, editNodeMode: this.props.editNodeMode }),
+                        React.createElement(PageViewTitle, { selectedNode: this.props.selectedNode, editNodeMode: this.props.editNodeMode,
+                            refresh: this.props.refresh }),
                         React.createElement(
                             "button",
                             { className: "button close-pageview", id: "close-page-view", "data-tooltip": "Close",
@@ -1586,30 +1611,69 @@ function DeleteNodeButton(props) {
     );
 }
 
-function PageViewTitle(props) {
-    if (props.editNodeMode) {
-        return React.createElement(
-            "form",
-            { onSubmit: null,
-                onBlur: null },
-            React.createElement("input", { type: "text", defaultValue: props.selectedNode.title, required: true })
-        );
+var PageViewTitle = function (_React$Component9) {
+    _inherits(PageViewTitle, _React$Component9);
+
+    function PageViewTitle() {
+        _classCallCheck(this, PageViewTitle);
+
+        return _possibleConstructorReturn(this, (PageViewTitle.__proto__ || Object.getPrototypeOf(PageViewTitle)).apply(this, arguments));
     }
-    return React.createElement(
-        "a",
-        { href: props.selectedNode.source, target: "_blank" },
-        React.createElement(
-            "h1",
-            null,
-            props.selectedNode.title
-        )
-    );
-}
+
+    _createClass(PageViewTitle, [{
+        key: "updateTitle",
+        value: function updateTitle(newTitle) {
+            var _this32 = this;
+
+            updateNodeTitleInGraph(this.props.selectedNode.source, newTitle).then(function () {
+                var callbackObject = {
+                    selectedNodeCallback: function selectedNodeCallback() {
+                        return document.getElementById("newNodeTitle").value = _this32.props.selectedNode.title;
+                    }
+                };
+                _this32.props.refresh(callbackObject);
+            });
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this33 = this;
+
+            if (this.props.editNodeMode) {
+                return React.createElement(
+                    "form",
+                    { onSubmit: function onSubmit(event) {
+                            event.preventDefault();
+                            _this33.updateTitle(event.target.newNodeTitle.value);
+                        },
+                        onBlur: function onBlur(event) {
+                            return _this33.updateTitle(event.target.value);
+                        } },
+                    React.createElement("input", { type: "text", id: "newNodeTitle", defaultValue: this.props.selectedNode.title,
+                        key: this.props.selectedNode.title, autoComplete: "off", required: true })
+                );
+            }
+            return React.createElement(
+                "a",
+                { href: this.props.selectedNode.source, target: "_blank" },
+                React.createElement(
+                    "h1",
+                    null,
+                    this.props.selectedNode.title
+                )
+            );
+        }
+    }]);
+
+    return PageViewTitle;
+}(React.Component);
 
 // Bibliography export
 /**
  * @return {null}
  */
+
+
 function ExportView(props) {
     if (props.shouldShow === false) {
         return null;
@@ -1734,46 +1798,51 @@ function HighlightsList(props) {
 
 // List of notes in the detailed page view
 
-var NotesList = function (_React$Component9) {
-    _inherits(NotesList, _React$Component9);
+var NotesList = function (_React$Component10) {
+    _inherits(NotesList, _React$Component10);
 
     function NotesList(props) {
         _classCallCheck(this, NotesList);
 
-        var _this31 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
+        var _this34 = _possibleConstructorReturn(this, (NotesList.__proto__ || Object.getPrototypeOf(NotesList)).call(this, props));
 
-        _this31.handleSubmit = _this31.handleSubmit.bind(_this31);
-        _this31.updateNotesOnBlur = _this31.updateNotesOnBlur.bind(_this31);
-        return _this31;
+        _this34.handleSubmit = _this34.handleSubmit.bind(_this34);
+        _this34.updateNotesOnBlur = _this34.updateNotesOnBlur.bind(_this34);
+        return _this34;
     }
 
     _createClass(NotesList, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this32 = this;
+            var _this35 = this;
 
             event.preventDefault();
+            event.persist();
             addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(function () {
-                _this32.props.refresh();
+                var callbackObject = {
+                    selectedNodeCallback: function selectedNodeCallback() {
+                        _this35.props.switchShowNewNotesForm();
+                        event.target.reset(); // Clear the form entries
+                    }
+                };
+                _this35.props.refresh(callbackObject);
             });
-            this.props.switchShowNewNotesForm();
-            event.target.reset(); // Clear the form entries
         }
     }, {
         key: "updateNotesOnBlur",
         value: function updateNotesOnBlur(index, newNotes) {
-            var _this33 = this;
+            var _this36 = this;
 
             if (newNotes === "") newNotes = null; // Set to null to delete the note on blur
 
             updateNotesInGraph(this.props.selectedNode.source, index, newNotes).then(function () {
-                _this33.props.refresh();
+                _this36.props.refresh();
             });
         }
     }, {
         key: "render",
         value: function render() {
-            var _this34 = this;
+            var _this37 = this;
 
             return React.createElement(
                 "div",
@@ -1799,7 +1868,7 @@ var NotesList = function (_React$Component9) {
                             React.createElement("input", { type: "checkbox" }),
                             React.createElement("input", { type: "text", defaultValue: notes,
                                 onBlur: function onBlur(event) {
-                                    return _this34.updateNotesOnBlur(index, event.target.value);
+                                    return _this37.updateNotesOnBlur(index, event.target.value);
                                 } })
                         );
                     })
@@ -1874,29 +1943,29 @@ function RefreshGraphButton(props) {
     );
 }
 
-var SearchBar = function (_React$Component10) {
-    _inherits(SearchBar, _React$Component10);
+var SearchBar = function (_React$Component11) {
+    _inherits(SearchBar, _React$Component11);
 
     function SearchBar(props) {
         _classCallCheck(this, SearchBar);
 
-        var _this35 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
+        var _this38 = _possibleConstructorReturn(this, (SearchBar.__proto__ || Object.getPrototypeOf(SearchBar)).call(this, props));
 
-        _this35.state = {
-            filterList: _this35.generateFilterList(),
+        _this38.state = {
+            filterList: _this38.generateFilterList(),
             showFilterList: false
         };
 
-        _this35.submitSearch = _this35.submitSearch.bind(_this35);
-        _this35.searchButtonAction = _this35.searchButtonAction.bind(_this35);
-        _this35.setActiveFilter = _this35.setActiveFilter.bind(_this35);
-        _this35.switchShowFilterList = _this35.switchShowFilterList.bind(_this35);
-        _this35.setAllFilters = _this35.setAllFilters.bind(_this35);
+        _this38.submitSearch = _this38.submitSearch.bind(_this38);
+        _this38.searchButtonAction = _this38.searchButtonAction.bind(_this38);
+        _this38.setActiveFilter = _this38.setActiveFilter.bind(_this38);
+        _this38.switchShowFilterList = _this38.switchShowFilterList.bind(_this38);
+        _this38.setAllFilters = _this38.setAllFilters.bind(_this38);
 
         // Add listener to close filter when clicking outside
         document.body.addEventListener("click", function (event) {
             if (!Utils.isDescendant(document.getElementById("filter-dropdown"), event.target) && !Utils.isDescendant(document.getElementById("search-filters-button"), event.target)) {
-                _this35.closeFilterList();
+                _this38.closeFilterList();
             }
         });
 
@@ -1913,7 +1982,7 @@ var SearchBar = function (_React$Component10) {
                 });
             }
         });
-        return _this35;
+        return _this38;
     }
 
     _createClass(SearchBar, [{
@@ -1952,15 +2021,15 @@ var SearchBar = function (_React$Component10) {
     }, {
         key: "setFilterList",
         value: function setFilterList(filterList) {
-            var _this36 = this;
+            var _this39 = this;
 
             this.setState({ filterList: filterList }, function () {
                 // Call search with updated filter list
-                if (_this36.props.fullSearchResults !== null && _this36.props.fullSearchResults.query !== "") {
-                    _this36.props.fullSearch(_this36.props.fullSearchResults.query, _this36.getActiveFilters());
+                if (_this39.props.fullSearchResults !== null && _this39.props.fullSearchResults.query !== "") {
+                    _this39.props.fullSearch(_this39.props.fullSearchResults.query, _this39.getActiveFilters());
                 } else {
                     var query = document.getElementById("search-text").value;
-                    _this36.props.basicSearch(query, _this36.getActiveFilters());
+                    _this39.props.basicSearch(query, _this39.getActiveFilters());
                 }
             });
         }
@@ -1983,11 +2052,11 @@ var SearchBar = function (_React$Component10) {
     }, {
         key: "getActiveFilters",
         value: function getActiveFilters() {
-            var _this37 = this;
+            var _this40 = this;
 
             var activeFilters = [];
             Object.keys(this.state.filterList).forEach(function (filter) {
-                if (_this37.state.filterList[filter].active) activeFilters.push(filter);
+                if (_this40.state.filterList[filter].active) activeFilters.push(filter);
             });
             return activeFilters;
         }
@@ -2018,7 +2087,7 @@ var SearchBar = function (_React$Component10) {
     }, {
         key: "render",
         value: function render() {
-            var _this38 = this;
+            var _this41 = this;
 
             return React.createElement(
                 "div",
@@ -2027,7 +2096,7 @@ var SearchBar = function (_React$Component10) {
                     "div",
                     { id: "search-bar" },
                     React.createElement("input", { id: "search-text", type: "text", onKeyUp: function onKeyUp(searchInput) {
-                            return _this38.submitSearch(searchInput);
+                            return _this41.submitSearch(searchInput);
                         },
                         placeholder: "Search through your project" }),
                     React.createElement("img", { onClick: this.searchButtonAction, src: "../../images/search-icon-black.png", alt: "Search" })
@@ -2095,16 +2164,16 @@ function FiltersDropdown(props) {
     );
 }
 
-var FilterItem = function (_React$Component11) {
-    _inherits(FilterItem, _React$Component11);
+var FilterItem = function (_React$Component12) {
+    _inherits(FilterItem, _React$Component12);
 
     function FilterItem(props) {
         _classCallCheck(this, FilterItem);
 
-        var _this39 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
+        var _this42 = _possibleConstructorReturn(this, (FilterItem.__proto__ || Object.getPrototypeOf(FilterItem)).call(this, props));
 
-        _this39.filterClicked = _this39.filterClicked.bind(_this39);
-        return _this39;
+        _this42.filterClicked = _this42.filterClicked.bind(_this42);
+        return _this42;
     }
 
     _createClass(FilterItem, [{

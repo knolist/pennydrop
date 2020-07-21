@@ -262,7 +262,20 @@ updateNotesInGraph = async (url, index, newNotes) => {
     }
     // Save to disk
     saveGraphToDisk(graphData);
+};
 
+/**
+ * Update the title of a certain node in the current project.
+ * @param url the url of the node whose title we will change
+ * @param newTitle the new title to be set
+ * @returns {Promise<void>} ignored
+ */
+updateNodeTitleInGraph = async (url, newTitle) => {
+    let graphData = await getGraphFromDisk();
+    const project = graphData["curProject"];
+    let graph = graphData[project];
+    if (newTitle != null && newTitle !== "") graph[url]["title"] = newTitle;
+    saveGraphToDisk(graphData);
 };
 
 /**

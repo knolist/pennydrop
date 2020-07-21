@@ -111,25 +111,35 @@ class KnolistComponents extends React.Component {
     }
 
     // Calls graph.js function to pull the graph from the Chrome storage
-    getDataFromServer() {
+    // Optional callback to be called after selectedNode is updated
+    /**
+     * Main function used to update the front end graph data
+     * @param callbackObject is an optional object containing callback functions. callbackObject.graphCallback is called
+     * after updating the graph. callbackObject.selectedNodeCallback is called after updating the selected node.
+     */
+    getDataFromServer(callbackObject = {}) {
         // All the websites as a graph
         getGraphFromDisk().then((graph) => {
-            this.setState({graph: graph});
+            this.setState({graph: graph}, () => {
+                if (callbackObject.graphCallback !== undefined) callbackObject.graphCallback();
+            });
             this.setupVisGraph();
             this.getBibliographyData();
-
-            // Manually update selectedNode if it's not null nor undefined (for notes update)
-            if (this.state.selectedNode !== null && this.state.selectedNode !== undefined) {
-                const url = this.state.selectedNode.source;
-                const curProject = graph.curProject;
-                const updatedSelectedNode = graph[curProject][url];
-                this.setState({selectedNode: updatedSelectedNode});
-            }
 
             // Redo search if search mode is active
             if (this.state.fullSearchResults !== null) {
                 const resultObject = this.state.fullSearchResults;
                 this.fullSearch(resultObject.query, resultObject.filterList);
+            }
+
+            // Manually update selectedNode if it's not null nor undefined
+            if (this.state.selectedNode !== null && this.state.selectedNode !== undefined) {
+                const url = this.state.selectedNode.source;
+                const curProject = graph.curProject;
+                const updatedSelectedNode = graph[curProject][url];
+                this.setState({selectedNode: updatedSelectedNode}, () => {
+                    if (callbackObject.selectedNodeCallback !== undefined) callbackObject.selectedNodeCallback();
+                });
             }
         });
 
@@ -775,8 +785,12 @@ class ProjectsSidebar extends React.Component {
 
     deleteProject() {
         deleteProjectFromGraph(this.state.projectForDeletion).then(() => {
-            this.props.refresh();
-            this.resetProjectForDeletion();
+            const callbackObject = {
+                graphCallback: () => {
+                    this.resetProjectForDeletion();
+                }
+            };
+            this.props.refresh(callbackObject);
         });
     }
 
@@ -890,11 +904,15 @@ class NewProjectForm extends React.Component {
 
             // Create project
             createNewProjectInGraph(title).then(() => {
-                this.props.refresh();
-                // Close the form
-                this.props.switchForm();
-                // Hide alert message if there was one
-                this.props.setInvalidTitle(null);
+                const callbackObject = {
+                    graphCallback: () => {
+                        // Close the form
+                        this.props.switchForm();
+                        // Hide alert message if there was one
+                        this.props.setInvalidTitle(null);
+                    }
+                };
+                this.props.refresh(callbackObject);
             });
         } else {
             this.props.setInvalidTitle(title);
@@ -1009,11 +1027,15 @@ class ProjectItem extends React.Component {
         if (alertMessage == null) {
             // Valid name
             updateProjectTitle(this.props.project, title).then(() => {
-                this.props.refresh();
-                this.switchProjectEditMode();
-
-                // Hide alert message if there was one
-                this.setInvalidTitle(null);
+                const callbackObject = {
+                    graphCallback: () => {
+                        // Update on callback
+                        this.switchProjectEditMode();
+                        // Hide alert message if there was one
+                        this.setInvalidTitle(null);
+                    }
+                };
+                this.props.refresh(callbackObject);
             });
         } else {
             this.setInvalidTitle(title);
@@ -1160,7 +1182,8 @@ class PageView extends React.Component {
             <div id="page-view" className="modal">
                 <div className="modal-content pageview">
                     <div className="flex-and-spaced pageview-header">
-                        <PageViewTitle selectedNode={this.props.selectedNode} editNodeMode={this.props.editNodeMode}/>
+                        <PageViewTitle selectedNode={this.props.selectedNode} editNodeMode={this.props.editNodeMode}
+                                       refresh={this.props.refresh}/>
                         <button className="button close-pageview" id="close-page-view" data-tooltip="Close"
                                 data-tooltip-location="down" onClick={this.props.closePageView}>
                             <img src="../../images/close-icon-white.png" alt="Close"/>
@@ -1216,20 +1239,35 @@ function DeleteNodeButton(props) {
     )
 }
 
-function PageViewTitle(props) {
-    if (props.editNodeMode) {
+class PageViewTitle extends React.Component {
+    updateTitle(newTitle) {
+        updateNodeTitleInGraph(this.props.selectedNode.source, newTitle).then(() => {
+            const callbackObject = {
+                selectedNodeCallback: () => document.getElementById("newNodeTitle").value = this.props.selectedNode.title
+            };
+            this.props.refresh(callbackObject);
+        });
+    }
+
+    render() {
+        if (this.props.editNodeMode) {
+            return (
+                <form onSubmit={(event) => {
+                    event.preventDefault();
+                    this.updateTitle(event.target.newNodeTitle.value);
+                }}
+                      onBlur={(event) => this.updateTitle(event.target.value)}>
+                    <input type="text" id="newNodeTitle" defaultValue={this.props.selectedNode.title}
+                           key={this.props.selectedNode.title} autoComplete="off" required/>
+                </form>
+            );
+        }
         return (
-            <form onSubmit={null}
-                  onBlur={null}>
-                <input type="text" defaultValue={props.selectedNode.title} required/>
-            </form>
+            <a href={this.props.selectedNode.source} target="_blank">
+                <h1>{this.props.selectedNode.title}</h1>
+            </a>
         );
     }
-    return (
-        <a href={props.selectedNode.source} target="_blank">
-            <h1>{props.selectedNode.title}</h1>
-        </a>
-    );
 }
 
 // Bibliography export
@@ -1318,11 +1356,16 @@ class NotesList extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
+        event.persist();
         addNotesToItemInGraph(this.props.selectedNode, event.target.notes.value).then(() => {
-            this.props.refresh();
+            const callbackObject = {
+                selectedNodeCallback: () => {
+                    this.props.switchShowNewNotesForm();
+                    event.target.reset(); // Clear the form entries
+                }
+            };
+            this.props.refresh(callbackObject);
         });
-        this.props.switchShowNewNotesForm();
-        event.target.reset(); // Clear the form entries
     }
 
     updateNotesOnBlur(index, newNotes) {
