@@ -566,17 +566,25 @@ var NewNotesForm = function (_React$Component7) {
             chrome.tabs.query({
                 active: true, currentWindow: true
             }, function (tabs) {
-                var currentURL = tabs[0].url;
+                var currentTab = tabs[0];
+
                 // Call from server
                 var baseServerURL = deployedServerURL;
                 if (_this15.props.localServer) {
                     // Use local server if it's active
                     baseServerURL = localServerURL;
                 }
-                var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentURL);
-                // Create item based on the current page
-                $.getJSON(contentExtractionURL, function (item) {
-                    addNotesToItemInGraph(item, notes);
+                var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentTab.url);
+
+                // Get previous url to add connection if it exists, then add notes
+                chrome.runtime.sendMessage({ command: "get_referrer" }, function (response) {
+                    if (!response) console.error("This was a fiasco :", chrome.runtime.lastError.message);
+
+                    console.log(response.referrer);
+                    // Create item based on the current page
+                    $.getJSON(contentExtractionURL, function (item) {
+                        addNotesToItemInGraph(item, notes, response.referrer);
+                    });
                 });
             });
         }

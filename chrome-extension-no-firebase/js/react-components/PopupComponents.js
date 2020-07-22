@@ -82,8 +82,7 @@ class Header extends React.Component {
                 if (tab.active) {
                     chrome.tabs.reload(tab.id);
                     window.close();
-                }
-                else chrome.tabs.update(tab.id, {active: true});
+                } else chrome.tabs.update(tab.id, {active: true});
             } else { // Open a new tab for the home page
                 chrome.tabs.query({
                     active: true, currentWindow: true
@@ -395,16 +394,25 @@ class NewNotesForm extends React.Component {
         chrome.tabs.query({
                 active: true, currentWindow: true
             }, tabs => {
-                let currentURL = tabs[0].url;
+                let currentTab = tabs[0];
+
                 // Call from server
                 let baseServerURL = deployedServerURL;
                 if (this.props.localServer) { // Use local server if it's active
                     baseServerURL = localServerURL;
                 }
-                const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentURL);
-                // Create item based on the current page
-                $.getJSON(contentExtractionURL, (item) => {
-                    addNotesToItemInGraph(item, notes);
+                const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentTab.url);
+
+                // Get previous url to add connection if it exists, then add notes
+                chrome.runtime.sendMessage({command: "get_referrer"}, (response) => {
+                    if (!response)
+                        console.error("This was a fiasco :", chrome.runtime.lastError.message);
+
+                    console.log(response.referrer);
+                    // Create item based on the current page
+                    $.getJSON(contentExtractionURL, (item) => {
+                        addNotesToItemInGraph(item, notes, response.referrer);
+                    });
                 });
             }
         );
