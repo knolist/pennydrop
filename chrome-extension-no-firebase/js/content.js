@@ -8,6 +8,15 @@ window.setTimeout(() => {
     });
 }, 1000);
 
+chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+    if (message.command === "get_current") {
+        _sendResponse({
+            url: window.location.href,
+            prevURL: document.referrer
+        });
+    }
+});
+
 // listener = (message, _sender, _sendResponse) => {
 //     if (message.command === "find_similar") {
 //         const selectedText = window.getSelection().toString();

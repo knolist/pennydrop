@@ -5,7 +5,6 @@ let itemGraph = createNewGraph();
 let trackBrowsing = false; // true if tracking is active
 const localServerURL = "http://127.0.0.1:5000/";
 const deployedServerURL = "https://knolist.herokuapp.com/";
-let currentPage = null; // Will hold the current page data that's coming from content.js
 
 /* Functions */
 // Function to verify if the server is being run locally
@@ -39,21 +38,13 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
 });
 
 chrome.runtime.onMessage.addListener(async function (message, _sender, _sendResponse) {
-    if (message.url !== undefined) {
-        // Update the current page object
-        currentPage = {
-            url: message.url,
-            prevURL: message.prevURL
-        };
-
+    if (message.url !== undefined && trackBrowsing) {
         // Add to project if tracking is active
-        if (trackBrowsing) {
-            const baseServerURL = await getBaseServerURL();
-            const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(message.url);
-            $.getJSON(contentExtractionURL, (item) => {
-                addItemToGraph(item, message.prevURL);
-            });
-        }
+        const baseServerURL = await getBaseServerURL();
+        const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(message.url);
+        $.getJSON(contentExtractionURL, (item) => {
+            addItemToGraph(item, message.prevURL);
+        });
     } else if (message.command === "reset") {
         resetCurProjectInGraph();
     } else if (message.command === "start-tracking") {
@@ -75,7 +66,5 @@ chrome.runtime.onMessage.addListener(async function (message, _sender, _sendResp
         });
     } else if (message.command === "get_tracking") {
         _sendResponse({trackBrowsing: trackBrowsing});
-    } else if (message.command === "get_referrer") {
-        _sendResponse({referrer: currentPage.prevURL});
     }
 });
