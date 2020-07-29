@@ -521,6 +521,9 @@ saveGraphToDisk = (graph) => {
 getGraphFromDisk = () => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get('itemGraph', function (result) {
+            if (result.itemGraph == null) {
+                saveGraphToDisk(createNewGraph())
+            }
             resolve(result.itemGraph);
         });
     })
