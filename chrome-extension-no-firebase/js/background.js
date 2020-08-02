@@ -39,6 +39,7 @@ chrome.contextMenus.onClicked.addListener(async function (clickData) {
 
 chrome.runtime.onMessage.addListener(async function (message, _sender, _sendResponse) {
     if (message.url !== undefined && trackBrowsing) {
+        // Add to project if tracking is active
         const baseServerURL = await getBaseServerURL();
         const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(message.url);
         $.getJSON(contentExtractionURL, (item) => {

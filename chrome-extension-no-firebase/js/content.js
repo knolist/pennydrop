@@ -8,15 +8,24 @@ window.setTimeout(() => {
     });
 }, 1000);
 
-listener = (message, _sender, _sendResponse) => {
-    if (message.command === "find_similar") {
-        selectedText = window.getSelection().toString();
-        if (selectedText === "") {
-            _sendResponse("Nothing is selected")
-        } else {
-            _sendResponse(selectedText)
-        }
+chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+    if (message.command === "get_current") {
+        _sendResponse({
+            url: window.location.href,
+            prevURL: document.referrer
+        });
     }
-};
+});
 
-chrome.runtime.onMessage.addListener(listener);
+// listener = (message, _sender, _sendResponse) => {
+//     if (message.command === "find_similar") {
+//         const selectedText = window.getSelection().toString();
+//         if (selectedText === "") {
+//             _sendResponse("Nothing is selected");
+//         } else {
+//             _sendResponse(selectedText);
+//         }
+//     }
+// };
+//
+// chrome.runtime.onMessage.addListener(listener);

@@ -89,6 +89,7 @@ var PopupComponents = function (_React$Component) {
                     "div",
                     { id: "popup-body" },
                     React.createElement(ProjectList, { graph: this.state.graph, refresh: this.getDataFromServer }),
+                    React.createElement(AddCurrentPageButton, null),
                     React.createElement(NewNotesArea, { showForm: this.state.showNewNotesForm, switchShowForm: this.switchShowNewNotesForm,
                         localServer: this.state.localServer })
                 )
@@ -271,6 +272,99 @@ var ProjectList = function (_React$Component3) {
     return ProjectList;
 }(React.Component);
 
+var AddCurrentPageButton = function (_React$Component4) {
+    _inherits(AddCurrentPageButton, _React$Component4);
+
+    function AddCurrentPageButton(props) {
+        _classCallCheck(this, AddCurrentPageButton);
+
+        var _this9 = _possibleConstructorReturn(this, (AddCurrentPageButton.__proto__ || Object.getPrototypeOf(AddCurrentPageButton)).call(this, props));
+
+        _this9.state = {
+            loading: false, // Used to display loading icon while page is being added
+            justAdded: false // Used to display a temporary "Added" message after node is added
+        };
+
+        _this9.addPageToProject = _this9.addPageToProject.bind(_this9);
+        return _this9;
+    }
+
+    _createClass(AddCurrentPageButton, [{
+        key: "setLoading",
+        value: function setLoading(value) {
+            this.setState({ loading: value });
+        }
+    }, {
+        key: "addPageToProject",
+        value: function addPageToProject() {
+            var _this10 = this;
+
+            this.setLoading(true);
+            // Get current page
+            chrome.tabs.query({
+                active: true, currentWindow: true
+            }, function (tabs) {
+                var currentTab = tabs[0];
+
+                // Call from server
+                var baseServerURL = deployedServerURL;
+                if (_this10.props.localServer) {
+                    // Use local server if it's active
+                    baseServerURL = localServerURL;
+                }
+                var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentTab.url);
+
+                // Get previous url to add connection if it exists, then add to project
+                chrome.tabs.sendMessage(currentTab.id, { command: "get_current" }, function (response) {
+                    // Create item based on the current page
+                    $.getJSON(contentExtractionURL, function (item) {
+                        addItemToGraph(item, response.prevURL).then(function () {
+                            return _this10.setLoading(false);
+                        });
+                    });
+                });
+            });
+        }
+    }, {
+        key: "componentDidUpdate",
+        value: function componentDidUpdate(prevProps, prevState) {
+            var _this11 = this;
+
+            // Block clicks while the new node is being loaded
+            if (prevState.loading !== this.state.loading) {
+                if (this.state.loading) document.body.style.pointerEvents = "none";else {
+                    document.body.style.pointerEvents = "auto";
+                    this.setState({ justAdded: true }, function () {
+                        setTimeout(function () {
+                            _this11.setState({ justAdded: false });
+                        }, 1000);
+                    });
+                }
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            return React.createElement(
+                "div",
+                { className: "flex popup-action-button" },
+                React.createElement(
+                    "button",
+                    { className: "button small-button button-with-text", onClick: this.addPageToProject },
+                    React.createElement(
+                        "p",
+                        null,
+                        this.state.loading ? "Adding..." : this.state.justAdded ? "Page added." : "Add this page to project"
+                    )
+                ),
+                this.state.loading ? React.createElement(LoadingSpinner, null) : null
+            );
+        }
+    }]);
+
+    return AddCurrentPageButton;
+}(React.Component);
+
 // Button used to open the "create project" form
 
 
@@ -295,22 +389,22 @@ function NewProjectButton(props) {
 
 // Form to create a new project
 
-var NewProjectForm = function (_React$Component4) {
-    _inherits(NewProjectForm, _React$Component4);
+var NewProjectForm = function (_React$Component5) {
+    _inherits(NewProjectForm, _React$Component5);
 
     function NewProjectForm(props) {
         _classCallCheck(this, NewProjectForm);
 
-        var _this9 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
+        var _this12 = _possibleConstructorReturn(this, (NewProjectForm.__proto__ || Object.getPrototypeOf(NewProjectForm)).call(this, props));
 
-        _this9.handleSubmit = _this9.handleSubmit.bind(_this9);
-        return _this9;
+        _this12.handleSubmit = _this12.handleSubmit.bind(_this12);
+        return _this12;
     }
 
     _createClass(NewProjectForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this10 = this;
+            var _this13 = this;
 
             // Prevent page from reloading
             event.preventDefault();
@@ -322,7 +416,7 @@ var NewProjectForm = function (_React$Component4) {
             if (alertMessage == null) {
                 // Valid name
                 createNewProjectInGraph(title).then(function () {
-                    return _this10.props.refresh();
+                    return _this13.props.refresh();
                 });
 
                 // Activate tracking
@@ -438,26 +532,26 @@ function ProjectsDropdown(props) {
 
 // Each item in the project dropdown
 
-var DropdownItem = function (_React$Component5) {
-    _inherits(DropdownItem, _React$Component5);
+var DropdownItem = function (_React$Component6) {
+    _inherits(DropdownItem, _React$Component6);
 
     function DropdownItem(props) {
         _classCallCheck(this, DropdownItem);
 
-        var _this11 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
+        var _this14 = _possibleConstructorReturn(this, (DropdownItem.__proto__ || Object.getPrototypeOf(DropdownItem)).call(this, props));
 
-        _this11.activateProject = _this11.activateProject.bind(_this11);
-        return _this11;
+        _this14.activateProject = _this14.activateProject.bind(_this14);
+        return _this14;
     }
 
     _createClass(DropdownItem, [{
         key: "activateProject",
         value: function activateProject() {
-            var _this12 = this;
+            var _this15 = this;
 
             this.props.switchDropdown();
             setCurrentProjectInGraph(this.props.projectName).then(function () {
-                return _this12.props.refresh();
+                return _this15.props.refresh();
             });
         }
     }, {
@@ -480,16 +574,16 @@ var DropdownItem = function (_React$Component5) {
     return DropdownItem;
 }(React.Component);
 
-var ActivateProjectSwitch = function (_React$Component6) {
-    _inherits(ActivateProjectSwitch, _React$Component6);
+var ActivateProjectSwitch = function (_React$Component7) {
+    _inherits(ActivateProjectSwitch, _React$Component7);
 
     function ActivateProjectSwitch(props) {
         _classCallCheck(this, ActivateProjectSwitch);
 
-        var _this13 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
+        var _this16 = _possibleConstructorReturn(this, (ActivateProjectSwitch.__proto__ || Object.getPrototypeOf(ActivateProjectSwitch)).call(this, props));
 
-        _this13.switchTracking = _this13.switchTracking.bind(_this13);
-        return _this13;
+        _this16.switchTracking = _this16.switchTracking.bind(_this16);
+        return _this16;
     }
 
     _createClass(ActivateProjectSwitch, [{
@@ -531,29 +625,29 @@ var ActivateProjectSwitch = function (_React$Component6) {
 function NewNotesArea(props) {
     return React.createElement(
         "div",
-        { style: { marginTop: "15px" } },
+        { className: "popup-action-button" },
         React.createElement(NewNotesButton, { showForm: props.showForm, switchShowForm: props.switchShowForm }),
         React.createElement(NewNotesForm, { showForm: props.showForm, switchShowForm: props.switchShowForm,
             localServer: props.localServer })
     );
 }
 
-var NewNotesForm = function (_React$Component7) {
-    _inherits(NewNotesForm, _React$Component7);
+var NewNotesForm = function (_React$Component8) {
+    _inherits(NewNotesForm, _React$Component8);
 
     function NewNotesForm(props) {
         _classCallCheck(this, NewNotesForm);
 
-        var _this14 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
+        var _this17 = _possibleConstructorReturn(this, (NewNotesForm.__proto__ || Object.getPrototypeOf(NewNotesForm)).call(this, props));
 
-        _this14.handleSubmit = _this14.handleSubmit.bind(_this14);
-        return _this14;
+        _this17.handleSubmit = _this17.handleSubmit.bind(_this17);
+        return _this17;
     }
 
     _createClass(NewNotesForm, [{
         key: "handleSubmit",
         value: function handleSubmit(event) {
-            var _this15 = this;
+            var _this18 = this;
 
             event.preventDefault();
 
@@ -566,17 +660,22 @@ var NewNotesForm = function (_React$Component7) {
             chrome.tabs.query({
                 active: true, currentWindow: true
             }, function (tabs) {
-                var currentURL = tabs[0].url;
+                var currentTab = tabs[0];
+
                 // Call from server
                 var baseServerURL = deployedServerURL;
-                if (_this15.props.localServer) {
+                if (_this18.props.localServer) {
                     // Use local server if it's active
                     baseServerURL = localServerURL;
                 }
-                var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentURL);
-                // Create item based on the current page
-                $.getJSON(contentExtractionURL, function (item) {
-                    addNotesToItemInGraph(item, notes);
+                var contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentTab.url);
+
+                // Get previous url to add connection if it exists, then add notes
+                chrome.tabs.sendMessage(currentTab.id, { command: "get_current" }, function (response) {
+                    // Create item based on the current page
+                    $.getJSON(contentExtractionURL, function (item) {
+                        addNotesToItemInGraph(item, notes, response.prevURL);
+                    });
                 });
             });
         }
@@ -609,26 +708,26 @@ var NewNotesForm = function (_React$Component7) {
 
 
 function NewNotesButton(props) {
-    if (props.showForm) {
-        return React.createElement(
-            "button",
-            { className: "button small-button button-with-text", onClick: props.switchShowForm },
-            React.createElement(
-                "p",
-                null,
-                "Cancel"
-            )
-        );
-    }
     return React.createElement(
         "button",
         { className: "button small-button button-with-text", onClick: props.switchShowForm },
         React.createElement(
             "p",
             null,
-            "Add notes to this page"
+            props.showForm ? "Cancel" : "Add notes to this page"
         )
     );
+}
+
+// Simple loading spinner, CSS is defined in utilities.less
+function LoadingSpinner() {
+    return React.createElement("div", { className: "spinner" });
+
+    // return (
+    //     <div className="lds-spinner">
+    //         <div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/>
+    //     </div>
+    // );
 }
 
 ReactDOM.render(React.createElement(PopupComponents, null), document.querySelector("#popup-wrapper"));

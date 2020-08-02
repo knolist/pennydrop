@@ -59,6 +59,7 @@ class PopupComponents extends React.Component {
                 <Header/>
                 <div id="popup-body">
                     <ProjectList graph={this.state.graph} refresh={this.getDataFromServer}/>
+                    <AddCurrentPageButton/>
                     <NewNotesArea showForm={this.state.showNewNotesForm} switchShowForm={this.switchShowNewNotesForm}
                                   localServer={this.state.localServer}/>
                 </div>
@@ -82,8 +83,7 @@ class Header extends React.Component {
                 if (tab.active) {
                     chrome.tabs.reload(tab.id);
                     window.close();
-                }
-                else chrome.tabs.update(tab.id, {active: true});
+                } else chrome.tabs.update(tab.id, {active: true});
             } else { // Open a new tab for the home page
                 chrome.tabs.query({
                     active: true, currentWindow: true
@@ -184,6 +184,79 @@ class ProjectList extends React.Component {
                                 projects={Object.keys(this.props.graph)}/>
                 <ProjectsDropdown dropdownOpen={this.state.dropdownOpen} switchDropdown={this.switchDropdown}
                                   graph={this.props.graph} refresh={this.props.refresh}/>
+            </div>
+        );
+    }
+}
+
+class AddCurrentPageButton extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            loading: false, // Used to display loading icon while page is being added
+            justAdded: false // Used to display a temporary "Added" message after node is added
+        };
+
+        this.addPageToProject = this.addPageToProject.bind(this);
+    }
+
+    setLoading(value) {
+        this.setState({loading: value});
+    }
+
+    addPageToProject() {
+        this.setLoading(true);
+        // Get current page
+        chrome.tabs.query({
+                active: true, currentWindow: true
+            }, tabs => {
+                let currentTab = tabs[0];
+
+                // Call from server
+                let baseServerURL = deployedServerURL;
+                if (this.props.localServer) { // Use local server if it's active
+                    baseServerURL = localServerURL;
+                }
+                const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentTab.url);
+
+                // Get previous url to add connection if it exists, then add to project
+                chrome.tabs.sendMessage(currentTab.id, {command: "get_current"}, (response) => {
+                    // Create item based on the current page
+                    $.getJSON(contentExtractionURL, (item) => {
+                        addItemToGraph(item, response.prevURL).then(() => this.setLoading(false));
+                    });
+                });
+            }
+        );
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // Block clicks while the new node is being loaded
+        if (prevState.loading !== this.state.loading) {
+            if (this.state.loading) document.body.style.pointerEvents = "none";
+            else {
+                document.body.style.pointerEvents = "auto";
+                this.setState({justAdded: true}, () => {
+                    setTimeout(() => {
+                        this.setState({justAdded: false})
+                    }, 1000);
+                })
+            }
+        }
+    }
+
+    render() {
+        return (
+            <div className="flex popup-action-button">
+                <button className="button small-button button-with-text" onClick={this.addPageToProject}>
+                    <p>{this.state.loading ? "Adding..." : this.state.justAdded ? "Page added." : "Add this page to project"}</p>
+                </button>
+                {
+                    this.state.loading ?
+                        <LoadingSpinner/> :
+                        null
+                }
             </div>
         );
     }
@@ -368,7 +441,7 @@ class ActivateProjectSwitch extends React.Component {
 
 function NewNotesArea(props) {
     return (
-        <div style={{marginTop: "15px"}}>
+        <div className="popup-action-button">
             <NewNotesButton showForm={props.showForm} switchShowForm={props.switchShowForm}/>
             <NewNotesForm showForm={props.showForm} switchShowForm={props.switchShowForm}
                           localServer={props.localServer}/>
@@ -395,16 +468,21 @@ class NewNotesForm extends React.Component {
         chrome.tabs.query({
                 active: true, currentWindow: true
             }, tabs => {
-                let currentURL = tabs[0].url;
+                let currentTab = tabs[0];
+
                 // Call from server
                 let baseServerURL = deployedServerURL;
                 if (this.props.localServer) { // Use local server if it's active
                     baseServerURL = localServerURL;
                 }
-                const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentURL);
-                // Create item based on the current page
-                $.getJSON(contentExtractionURL, (item) => {
-                    addNotesToItemInGraph(item, notes);
+                const contentExtractionURL = baseServerURL + "extract?url=" + encodeURIComponent(currentTab.url);
+
+                // Get previous url to add connection if it exists, then add notes
+                chrome.tabs.sendMessage(currentTab.id, {command: "get_current"}, (response) => {
+                    // Create item based on the current page
+                    $.getJSON(contentExtractionURL, (item) => {
+                        addNotesToItemInGraph(item, notes, response.prevURL);
+                    });
                 });
             }
         );
@@ -430,18 +508,22 @@ class NewNotesForm extends React.Component {
 
 // Button used to open the "create project" form
 function NewNotesButton(props) {
-    if (props.showForm) {
-        return (
-            <button className="button small-button button-with-text" onClick={props.switchShowForm}>
-                <p>Cancel</p>
-            </button>
-        );
-    }
     return (
         <button className="button small-button button-with-text" onClick={props.switchShowForm}>
-            <p>Add notes to this page</p>
+            <p>{props.showForm ? "Cancel" : "Add notes to this page"}</p>
         </button>
     );
+}
+
+// Simple loading spinner, CSS is defined in utilities.less
+function LoadingSpinner() {
+    return <div className="spinner"/>
+
+    // return (
+    //     <div className="lds-spinner">
+    //         <div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/><div/>
+    //     </div>
+    // );
 }
 
 ReactDOM.render(<PopupComponents/>, document.querySelector("#popup-wrapper"));

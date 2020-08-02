@@ -22,6 +22,26 @@ createNewGraph = () => {
 };
 
 /**
+ * This is a helper to insert an edge while checking if it already exists. It avoids adding repeated edges.
+ * @param graph the graph to receive the new edge
+ * @param previousURL the URL of the "from" end of the edge
+ * @param toURL the URL of the "to" end of the edge
+ * @returns {*} the updated graph
+ */
+addEdgeHelper = (graph, previousURL, toURL) => {
+    if (previousURL !== "" && graph[previousURL] !== undefined) {
+        // Only add if edge doesn't exist
+        if (!graph[previousURL].nextURLs.includes(toURL)) {
+            graph[previousURL].nextURLs.push(toURL);
+        }
+        if (!graph[toURL].prevURLs.includes(previousURL)) {
+            graph[toURL].prevURLs.push(previousURL);
+        }
+    }
+    return graph;
+};
+
+/**
  * Gets all the content from each node in the current project.
  * @param exceptURL a URL to be excluded from the extraction
  * @returns {[]|Array} an array with all the contents
@@ -104,17 +124,11 @@ addEdgeToGraph = async (fromURL, toURL) => {
     const project = graphData["curProject"];
     let graph = graphData[project];
 
-    // Check if the edge does not exist
-    if (graph[fromURL]["nextURLs"].indexOf(toURL) === -1 && graph[fromURL]["prevURLs"].indexOf(fromURL) === -1) {
-        // Add forward edge in "from"
-        graph[fromURL]["nextURLs"].push(toURL);
+    // Use helper to add edge
+    graphData[project] = addEdgeHelper(graph, fromURL, toURL);
 
-        // Add incoming edge in "to"
-        graph[toURL]["prevURLs"].push(fromURL);
-
-        // Save to disk
-        saveGraphToDisk(graphData);
-    }
+    // Save to disk
+    saveGraphToDisk(graphData);
 };
 
 /**
@@ -123,7 +137,7 @@ addEdgeToGraph = async (fromURL, toURL) => {
  * @param item the idem to be added/updated
  * @param previousURL the URL of this node's parent in the graph
  */
-addItemToGraph = async (item, previousURL) => {
+addItemToGraph = async (item, previousURL = "") => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
@@ -137,13 +151,10 @@ addItemToGraph = async (item, previousURL) => {
         // Initialize with null positions (will be updated on render of the network
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
-
-        // Add edge to graph
-        if (previousURL !== "" && graph[previousURL] !== undefined) {
-            graph[item["source"]]["prevURLs"].push(previousURL);
-            graph[previousURL]["nextURLs"].push(item["source"]);
-        }
     }
+
+    // Add edge to graph
+    graphData[project] = addEdgeHelper(graph, previousURL, item.source);
 
     // Save to disk
     saveGraphToDisk(graphData);
@@ -193,8 +204,9 @@ updateAllPositionsInGraph = async (positions) => {
  * Adds an array of highlights to an item in the current project.
  * @param item the item to receive the highlights
  * @param highlights an array of text highlights to be added
+ * @param previousURL (optional) the url that precedes the node that's being added
  */
-addHighlightsToItemInGraph = async (item, highlights) => {
+addHighlightsToItemInGraph = async (item, highlights, previousURL = "") => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
@@ -209,6 +221,10 @@ addHighlightsToItemInGraph = async (item, highlights) => {
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
     }
+    // Add edge to graph
+    graphData[project] = addEdgeHelper(graph, previousURL, item.source);
+
+    // Add highlights
     graph[item["source"]]["highlights"].push(highlights);
 
     // Save to disk
@@ -259,9 +275,10 @@ deleteNotesFromItemInGraph = async (url, indicesToDelete) => {
  * Add notes to a certain item in the current project
  * @param item the item to receive the notes
  * @param notes the notes to be added
+ * @param previousURL (optional) the url of the node that precedes the node being added
  * @returns {Promise<void>} empty promise, ignored
  */
-addNotesToItemInGraph = async (item, notes) => {
+addNotesToItemInGraph = async (item, notes, previousURL = "") => {
     let graphData = await getGraphFromDisk();
     const project = graphData["curProject"];
     let graph = graphData[project];
@@ -276,6 +293,10 @@ addNotesToItemInGraph = async (item, notes) => {
         graph[item["source"]]["x"] = null;
         graph[item["source"]]["y"] = null;
     }
+    // Add edge to graph
+    graphData[project] = addEdgeHelper(graph, previousURL, item.source);
+
+    // Add notes
     graph[item["source"]]["notes"].push(notes);
 
     // Save to disk
@@ -500,6 +521,9 @@ saveGraphToDisk = (graph) => {
 getGraphFromDisk = () => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get('itemGraph', function (result) {
+            if (result.itemGraph == null) {
+                saveGraphToDisk(createNewGraph())
+            }
             resolve(result.itemGraph);
         });
     })
