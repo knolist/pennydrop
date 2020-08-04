@@ -274,7 +274,7 @@ li {
   /*border-bottom-color: black;*/
 
   &:hover {
-    background-color: var(--active-project-background);
+    background-color: lighten(@active-project-background, 5%);
     cursor: pointer;
   }
 
@@ -307,6 +307,10 @@ li {
 
 .active-project {
   background-color: var(--active-project-background);
+
+  &:hover {
+    background-color: var(--active-project-background);
+  }
 }
 
 .new-project-button {
