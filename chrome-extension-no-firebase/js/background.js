@@ -4,7 +4,7 @@ let itemGraph = createNewGraph();
 // getGraphFromDisk(itemGraph); // This method updates the passed in graph variable in place
 let trackBrowsing = false; // true if tracking is active
 const localServerURL = "http://127.0.0.1:5000/";
-const deployedServerURL = "https://knolist.herokuapp.com/";
+const deployedServerURL = "https://knolist-legacy.herokuapp.com/";
 
 /* Functions */
 // Function to verify if the server is being run locally

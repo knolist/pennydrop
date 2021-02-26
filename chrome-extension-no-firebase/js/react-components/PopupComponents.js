@@ -8,7 +8,7 @@ import Utils from "../utils.js"
 
 // Global variables
 const localServerURL = "http://127.0.0.1:5000/";
-const deployedServerURL = "https://knolist.herokuapp.com/";
+const deployedServerURL = "https://knolist-legacy.herokuapp.com/";
 
 // Wrapper for all components in the popup
 class PopupComponents extends React.Component {

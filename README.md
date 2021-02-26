@@ -13,7 +13,7 @@ using by adding the following line to your `~/.bashrc`: `alias babelc_kno='npx b
 run the compiler by calling `babelc_kno` from your command line)  
 
 ## Running the server
-The server has been deployed to [knolist.herokuapp.com](knolist.herokuapp.com). The source for the deployed version of the server
+The server has been deployed to [knolist-legacy.herokuapp.com](knolist-legacy.herokuapp.com). The source for the deployed version of the server
 is in a separate repo in the Knolist organization, called `knolist-backend`. If you want to make any updates to `server.py`, do so
 in that other repo, as we will only keep the version in this repo for reference. Automatic deploy is active on Heroku, 
 so all you need to do is push the updated code to master in `knolist-backend`.

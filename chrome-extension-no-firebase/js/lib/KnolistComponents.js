@@ -18,7 +18,7 @@ import Utils from "../utils.js";
 
 // Global variables
 var localServerURL = "http://127.0.0.1:5000/";
-var deployedServerURL = "https://knolist.herokuapp.com/";
+var deployedServerURL = "https://knolist-legacy.herokuapp.com/";
 var nodeBackgroundDefaultColor = Utils.getDefaultNodeColor();
 var nodeHighlightDefaultColor = Utils.getHighlightNodeColor();
 
