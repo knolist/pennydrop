@@ -1,3 +1,5 @@
+importScripts("vendor/jquery.js", "graph.js");
+
 /* Global variables */
 // All the websites as a graph
 let itemGraph = createNewGraph();
@@ -48,10 +50,10 @@ chrome.runtime.onMessage.addListener(async function (message, _sender, _sendResp
     } else if (message.command === "reset") {
         resetCurProjectInGraph();
     } else if (message.command === "start-tracking") {
-        chrome.browserAction.setIcon({path: "../images/icon128_active.png"});
+        chrome.action.setIcon({path: "../images/icon128_active.png"});
         trackBrowsing = true;
     } else if (message.command === "stop-tracking") {
-        chrome.browserAction.setIcon({path: "../images/icon128.png"});
+        chrome.action.setIcon({path: "../images/icon128.png"});
         trackBrowsing = false;
     } else if (message.command === "find_similar_msg") {
         const contents = getContentFromGraph(message.currentURL);
