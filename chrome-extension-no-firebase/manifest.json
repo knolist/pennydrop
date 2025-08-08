@@ -18,7 +18,11 @@
     "service_worker": "js/background.js"
   },
   "permissions": ["tabs", "storage", "contextMenus"],
+  "host_permissions": [
+    "http://127.0.0.1:5000/",
+    "https://knolist-legacy.herokuapp.com/"
+  ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' https://www.gstatic.com/ https://apis.google.com https://www.googleapis.com; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
